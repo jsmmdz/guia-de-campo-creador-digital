@@ -55,6 +55,306 @@
   gsap.registerPlugin(ScrollTrigger);
   document.fonts.ready.then(() => ScrollTrigger.refresh());
 
+  /* ---------- galaxy: fondo de estrellas (OGL/WebGL) ----------
+     portado desde reactbits.dev/backgrounds/galaxy — misma lógica comentada
+     y reutilizable en RECURSOS/galaxy.js (fuera del repo). Carga OGL por
+     import() dinámico desde CDN para no romper el patrón "un solo script.js
+     sin bundler": si el CDN falla, el radial-gradient + sweep de CSS que ya
+     tiene .threshold siguen de fondo, nada se rompe. */
+  function initGalaxy(ctn) {
+    if (!ctn) return;
+    import("https://esm.sh/ogl@1.0.11")
+      .then(({ Renderer, Program, Mesh, Color, Triangle }) => {
+        const vertexShader = `
+attribute vec2 uv;
+attribute vec2 position;
+
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 0, 1);
+}
+`;
+
+        const fragmentShader = `
+precision highp float;
+
+uniform float uTime;
+uniform vec3 uResolution;
+uniform vec2 uFocal;
+uniform vec2 uRotation;
+uniform float uStarSpeed;
+uniform float uDensity;
+uniform float uHueShift;
+uniform float uSpeed;
+uniform vec2 uMouse;
+uniform float uGlowIntensity;
+uniform float uSaturation;
+uniform bool uMouseRepulsion;
+uniform float uTwinkleIntensity;
+uniform float uRotationSpeed;
+uniform float uRepulsionStrength;
+uniform float uMouseActiveFactor;
+uniform float uAutoCenterRepulsion;
+uniform bool uTransparent;
+
+varying vec2 vUv;
+
+#define NUM_LAYER 4.0
+#define STAR_COLOR_CUTOFF 0.2
+#define MAT45 mat2(0.7071, -0.7071, 0.7071, 0.7071)
+#define PERIOD 3.0
+
+float Hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float tri(float x) {
+  return abs(fract(x) * 2.0 - 1.0);
+}
+
+float tris(float x) {
+  float t = fract(x);
+  return 1.0 - smoothstep(0.0, 1.0, abs(2.0 * t - 1.0));
+}
+
+float trisn(float x) {
+  float t = fract(x);
+  return 2.0 * (1.0 - smoothstep(0.0, 1.0, abs(2.0 * t - 1.0))) - 1.0;
+}
+
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+float Star(vec2 uv, float flare) {
+  float d = length(uv);
+  float m = (0.05 * uGlowIntensity) / d;
+  float rays = smoothstep(0.0, 1.0, 1.0 - abs(uv.x * uv.y * 1000.0));
+  m += rays * flare * uGlowIntensity;
+  uv *= MAT45;
+  rays = smoothstep(0.0, 1.0, 1.0 - abs(uv.x * uv.y * 1000.0));
+  m += rays * 0.3 * flare * uGlowIntensity;
+  m *= smoothstep(1.0, 0.2, d);
+  return m;
+}
+
+vec3 StarLayer(vec2 uv) {
+  vec3 col = vec3(0.0);
+
+  vec2 gv = fract(uv) - 0.5;
+  vec2 id = floor(uv);
+
+  for (int y = -1; y <= 1; y++) {
+    for (int x = -1; x <= 1; x++) {
+      vec2 offset = vec2(float(x), float(y));
+      vec2 si = id + vec2(float(x), float(y));
+      float seed = Hash21(si);
+      float size = fract(seed * 345.32);
+      float glossLocal = tri(uStarSpeed / (PERIOD * seed + 1.0));
+      float flareSize = smoothstep(0.9, 1.0, size) * glossLocal;
+
+      float red = smoothstep(STAR_COLOR_CUTOFF, 1.0, Hash21(si + 1.0)) + STAR_COLOR_CUTOFF;
+      float blu = smoothstep(STAR_COLOR_CUTOFF, 1.0, Hash21(si + 3.0)) + STAR_COLOR_CUTOFF;
+      float grn = min(red, blu) * seed;
+      vec3 base = vec3(red, grn, blu);
+
+      float hue = atan(base.g - base.r, base.b - base.r) / (2.0 * 3.14159) + 0.5;
+      hue = fract(hue + uHueShift / 360.0);
+      float sat = length(base - vec3(dot(base, vec3(0.299, 0.587, 0.114)))) * uSaturation;
+      float val = max(max(base.r, base.g), base.b);
+      base = hsv2rgb(vec3(hue, sat, val));
+
+      vec2 pad = vec2(tris(seed * 34.0 + uTime * uSpeed / 10.0), tris(seed * 38.0 + uTime * uSpeed / 30.0)) - 0.5;
+
+      float star = Star(gv - offset - pad, flareSize);
+      vec3 color = base;
+
+      float twinkle = trisn(uTime * uSpeed + seed * 6.2831) * 0.5 + 1.0;
+      twinkle = mix(1.0, twinkle, uTwinkleIntensity);
+      star *= twinkle;
+
+      col += star * size * color;
+    }
+  }
+
+  return col;
+}
+
+void main() {
+  vec2 focalPx = uFocal * uResolution.xy;
+  vec2 uv = (vUv * uResolution.xy - focalPx) / uResolution.y;
+
+  vec2 mouseNorm = uMouse - vec2(0.5);
+
+  if (uAutoCenterRepulsion > 0.0) {
+    vec2 centerUV = vec2(0.0, 0.0);
+    float centerDist = length(uv - centerUV);
+    vec2 repulsion = normalize(uv - centerUV) * (uAutoCenterRepulsion / (centerDist + 0.1));
+    uv += repulsion * 0.05;
+  } else if (uMouseRepulsion) {
+    vec2 mousePosUV = (uMouse * uResolution.xy - focalPx) / uResolution.y;
+    float mouseDist = length(uv - mousePosUV);
+    vec2 repulsion = normalize(uv - mousePosUV) * (uRepulsionStrength / (mouseDist + 0.1));
+    uv += repulsion * 0.05 * uMouseActiveFactor;
+  } else {
+    vec2 mouseOffset = mouseNorm * 0.1 * uMouseActiveFactor;
+    uv += mouseOffset;
+  }
+
+  float autoRotAngle = uTime * uRotationSpeed;
+  mat2 autoRot = mat2(cos(autoRotAngle), -sin(autoRotAngle), sin(autoRotAngle), cos(autoRotAngle));
+  uv = autoRot * uv;
+
+  uv = mat2(uRotation.x, -uRotation.y, uRotation.y, uRotation.x) * uv;
+
+  vec3 col = vec3(0.0);
+
+  for (float i = 0.0; i < 1.0; i += 1.0 / NUM_LAYER) {
+    float depth = fract(i + uStarSpeed * uSpeed);
+    float scale = mix(20.0 * uDensity, 0.5 * uDensity, depth);
+    float fade = depth * smoothstep(1.0, 0.9, depth);
+    col += StarLayer(uv * scale + i * 453.32) * fade;
+  }
+
+  if (uTransparent) {
+    float alpha = length(col);
+    alpha = smoothstep(0.0, 0.3, alpha);
+    alpha = min(alpha, 1.0);
+    gl_FragColor = vec4(col, alpha);
+  } else {
+    gl_FragColor = vec4(col, 1.0);
+  }
+}
+`;
+
+        // paleta del sitio (--signal, azul-violeta) en vez del verde por
+        // defecto del componente original — saturation venía en 0 (gris
+        // puro), sin eso uHueShift no tenía ningún efecto visible
+        const cfg = {
+          focal: [0.5, 0.5],
+          rotation: [1.0, 0.0],
+          starSpeed: 0.2,
+          density: 2.5,
+          hueShift: 0,
+          speed: 0.8,
+          mouseInteraction: true,
+          glowIntensity: 0.3,
+          saturation: 0.1,
+          mouseRepulsion: true,
+          repulsionStrength: 1,
+          twinkleIntensity: 0.1,
+          rotationSpeed: 0.05,
+          autoCenterRepulsion: 0,
+          transparent: true,
+        };
+
+        const renderer = new Renderer({ alpha: cfg.transparent, premultipliedAlpha: false });
+        const gl = renderer.gl;
+        if (cfg.transparent) {
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.clearColor(0, 0, 0, 0);
+        } else {
+          gl.clearColor(0, 0, 0, 1);
+        }
+
+        let program;
+        function resize() {
+          renderer.setSize(ctn.offsetWidth, ctn.offsetHeight);
+          if (program) {
+            program.uniforms.uResolution.value = new Color(
+              gl.canvas.width,
+              gl.canvas.height,
+              gl.canvas.width / gl.canvas.height
+            );
+          }
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const geometry = new Triangle(gl);
+        const smoothMouse = { x: 0.5, y: 0.5 };
+        const targetMouse = { x: 0.5, y: 0.5 };
+        let smoothActive = 0;
+        let targetActive = 0;
+
+        program = new Program(gl, {
+          vertex: vertexShader,
+          fragment: fragmentShader,
+          uniforms: {
+            uTime: { value: 0 },
+            uResolution: { value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height) },
+            uFocal: { value: new Float32Array(cfg.focal) },
+            uRotation: { value: new Float32Array(cfg.rotation) },
+            uStarSpeed: { value: cfg.starSpeed },
+            uDensity: { value: cfg.density },
+            uHueShift: { value: cfg.hueShift },
+            uSpeed: { value: cfg.speed },
+            uMouse: { value: new Float32Array([smoothMouse.x, smoothMouse.y]) },
+            uGlowIntensity: { value: cfg.glowIntensity },
+            uSaturation: { value: cfg.saturation },
+            uMouseRepulsion: { value: cfg.mouseRepulsion },
+            uTwinkleIntensity: { value: cfg.twinkleIntensity },
+            uRotationSpeed: { value: cfg.rotationSpeed },
+            uRepulsionStrength: { value: cfg.repulsionStrength },
+            uMouseActiveFactor: { value: 0 },
+            uAutoCenterRepulsion: { value: cfg.autoCenterRepulsion },
+            uTransparent: { value: cfg.transparent },
+          },
+        });
+
+        const mesh = new Mesh(gl, { geometry, program });
+        ctn.appendChild(gl.canvas);
+
+        function update(t) {
+          requestAnimationFrame(update);
+          program.uniforms.uTime.value = t * 0.001;
+          program.uniforms.uStarSpeed.value = (t * 0.001 * cfg.starSpeed) / 10.0;
+
+          const lerp = 0.05;
+          smoothMouse.x += (targetMouse.x - smoothMouse.x) * lerp;
+          smoothMouse.y += (targetMouse.y - smoothMouse.y) * lerp;
+          smoothActive += (targetActive - smoothActive) * lerp;
+
+          program.uniforms.uMouse.value[0] = smoothMouse.x;
+          program.uniforms.uMouse.value[1] = smoothMouse.y;
+          program.uniforms.uMouseActiveFactor.value = smoothActive;
+
+          renderer.render({ scene: mesh });
+        }
+        requestAnimationFrame(update);
+
+        // el componente original escuchaba mousemove sobre su propio
+        // contenedor; acá escuchamos en document (mismo patrón que ya usaba
+        // el cometa del cursor que reemplaza) porque el contenido del
+        // umbral (hero, z-index más alto) cubre toda el área y absorbería
+        // el evento antes de que llegue al fondo
+        if (cfg.mouseInteraction) {
+          document.addEventListener("mousemove", (e) => {
+            const rect = ctn.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = 1.0 - (e.clientY - rect.top) / rect.height;
+            const inside = x >= 0 && x <= 1 && y >= 0 && y <= 1;
+            targetActive = inside ? 1.0 : 0.0;
+            if (inside) {
+              targetMouse.x = x;
+              targetMouse.y = y;
+            }
+          });
+        }
+      })
+      .catch(() => {
+        // sin conexión al CDN de OGL: se queda el radial-gradient + sweep
+        // de fondo que ya existían, nada se rompe
+      });
+  }
+
   /* ============================================================
      THRESHOLD — Nodo 0
      ============================================================ */
@@ -85,137 +385,11 @@
       });
     });
 
-    /* ---------- cometa del cursor sobre el umbral ----------
-       réplica del efecto de threejs.paris/tickets: el cursor arrastra una
-       cinta luminosa continua (núcleo blanco, medio lavanda, halo azul de
-       marca) que se estrecha hacia la cola y se encoge al detenerse, y va
-       sembrando chispas que quedan titilando un instante. */
-    const trailCanvas = document.querySelector(".threshold__trail");
-    if (trailCanvas) {
-      const tctx = trailCanvas.getContext("2d");
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const TAIL_AGE = 0.55;   // segundos que vive cada punto de la cinta
-      const TAIL_MAX = 48;     // puntos máximos de la cinta
-      const HEAD_W = 9;        // grosor de la cinta en la cabeza (px)
-      let ribbon = [];         // { x, y, t } — trayectoria reciente del cursor
-      let sparks = [];         // chispas sueltas que quedan atrás
-      let clock = 0;           // reloj propio, alimentado por el ticker
-      let wasEmpty = true;
-
-      function resizeTrail() {
-        const rect = trailCanvas.getBoundingClientRect();
-        trailCanvas.width = Math.max(1, Math.round(rect.width * dpr));
-        trailCanvas.height = Math.max(1, Math.round(rect.height * dpr));
-        tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-      resizeTrail();
-      window.addEventListener("resize", resizeTrail);
-
-      document.addEventListener("mousemove", (e) => {
-        const rect = trailCanvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-
-        const prev = ribbon[ribbon.length - 1];
-        const dist = prev ? Math.hypot(x - prev.x, y - prev.y) : 0;
-        ribbon.push({ x, y, t: clock });
-        if (ribbon.length > TAIL_MAX) ribbon.shift();
-
-        // chispas proporcionales a la velocidad, como la lluvia de puntitos
-        // que queda tras el cometa en la referencia
-        if (prev && dist > 6 && sparks.length < 90) {
-          const n = Math.min(3, Math.floor(dist / 18) + 1);
-          for (let i = 0; i < n; i++) {
-            const back = Math.random();
-            sparks.push({
-              x: prev.x + (x - prev.x) * back + (Math.random() - 0.5) * 10,
-              y: prev.y + (y - prev.y) * back + (Math.random() - 0.5) * 10,
-              vx: (Math.random() - 0.5) * 14,
-              vy: (Math.random() - 0.5) * 14 - 6,
-              born: clock,
-              life: 0.5 + Math.random() * 0.7,
-              size: 0.8 + Math.random() * 1.6,
-            });
-          }
-        }
-      });
-
-      let lastT = null;
-      gsap.ticker.add((time) => {
-        const dt = lastT === null ? 0 : Math.min(0.05, time - lastT);
-        lastT = time;
-        clock += dt;
-
-        ribbon = ribbon.filter((p) => clock - p.t < TAIL_AGE);
-        sparks = sparks.filter((s) => clock - s.born < s.life);
-
-        // no repintar en vano cuando no hay nada que mostrar
-        if (!ribbon.length && !sparks.length) {
-          if (!wasEmpty) {
-            const r = trailCanvas.getBoundingClientRect();
-            tctx.clearRect(0, 0, r.width, r.height);
-            wasEmpty = true;
-          }
-          return;
-        }
-        wasEmpty = false;
-
-        const rect = trailCanvas.getBoundingClientRect();
-        tctx.clearRect(0, 0, rect.width, rect.height);
-        tctx.lineCap = "round";
-        tctx.lineJoin = "round";
-
-        if (ribbon.length > 1) {
-          // tres pasadas sobre la misma trayectoria: halo azul ancho,
-          // cuerpo lavanda y núcleo blanco — el grosor y la opacidad
-          // crecen de la cola (vieja) a la cabeza (cursor)
-          const passes = [
-            { w: 3.2, color: [61, 58, 224], a: 0.4 },
-            { w: 1.7, color: [155, 160, 255], a: 0.75 },
-            { w: 0.8, color: [255, 255, 255], a: 0.95 },
-          ];
-          passes.forEach((pass) => {
-            for (let i = 1; i < ribbon.length; i++) {
-              const p0 = ribbon[i - 1];
-              const p1 = ribbon[i];
-              const prog = i / (ribbon.length - 1);       // 0 cola → 1 cabeza
-              const fade = 1 - (clock - p1.t) / TAIL_AGE; // envejecimiento
-              tctx.strokeStyle = "rgba(" + pass.color.join(",") + "," + (pass.a * prog * fade).toFixed(3) + ")";
-              tctx.lineWidth = Math.max(0.5, HEAD_W * pass.w * prog);
-              tctx.beginPath();
-              tctx.moveTo(p0.x, p0.y);
-              // curva por el punto medio: suaviza los quiebres del sampleo
-              tctx.quadraticCurveTo(p0.x, p0.y, (p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
-              tctx.lineTo(p1.x, p1.y);
-              tctx.stroke();
-            }
-          });
-
-          // cabeza: destello sobre la posición actual del cursor
-          const head = ribbon[ribbon.length - 1];
-          const hg = tctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, HEAD_W * 2.4);
-          hg.addColorStop(0, "rgba(255,255,255,0.95)");
-          hg.addColorStop(0.35, "rgba(155,160,255,0.55)");
-          hg.addColorStop(1, "rgba(61,58,224,0)");
-          tctx.fillStyle = hg;
-          tctx.beginPath();
-          tctx.arc(head.x, head.y, HEAD_W * 2.4, 0, Math.PI * 2);
-          tctx.fill();
-        }
-
-        sparks.forEach((s) => {
-          s.x += s.vx * dt;
-          s.y += s.vy * dt;
-          const t = (clock - s.born) / s.life;
-          const alpha = (1 - t) * (0.5 + 0.5 * Math.sin((clock - s.born) * 24)); // titilan
-          tctx.fillStyle = "rgba(210,215,255," + Math.max(0, alpha).toFixed(3) + ")";
-          tctx.beginPath();
-          tctx.arc(s.x, s.y, s.size * (1 - t * 0.5), 0, Math.PI * 2);
-          tctx.fill();
-        });
-      });
-    }
+    /* ---------- galaxy: fondo de estrellas del umbral ----------
+       portado desde reactbits.dev/backgrounds/galaxy (OGL/WebGL) a vanilla —
+       versión reutilizable con comentarios en RECURSOS/galaxy.js. Reemplaza
+       el cometa del cursor (no era definitivo, se retiró a pedido). */
+    initGalaxy(document.querySelector(".threshold__galaxy"));
 
     document.querySelectorAll(".specimen-chip__frame").forEach((frame, i) => {
       gsap.to(frame, {

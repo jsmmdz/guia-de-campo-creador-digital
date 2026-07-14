@@ -258,11 +258,25 @@ body.sensor-on.in-catalog .sensor-note--plate { opacity: 1; transform: translate
   flex-direction: column;
 }
 
+/* galaxy: fondo de estrellas (OGL/WebGL), la capa más profunda del umbral —
+   ver initGalaxy() en script.js / RECURSOS/galaxy.js para la versión suelta */
+.threshold__galaxy {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.threshold__galaxy canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* radar: barrido cónico lento detrás del título, siempre encendido pero tenue */
 .threshold__sweep {
   position: absolute;
   inset: -20%;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   background: conic-gradient(
     from 0deg,
@@ -278,12 +292,12 @@ body.sensor-on.in-catalog .sensor-note--plate { opacity: 1; transform: translate
 
 /* --- estado base (sin JS / motion reducido): todo visible, sin órbita ni pin --- */
 
-.threshold__field { position: relative; z-index: 1; height: 42vh; min-height: 260px; }
+.threshold__field { position: relative; z-index: 2; height: 42vh; min-height: 260px; }
 .threshold__hero,
 .threshold__reading,
 .threshold__seal {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   min-height: 55vh;
 }
 .threshold__fragment { opacity: 1; }
@@ -293,7 +307,7 @@ body.sensor-on.in-catalog .sensor-note--plate { opacity: 1; transform: translate
 /* --- estado mejorado: JS confirmó motion + tamaño de viewport aptos --- */
 
 body.enhanced .threshold { height: 100vh; height: 100svh; }
-body.enhanced .threshold__field { position: absolute; inset: 0; height: auto; z-index: 1; }
+body.enhanced .threshold__field { position: absolute; inset: 0; height: auto; z-index: 2; }
 body.enhanced .threshold__hero,
 body.enhanced .threshold__reading,
 body.enhanced .threshold__seal {
@@ -359,18 +373,6 @@ body:not(.enhanced) .specimen-chip__frame { transform: none; }
   letter-spacing: -0.01em;
   text-transform: uppercase;
   text-shadow: 0 0 26px rgba(27, 25, 168, 0.5), 2px 2px 0 rgba(27, 25, 168, 0.85);
-}
-
-/* cometa del cursor: cinta que sigue al mouse por todo el umbral, como en
-   threejs.paris/tickets — reinterpretada en el azul/lavanda de marca.
-   Va por encima del hero (z 2) para brillar también sobre las letras. */
-.threshold__trail {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 3;
 }
 
 .threshold__query {

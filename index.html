@@ -30,10 +30,12 @@
      ============================================================ -->
 <main class="threshold" id="threshold">
 
-  <div class="threshold__sweep" aria-hidden="true"></div>
+  <!-- fondo: galaxia de estrellas (OGL/WebGL), portado desde reactbits.dev —
+       ver RECURSOS/galaxy.js y .css en la raíz del proyecto para la versión
+       reutilizable -->
+  <div class="threshold__galaxy" aria-hidden="true"></div>
 
-  <!-- cometa del cursor: cinta que sigue al mouse por todo el umbral -->
-  <canvas class="threshold__trail" aria-hidden="true"></canvas>
+  <div class="threshold__sweep" aria-hidden="true"></div>
 
   <!-- especímenes en órbita: los 8 programas de la carrera, atmosféricos, no clicables -->
   <div class="threshold__field" aria-hidden="true">
