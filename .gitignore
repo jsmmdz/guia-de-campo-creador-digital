@@ -1,0 +1,6 @@
+# SO / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# sitio estático, sin build step — no hay node_modules ni dist/

@@ -1,0 +1,600 @@
+/* ============================================================
+   Guía de Campo del Creador Digital — Acto I
+   El sitio entero es un instrumento de campo: escanea, registra,
+   cataloga. El HUD y el switch de Cognición Aumentada son la misma
+   idea aplicada en distintos puntos del recorrido.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+/* ============================================================
+   BREAKPOINTS — escala fija en todo el archivo (no hay unidades
+   CSS custom property válidas dentro de @media, así que queda
+   documentada aquí y repetida en cada query):
+
+     móvil     ≤ 767px
+     tablet      768px – 1023px
+     laptop     1024px – 1439px   (tier base, sin @media)
+     desktop    1440px – 1919px
+     pantallas grandes  ≥ 1920px
+
+   El mismo corte (767 / 1023) se usa en script.js para decidir el
+   modo simple vs. scroll-jacking del catálogo y el radio de órbita.
+   ============================================================ */
+
+:root {
+  --void: #000000;
+  --depth: #050507;
+  --paper: #ffffff;
+  --signal: #1b19a8;
+  --signal-hi: #3d3ae0;
+
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 40px;
+  --sp-5: 64px;
+  --sp-6: 96px;
+
+  --f-display: "Archivo", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* espectro de especímenes, en el orden fijo del catálogo */
+  --spec-1: #b9bce8; --spec-1-deep: #6f73bd; /* UX/UI Design      */
+  --spec-2: #7a4fae; --spec-2-deep: #3d1b5e; /* 3D Production     */
+  --spec-3: #d6336c; --spec-3-deep: #7a1638; /* Software Dev      */
+  --spec-4: #f2842b; --spec-4-deep: #8f4611; /* Game Engineering  */
+  --spec-5: #9bbe3f; --spec-5-deep: #556b1f; /* Multimedia Artist */
+  --spec-6: #ede9e2; --spec-6-deep: #a89f8c; /* AI Technologist   */
+
+  --field-a: var(--depth);
+  --field-b: var(--void);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: auto; }
+
+body {
+  background: var(--void);
+  color: var(--paper);
+  font-family: var(--f-display);
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--signal); color: var(--paper); }
+img { max-width: 100%; display: block; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ============================================================
+   HUD — chrome fijo del instrumento
+   ============================================================ */
+
+.hud {
+  position: fixed;
+  inset: var(--sp-3);
+  z-index: 40;
+  pointer-events: none;
+  border: 1px solid rgba(61, 58, 224, 0.32);
+  mix-blend-mode: difference;
+}
+.hud::before, .hud::after {
+  content: "";
+  position: absolute;
+  width: 10px; height: 10px;
+  border: 1px solid var(--signal-hi);
+}
+.hud::before { top: -5px; left: -5px; border-right: 0; border-bottom: 0; }
+.hud::after  { bottom: -5px; right: -5px; border-left: 0; border-top: 0; }
+
+.hud__reg,
+.hud__coord {
+  position: fixed;
+  z-index: 40;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--paper);
+  pointer-events: none;
+  mix-blend-mode: difference;
+}
+.hud__reg   { top: calc(var(--sp-3) + 10px); left: calc(var(--sp-3) + var(--sp-2)); }
+.hud__coord { bottom: calc(var(--sp-3) + 10px); right: calc(var(--sp-3) + var(--sp-2)); text-align: right; }
+
+/* móvil ≤767 */
+@media (max-width: 767px) {
+  .hud { inset: var(--sp-2); }
+  .hud__reg, .hud__coord { font-size: 8px; letter-spacing: 0.1em; }
+  .hud__reg   { top: calc(var(--sp-2) + 8px); left: calc(var(--sp-2) + 8px); }
+  .hud__coord { bottom: calc(var(--sp-2) + 8px); right: calc(var(--sp-2) + 8px); max-width: 40vw; }
+}
+/* tablet 768–1023 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hud__reg, .hud__coord { font-size: 9px; }
+}
+/* desktop 1440–1919 */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .hud { inset: var(--sp-4); }
+  .hud__reg, .hud__coord { font-size: 10.5px; letter-spacing: 0.18em; }
+  .hud__reg   { top: calc(var(--sp-4) + 10px); left: calc(var(--sp-4) + var(--sp-2)); }
+  .hud__coord { bottom: calc(var(--sp-4) + 10px); right: calc(var(--sp-4) + var(--sp-2)); }
+}
+/* pantallas grandes ≥1920 */
+@media (min-width: 1920px) {
+  .hud { inset: var(--sp-5); }
+  .hud__reg, .hud__coord { font-size: 12px; letter-spacing: 0.2em; }
+  .hud__reg   { top: calc(var(--sp-5) + 10px); left: calc(var(--sp-5) + var(--sp-2)); }
+  .hud__coord { bottom: calc(var(--sp-5) + 10px); right: calc(var(--sp-5) + var(--sp-2)); }
+}
+
+/* ============================================================
+   SENSOR — switch de Cognición Aumentada
+   ============================================================ */
+
+.sensor {
+  position: fixed;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px 9px 12px;
+  border: 1px solid rgba(61, 58, 224, 0.55);
+  background: rgba(3, 3, 4, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 3px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+.sensor:hover, .sensor:focus-visible { border-color: var(--signal-hi); color: var(--paper); }
+.sensor:focus-visible { outline: 1px solid var(--signal-hi); outline-offset: 3px; }
+
+.sensor__light {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: none;
+  flex-shrink: 0;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.sensor[aria-pressed="true"] .sensor__light {
+  background: #5be08a;
+  box-shadow: 0 0 7px #5be08a, 0 0 2px #5be08a;
+  animation: sensor-pulse 1.8s ease-in-out infinite;
+}
+@keyframes sensor-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+.sensor__state { min-width: 22px; }
+
+/* scanline: overlay sutil que aparece con el sensor activo, cubre todo el sitio */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  transition: opacity 0.5s ease;
+}
+body.sensor-on .scanlines { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  body.sensor-on .scanlines { animation: scan-drift 9s linear infinite; }
+}
+@keyframes scan-drift { from { background-position: 0 0; } to { background-position: 0 240px; } }
+
+.sensor-note {
+  position: fixed;
+  max-width: 210px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(3, 3, 4, 0.85);
+  border-left: 2px solid var(--signal-hi);
+  padding: 9px 12px;
+  z-index: 55;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.sensor-note::before {
+  content: "// ";
+  color: var(--signal-hi);
+}
+.sensor-note--title { top: 16%; left: var(--sp-3); }
+.sensor-note--orbit  { bottom: 16%; right: var(--sp-3); }
+.sensor-note--plate  { bottom: var(--sp-4); left: 50%; transform: translate(-50%, 6px); text-align: left; }
+
+/* título/órbita solo aplican al umbral; la placa solo al catálogo */
+body.sensor-on:not(.in-catalog) .sensor-note--title { opacity: 1; transform: translateY(0); }
+body.sensor-on:not(.in-catalog) .sensor-note--orbit { opacity: 1; transform: translateY(0); }
+body.sensor-on.in-catalog .sensor-note--plate { opacity: 1; transform: translate(-50%, 0); }
+
+/* móvil ≤767 */
+@media (max-width: 767px) {
+  .sensor__state { display: none; }
+  .sensor-note--orbit { display: none; }
+  .sensor-note--title { top: auto; bottom: 26%; left: var(--sp-3); right: var(--sp-3); max-width: none; }
+}
+/* desktop y pantallas grandes: la nota gana un poco de aire para leerse cómoda */
+@media (min-width: 1440px) {
+  .sensor-note { max-width: 250px; font-size: 11px; }
+}
+
+/* ============================================================
+   THRESHOLD — Nodo 0, el umbral
+   ============================================================ */
+
+.threshold {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse 85% 65% at 50% 42%, var(--depth) 0%, var(--void) 72%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* radar: barrido cónico lento detrás del título, siempre encendido pero tenue */
+.threshold__sweep {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(61, 58, 224, 0.16) 14deg,
+    transparent 34deg,
+    transparent 360deg
+  );
+  animation: sweep-spin 14s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .threshold__sweep { animation: none; opacity: 0.4; } }
+@keyframes sweep-spin { to { transform: rotate(360deg); } }
+
+/* --- estado base (sin JS / motion reducido): todo visible, sin órbita ni pin --- */
+
+.threshold__field { position: relative; z-index: 1; height: 42vh; min-height: 260px; }
+.threshold__hero,
+.threshold__reading,
+.threshold__seal {
+  position: relative;
+  z-index: 2;
+  min-height: 55vh;
+}
+.threshold__fragment { opacity: 1; }
+.threshold__reading, .threshold__seal { padding: var(--sp-5) var(--sp-3); }
+.threshold__nudge { animation: none; }
+
+/* --- estado mejorado: JS confirmó motion + tamaño de viewport aptos --- */
+
+body.enhanced .threshold { height: 100vh; height: 100svh; }
+body.enhanced .threshold__field { position: absolute; inset: 0; height: auto; z-index: 1; }
+body.enhanced .threshold__hero,
+body.enhanced .threshold__reading,
+body.enhanced .threshold__seal {
+  position: absolute; inset: 0; min-height: 0;
+}
+body.enhanced .threshold__reading,
+body.enhanced .threshold__seal { visibility: hidden; padding: 0 var(--sp-4); }
+body.enhanced .threshold__fragment { opacity: 0.08; }
+body.enhanced .threshold__nudge { animation: nudge 2.2s ease-in-out infinite; }
+
+/* ---------- especímenes orbitando (íconos de herramientas) ---------- */
+
+.specimen-chip {
+  position: absolute;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  will-change: transform;
+}
+body:not(.enhanced) .threshold__field { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--sp-2); }
+body:not(.enhanced) .specimen-chip { position: static; }
+
+/* sin marco: la imagen se muestra tal cual viene, con su propia proporción
+   vertical (1122×1402 en los archivos fuente), sin forzarla a un cuadrado */
+.specimen-chip__frame {
+  position: relative;
+  width: 121px;
+  aspect-ratio: 1122 / 1402;
+  display: flex; align-items: center; justify-content: center;
+  transform: translate(-50%, -50%);
+}
+body:not(.enhanced) .specimen-chip__frame { transform: none; }
+
+.specimen-chip__frame img {
+  width: 100%; height: 100%; object-fit: contain;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.specimen-chip__frame img.is-loaded { opacity: 1; }
+
+/* ---------- hero ---------- */
+
+.threshold__hero {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: var(--sp-3);
+  text-align: center;
+  padding: var(--sp-5) var(--sp-3);
+}
+
+.threshold__eyebrow {
+  font-size: clamp(13px, 1.5vw, 20px);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.threshold__title {
+  position: relative;
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(50px, 10vw, 130px);
+  line-height: 0.94;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-shadow: 0 0 26px rgba(27, 25, 168, 0.5), 2px 2px 0 rgba(27, 25, 168, 0.85);
+}
+
+/* cometa del cursor: cinta que sigue al mouse por todo el umbral, como en
+   threejs.paris/tickets — reinterpretada en el azul/lavanda de marca.
+   Va por encima del hero (z 2) para brillar también sobre las letras. */
+.threshold__trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.threshold__query {
+  max-width: 560px;
+  font-size: clamp(11px, 1.2vw, 14px);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.threshold__nudge {
+  margin-top: var(--sp-4);
+  font-size: 26px;
+  line-height: 1;
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50%      { transform: translateY(10px); opacity: 0.4; }
+}
+
+/* ---------- reading (copy de 5 pilares) ---------- */
+
+.threshold__reading { display: flex; align-items: center; justify-content: center; }
+.threshold__reading p {
+  max-width: 720px;
+  font-size: clamp(23px, 3.3vw, 39px);
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 1px 1px 0 rgba(27, 25, 168, 0.75);
+}
+.threshold__emoji { display: inline-block; will-change: transform; }
+
+/* ---------- seal (cierre) ---------- */
+
+.threshold__seal { display: flex; align-items: center; justify-content: center; text-align: center; }
+.threshold__seal h2 {
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(42px, 8.3vw, 108px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  text-shadow: 0 0 28px rgba(61, 58, 224, 0.5), 2px 2px 0 rgba(27, 25, 168, 0.85);
+}
+
+/* móvil ≤767 */
+@media (max-width: 767px) {
+  .specimen-chip.is-compact { display: none; }
+  body.enhanced .threshold__field { opacity: 0.42; }
+  .specimen-chip__frame { width: 72px; }
+}
+/* tablet 768–1023 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .specimen-chip__frame { width: 96px; }
+}
+/* desktop 1440–1919 */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .specimen-chip__frame { width: 140px; }
+}
+/* pantallas grandes ≥1920 */
+@media (min-width: 1920px) {
+  .specimen-chip__frame { width: 168px; }
+}
+
+/* ============================================================
+   CATALOG — Nodo 1, el catálogo de especímenes (disciplinas)
+   ============================================================ */
+
+.field-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(125% 100% at 50% 40%, var(--field-a) 0%, var(--field-b) 100%);
+  transition: opacity 0.7s ease;
+}
+body.in-catalog .field-bg { opacity: 1; }
+
+.catalog {
+  position: relative;
+  z-index: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pinch-zoom;
+  scrollbar-width: none;
+}
+.catalog::-webkit-scrollbar { display: none; }
+
+.catalog__rail { display: flex; width: max-content; }
+
+.plate {
+  position: relative;
+  flex: 0 0 100vw;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-4);
+  text-align: center;
+  scroll-snap-align: start;
+}
+
+.plate__reg {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  opacity: 0.65;
+  mix-blend-mode: difference;
+}
+
+.plate__title {
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(32px, 6vw, 74px);
+  line-height: 1;
+  mix-blend-mode: difference;
+}
+
+.plate__copy {
+  max-width: 460px;
+  font-size: clamp(14px, 1.6vw, 18px);
+  font-weight: 400;
+  line-height: 1.55;
+  mix-blend-mode: difference;
+}
+
+/* --- viewport del espécimen: blob + retícula de escaneo + canvas de video --- */
+
+.plate__viewport {
+  position: relative;
+  width: min(42vw, 380px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: var(--sp-2) 0;
+}
+
+.plate__reticle {
+  position: absolute;
+  inset: -6%;
+  pointer-events: none;
+  opacity: 0.75;
+  mix-blend-mode: difference;
+}
+.plate__reticle span {
+  position: absolute;
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--paper);
+}
+.plate__reticle span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.plate__reticle span:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.plate__reticle span:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+.plate__reticle span:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+
+.plate__blob {
+  width: 100%; height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 10px 42px rgba(0, 0, 0, 0.35));
+  transition: opacity 0.5s ease;
+}
+.plate__viewport.has-feed .plate__blob { opacity: 0; }
+
+.plate__viewport::after {
+  /* silueta neutra antes de que JS calcule el path del blob */
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: var(--c, #222);
+  z-index: -1;
+}
+.plate__viewport.js-ready::after { opacity: 0; transition: opacity 0.3s ease; }
+
+.plate__canvas {
+  position: absolute;
+  inset: 8%;
+  width: 84%; height: 84%;
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.plate__viewport.has-feed .plate__canvas { opacity: 1; }
+
+/* --- modo mejorado: scroll-jacking vertical -> desplazamiento horizontal con pin --- */
+
+body.catalog-enhanced .catalog {
+  height: 100vh; height: 100svh;
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+body.catalog-enhanced .catalog__rail { width: 600%; will-change: transform; }
+body.catalog-enhanced .plate { width: 100vw; }
+
+/* móvil ≤767 */
+@media (max-width: 767px) {
+  .plate__viewport { width: min(60vw, 320px); }
+  .plate { padding: var(--sp-5) var(--sp-3); gap: var(--sp-2); }
+  .plate__reticle span { width: 12px; height: 12px; }
+}
+/* tablet 768–1023 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .plate__viewport { width: min(50vw, 340px); }
+  .plate { padding: var(--sp-5) var(--sp-4); }
+  .plate__reticle span { width: 14px; height: 14px; }
+}
+/* desktop 1440–1919 */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .plate__viewport { width: min(38vw, 460px); }
+  .plate { padding: var(--sp-6) var(--sp-5); }
+  .plate__reticle span { width: 18px; height: 18px; }
+}
+/* pantallas grandes ≥1920 */
+@media (min-width: 1920px) {
+  .plate__viewport { width: min(32vw, 560px); }
+  .plate { padding: var(--sp-6) var(--sp-6); }
+  .plate__reticle span { width: 22px; height: 22px; }
+}

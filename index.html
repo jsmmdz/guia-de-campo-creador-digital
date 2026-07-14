@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guía de Campo del Creador Digital — Acto I</title>
+<meta name="description" content="Guía de campo del Creador Digital: un instrumento de exploración para una carrera que todavía no tiene cartografía establecida." />
+<link rel="stylesheet" href="styles.css?v=4" />
+</head>
+<body>
+
+<!-- HUD: chrome fijo del instrumento -->
+<div class="hud" aria-hidden="true"></div>
+<p class="hud__reg" aria-hidden="true">Registro N.01 — Territorio sin cartografía</p>
+<p class="hud__coord" aria-hidden="true">4°45′ N&nbsp;&nbsp;74°06′ O</p>
+<div class="scanlines" aria-hidden="true"></div>
+
+<!-- sensor: switch de Cognición Aumentada — funcional desde el Nodo 0 -->
+<button class="sensor" id="sensor" type="button" aria-pressed="false">
+  <span class="sensor__light" aria-hidden="true"></span>
+  <span>Cognición Aumentada</span>
+  <span class="sensor__state" aria-hidden="true">OFF</span>
+</button>
+<aside class="sensor-note sensor-note--title" aria-hidden="true">El título, la paleta y esta estructura se co-crearon con Claude (Anthropic) a partir de research sobre la carrera.</aside>
+<aside class="sensor-note sensor-note--orbit" aria-hidden="true">Cada ícono es la foto real de la herramienta; su órbita se ajustó con asistencia de IA generativa.</aside>
+<aside class="sensor-note sensor-note--plate" aria-hidden="true">Este blob es geometría generada por IA — se reemplaza por el video de cada disciplina en cuanto está disponible.</aside>
+
+<!-- ============================================================
+     NODO 0 — Umbral
+     ============================================================ -->
+<main class="threshold" id="threshold">
+
+  <div class="threshold__sweep" aria-hidden="true"></div>
+
+  <!-- cometa del cursor: cinta que sigue al mouse por todo el umbral -->
+  <canvas class="threshold__trail" aria-hidden="true"></canvas>
+
+  <!-- especímenes en órbita: los 8 programas de la carrera, atmosféricos, no clicables -->
+  <div class="threshold__field" aria-hidden="true">
+    <div class="specimen-chip orbit-n" style="--x: 50%; --y: 8%">
+      <div class="specimen-chip__frame"><img src="assets/home/github.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip" style="--x: 80%; --y: 22%">
+      <div class="specimen-chip__frame"><img src="assets/home/claude.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip orbit-e" style="--x: 92%; --y: 50%">
+      <div class="specimen-chip__frame"><img src="assets/home/illustrator.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip is-compact" style="--x: 80%; --y: 78%">
+      <div class="specimen-chip__frame"><img src="assets/home/webflow.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip is-compact" style="--x: 50%; --y: 92%">
+      <div class="specimen-chip__frame"><img src="assets/home/blender.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip is-compact" style="--x: 20%; --y: 78%">
+      <div class="specimen-chip__frame"><img src="assets/home/figma.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip orbit-w" style="--x: 8%; --y: 50%">
+      <div class="specimen-chip__frame"><img src="assets/home/ps.png" alt="" /></div>
+    </div>
+    <div class="specimen-chip" style="--x: 20%; --y: 22%">
+      <div class="specimen-chip__frame"><img src="assets/home/unreal.png" alt="" /></div>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <section class="threshold__hero" id="hero">
+    <p class="threshold__eyebrow" data-reveal>Guía de campo del</p>
+    <h1 class="threshold__title" data-reveal>Creador<br />Digital</h1>
+    <p class="threshold__query" data-reveal>¿Qué rutas trazar en un campo que todavía no tiene cartografía establecida?</p>
+    <div class="threshold__nudge" data-reveal aria-hidden="true">↓</div>
+  </section>
+
+  <!-- reading: copy de 5 pilares, revelado por scroll -->
+  <section class="threshold__reading" id="reading">
+    <p>
+      <span class="threshold__fragment">Nuevas fronteras digitales <span class="threshold__emoji">🌌</span>.</span>
+      <span class="threshold__fragment">Datos complejos <span class="threshold__emoji">📊</span>.</span>
+      <span class="threshold__fragment">Inteligencia aumentada <span class="threshold__emoji">🤖</span>.</span>
+      <span class="threshold__fragment">Pensamiento crítico <span class="threshold__emoji">💡</span>.</span>
+      <span class="threshold__fragment">Y el mapa que nadie más ha trazado todavía <span class="threshold__emoji">✍️</span>.</span>
+    </p>
+  </section>
+
+  <!-- seal: cierre -->
+  <section class="threshold__seal" id="seal">
+    <h2>Exploremoslo<br />Juntos</h2>
+  </section>
+
+</main>
+
+<!-- ============================================================
+     NODO 1 — Catálogo de especímenes (disciplinas)
+     ============================================================ -->
+<div class="field-bg" aria-hidden="true"></div>
+
+<section class="catalog" id="catalog" aria-label="Disciplinas del Creador Digital">
+  <div class="catalog__rail">
+
+    <!--
+      COPY PROVISIONAL: el patrón de acción directa en segunda persona viene
+      del spec. El micro-copy de cada placa es un borrador en el mismo tono —
+      reemplázalo por el texto final antes de publicar (el spec marca los
+      copys de este nodo como intocables una vez confirmados).
+    -->
+
+    <article class="plate" data-name="UX/UI Design" data-feed="01-ux-ui.mp4" style="--c: var(--spec-1)">
+      <p class="plate__reg">ESPÉCIMEN 01 / 06</p>
+      <h3 class="plate__title">UX/UI<br />Design</h3>
+      <div class="plate__viewport">
+        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
+        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
+      </div>
+      <p class="plate__copy">Diseñarás pantallas y experiencias que se sienten naturales, claras y humanas.</p>
+    </article>
+
+    <article class="plate" data-name="3D Production" data-feed="02-3d-production.mp4" style="--c: var(--spec-2)">
+      <p class="plate__reg">ESPÉCIMEN 02 / 06</p>
+      <h3 class="plate__title">3D<br />Production</h3>
+      <div class="plate__viewport">
+        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
+        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
+      </div>
+      <p class="plate__copy">Darás vida a mundos y objetos virtuales que sumergen al espectador en nuevas realidades visuales.</p>
+    </article>
+
+    <article class="plate" data-name="Software Dev" data-feed="03-software-dev.mp4" style="--c: var(--spec-3)">
+      <p class="plate__reg">ESPÉCIMEN 03 / 06</p>
+      <h3 class="plate__title">Software<br />Dev</h3>
+      <div class="plate__viewport">
+        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
+        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
+      </div>
+      <p class="plate__copy">Programarás el motor invisible que hace funcionar la web — la lógica detrás de cada plataforma digital.</p>
+    </article>
+
+    <article class="plate" data-name="Game Engineering" data-feed="04-game-engineering.mp4" style="--c: var(--spec-4)">
+      <p class="plate__reg">ESPÉCIMEN 04 / 06</p>
+      <h3 class="plate__title">Game<br />Engineering</h3>
+      <div class="plate__viewport">
+        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
+        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
+      </div>
+      <p class="plate__copy">Diseñarás las reglas y los sistemas de interacción detrás de cada mundo jugable.</p>
+    </article>
+
+    <article class="plate" data-name="Multimedia Artist" data-feed="05-multimedia-artist.mp4" style="--c: var(--spec-5)">
+      <p class="plate__reg">ESPÉCIMEN 05 / 06</p>
+      <h3 class="plate__title">Multimedia<br />Artist</h3>
+      <div class="plate__viewport">
+        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
+        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
+      </div>
+      <p class="plate__copy">Producirás piezas visuales y sonoras que se sienten en cualquier pantalla o formato.</p>
+    </article>
+
+    <article class="plate" data-name="AI Technologist" data-feed="06-ai-technologist.mp4" style="--c: var(--spec-6)">
+      <p class="plate__reg">ESPÉCIMEN 06 / 06</p>
+      <h3 class="plate__title">AI<br />Technologist</h3>
+      <div class="plate__viewport">
+        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
+        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
+      </div>
+      <p class="plate__copy">Guiarás sistemas de inteligencia artificial cada vez más autónomos hacia un fin humano.</p>
+    </article>
+
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="script.js?v=4"></script>
+
+</body>
+</html>
