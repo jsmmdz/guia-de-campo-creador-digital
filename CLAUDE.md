@@ -161,13 +161,31 @@ assets/
   se repite igual en los 5 nodos y conviene resolverla una sola vez como
   componente reutilizable. El HUD de coordenadas (`.hud`, `.hud__reg`,
   `.hud__coord`) es un elemento aparte, no forma parte de este componente.
-- **Animaciones/videos reales de las 6 disciplinas** — hoy los blobs son
-  geometría de placeholder. Convención de nombres esperada en
-  `assets/disciplinas/` (carpeta vacía en este repo, hay que crearla):
-  `01-ux-ui.mp4`, `02-3d-production.mp4`, `03-software-dev.mp4`,
-  `04-game-engineering.mp4`, `05-multimedia-artist.mp4`,
-  `06-ai-technologist.mp4`. Carga perezosa por proximidad (±1 tarjeta) ya
-  implementada en `ensureFeedLoading()`.
+- **Transiciones reales de blobs — 5/5 edges resueltos.** El modelo ya no
+  es un video por disciplina: son videos de transición ENTRE tarjetas
+  consecutivas ("edges"), reproducidos como secuencia de frames PNG con
+  alfa real (recorte por croma verde/azul, no `video.currentTime` —
+  técnica portada de `RECURSOS/blobsite/index.html`, sin latencia de
+  seek, scrub fluido en ambas direcciones). Con 6 tarjetas hay 5 edges
+  posibles, los 5 cubiertos: `01-02` (UX/UI→3D), `02-03` (3D→Software),
+  `03-04` (Software→Game), `04-05` (Game→Multimedia, croma azul — el
+  blob de Multimedia ya es verde-amarillento, `--spec-5`, choca con
+  croma verde), `05-06` (Multimedia→IA, croma azul por el mismo motivo).
+  Convención: `assets/disciplinas/frames/<edge>/0000.png`…`NNNN.png`, 62
+  frames cada uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i
+  clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
+  -start_number 0 frames/<edge>/%04d.png`). `has-feed` es solo-agregar:
+  una vez que una tarjeta muestra video real se queda así para siempre,
+  el blob nunca vuelve (coincide con el flujo del sitio de referencia).
+  `has-feed` ON en ambas tarjetas del edge activo, toggleado en
+  `applyProgress()`; nunca se apaga. Config y carga perezosa por
+  proximidad (±1 edge) en `EDGE_FEEDS` / `ensureEdgeFeedLoading()` /
+  `scrubEdgeFeed()` en `script.js` — ojo con `ctx.clearRect()` antes de
+  cada `drawImage()`: con alfa real, sin el clear queda "fantasma" del
+  frame anterior en las zonas transparentes. Sin equivalente en
+  mobile/tablet — `setupSimple()` nunca produce progreso
+  fraccional entre tarjetas, así que ahí el catálogo se ve solo con blobs,
+  consistente con la separación ya documentada modo simple/scroll-jacking.
 - **Copy final de las 6 placas del catálogo** — el actual es un borrador
   provisional (marcado con comentario `COPY PROVISIONAL` en `index.html`),
   a la espera del texto exacto y definitivo.

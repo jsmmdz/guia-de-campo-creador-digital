@@ -480,7 +480,6 @@ void main() {
     color: readVar("--spec-" + (i + 1)),
     deep: readVar("--spec-" + (i + 1) + "-deep"),
     radii: BLOB_RADII[i],
-    feed: plate.dataset.feed || null,
   }));
 
   /* ---------- blobs: paths con la misma estructura de comandos (M + 8×C + Z)
@@ -508,49 +507,100 @@ void main() {
   }
 
   const blobPaths = SPECIMENS.map((s) => blobPath(s.radii));
-  SPECIMENS.forEach((s, i) => {
-    const path = s.el.querySelector(".plate__blob-path");
-    if (path) path.setAttribute("d", blobPaths[i]);
-    s.el.querySelector(".plate__viewport").classList.add("js-ready");
-  });
 
-  /* ---------- carga perezosa del feed de video por proximidad + frame-scrubbing ---------- */
+  // el blob real ya no vive dentro de cada tarjeta — es un elemento único y
+  // fijo en el centro de la pantalla (.catalog__hero) que no se mueve con
+  // el rail; solo cambia lo que dibuja adentro. Ver CLAUDE.md.
+  const heroEl = document.querySelector(".catalog__hero");
+  const heroPath = heroEl ? heroEl.querySelector(".hero-blob__path") : null;
+  const heroViewport = heroEl; // el propio .catalog__hero recibe has-feed/js-ready
+  const heroCanvas = heroEl ? heroEl.querySelector(".hero-canvas") : null;
+  const heroCtx = heroCanvas ? heroCanvas.getContext("2d") : null;
+  if (heroPath) heroPath.setAttribute("d", blobPaths[0]);
+  if (heroViewport) heroViewport.classList.add("js-ready");
 
-  const feedState = new Map(); // idx -> { video, canvas, ctx, ready }
+  /* ---------- carga perezosa de transiciones por edge (frame-scrubbing con
+     secuencias de PNG con alfa real pre-extraídas vía croma, no
+     video.currentTime — técnica portada de RECURSOS/blobsite/index.html:
+     sin latencia de seek, scrub fluido en ambas direcciones). Un edge cubre
+     el cruce entre la tarjeta i y la i+1; con 6 especímenes hay 5 edges
+     posibles. Cada carpeta tiene N frames 0000.png..NNNN.png extraídos con
+     ffmpeg (chromakey + -r 12) a partir de los clips con fondo verde/azul. ---------- */
 
-  function ensureFeedLoading(idx) {
-    const s = SPECIMENS[idx];
-    if (!s || !s.feed || feedState.has(idx)) return;
-    const canvas = s.el.querySelector(".plate__canvas");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const video = document.createElement("video");
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = "auto";
-    video.src = "assets/disciplinas/" + s.feed;
-    const state = { video, canvas, ctx, ready: false };
-    feedState.set(idx, state);
+  // count viene de la extracción real con ffmpeg (62 frames a 12fps en los
+  // 5 edges ya producidos con croma limpio — los 5 posibles están cubiertos).
+  const EDGE_FEEDS = [
+    { dir: "01-02", count: 62 },
+    { dir: "02-03", count: 62 },
+    { dir: "03-04", count: 62 },
+    { dir: "04-05", count: 62 },
+    { dir: "05-06", count: 62 },
+  ];
+  const edgeFeedState = new Map(); // edgeIdx -> { frames: HTMLImageElement[], ready, lastDrawn }
 
-    video.addEventListener("loadeddata", () => {
-      state.ready = true;
-      canvas.width = video.videoWidth || 600;
-      canvas.height = video.videoHeight || 600;
-      s.el.querySelector(".plate__viewport").classList.add("has-feed");
-    });
-    video.addEventListener("error", () => {
-      // sin video disponible: el blob se queda como placeholder, nada se rompe.
-      // la entrada permanece en el mapa (con ready:false) a propósito, para no
-      // reintentar la descarga cada vez que esta tarjeta vuelva a ser vecina.
-      state.ready = false;
+  function loadImage(src) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
     });
   }
 
-  function scrubFeed(idx, localProgress) {
-    const state = feedState.get(idx);
-    if (!state || !state.ready || !state.video.duration) return;
-    state.video.currentTime = gsap.utils.clamp(0, state.video.duration - 0.02, localProgress * state.video.duration);
-    state.ctx.drawImage(state.video, 0, 0, state.canvas.width, state.canvas.height);
+  async function ensureEdgeFeedLoading(edgeIdx) {
+    const edge = EDGE_FEEDS[edgeIdx];
+    if (!edge || !edge.count || edgeFeedState.has(edgeIdx)) return;
+    const state = { frames: [], ready: false, lastDrawn: -1 };
+    edgeFeedState.set(edgeIdx, state);
+
+    const batchSize = 20;
+    const frames = [];
+    for (let i = 0; i < edge.count; i += batchSize) {
+      const batch = [];
+      for (let j = i; j < Math.min(i + batchSize, edge.count); j++) {
+        batch.push(loadImage("assets/disciplinas/frames/" + edge.dir + "/" + String(j).padStart(4, "0") + ".png"));
+      }
+      const loaded = await Promise.all(batch);
+      // si el primer frame del edge falla, no hay assets para este edge:
+      // el morph de blobs se queda como está, nada se rompe. La entrada
+      // permanece en el mapa (ready:false) a propósito, para no reintentar
+      // cada vez que este edge vuelva a quedar cerca — mismo patrón que
+      // ya usaba el video.
+      if (i === 0 && !loaded[0]) return;
+      frames.push(...loaded);
+    }
+    state.frames = frames.filter(Boolean);
+    state.ready = state.frames.length > 1;
+    // la carga es async y puede terminar bastante después del último evento
+    // de scroll (97 frames tardan un momento incluso en local) — si no se
+    // vuelve a "empujar" el estado acá, el usuario se queda viendo el blob
+    // aunque el edge ya esté listo, hasta el próximo scroll. Re-aplicar con
+    // la última posición conocida hace que aparezca apenas termina de cargar.
+    if (state.ready) applyProgress(lastActiveFloat);
+  }
+
+  function scrubEdgeFeed(edgeIdx, localT) {
+    const state = edgeFeedState.get(edgeIdx);
+    if (!state || !state.ready) return;
+    const total = state.frames.length;
+    const frameIdx = Math.round(gsap.utils.clamp(0, total - 1, localT * (total - 1)));
+    // el chequeo de frameIdx solo no alcanza: los dos canvases se comparten
+    // entre edges vecinos, así que volver a cruzar un edge ya visitado (en
+    // reversa) puede caer en el mismo frameIdx que dejó pintado el edge
+    // anterior — hay que forzar el redraw también cuando cambió el edge.
+    if (edgeIdx === lastPaintedEdge && frameIdx === state.lastDrawn) return;
+    lastPaintedEdge = edgeIdx;
+    state.lastDrawn = frameIdx;
+    if (!heroCtx) return;
+    const img = state.frames[frameIdx];
+    if (heroCanvas.width !== img.naturalWidth) heroCanvas.width = img.naturalWidth;
+    if (heroCanvas.height !== img.naturalHeight) heroCanvas.height = img.naturalHeight;
+    // los frames ahora son PNG con alfa real (croma verde/azul recortado) —
+    // drawImage no limpia el canvas solo, así que sin este clearRect las
+    // zonas transparentes del frame nuevo dejan ver el frame anterior
+    // pintado debajo (fantasma), algo que no pasaba con los JPG opacos.
+    heroCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+    heroCtx.drawImage(img, 0, 0, heroCanvas.width, heroCanvas.height);
   }
 
   /* ---------- fondo del campo + registro del HUD ---------- */
@@ -559,8 +609,12 @@ void main() {
   const hudReg = document.querySelector(".hud__reg");
   const defaultRegText = hudReg ? hudReg.textContent : "";
   let lastIdx = -1;
+  let lastEdge = -2;
+  let lastActiveFloat = 0;
+  let lastPaintedEdge = -2; // qué edge pintó por última vez los canvases compartidos
 
   function applyProgress(activeFloat) {
+    lastActiveFloat = activeFloat;
     const max = SPECIMENS.length - 1;
     const clamped = gsap.utils.clamp(0, max, activeFloat);
     const idx = Math.min(max, Math.floor(clamped));
@@ -574,19 +628,15 @@ void main() {
       fieldBg.style.setProperty("--field-b", gsap.utils.interpolate(a.deep, b.deep, localT));
     }
 
+    // el blob es un solo elemento fijo (.catalog__hero) — una sola escritura
+    // de path y de color en vez de recorrer las 6 tarjetas.
     const morphed = gsap.utils.interpolate(blobPaths[idx], blobPaths[nextIdx], localT);
-    SPECIMENS.forEach((s, i) => {
-      const p = s.el.querySelector(".plate__blob-path");
-      if (!p) return;
-      p.setAttribute("d", i === idx || i === nextIdx ? morphed : blobPaths[i]);
-    });
+    if (heroPath) heroPath.setAttribute("d", morphed);
+    if (heroEl) heroEl.style.setProperty("--c", gsap.utils.interpolate(a.color, b.color, localT));
 
     const roundedIdx = Math.round(clamped);
     if (roundedIdx !== lastIdx) {
       lastIdx = roundedIdx;
-      ensureFeedLoading(roundedIdx);
-      ensureFeedLoading(Math.max(0, roundedIdx - 1));
-      ensureFeedLoading(Math.min(max, roundedIdx + 1));
       // solo se refleja en el HUD si de verdad estamos dentro del catálogo:
       // en modo simple, applyProgress ya corre desde el load (ver setupSimple)
       if (hudReg && document.body.classList.contains("in-catalog")) {
@@ -594,10 +644,33 @@ void main() {
       }
     }
 
-    SPECIMENS.forEach((s, i) => {
-      const seg = gsap.utils.clamp(0, 1, (clamped - (i - 1)) / 2);
-      scrubFeed(i, seg);
-    });
+    // idx es el edge activo (el cruce entre la tarjeta idx y la idx+1) SOLO
+    // si ya hay progreso fraccional cruzando hacia la siguiente — localT=0
+    // significa "parado justo en la tarjeta idx", sin cruce en curso. Este
+    // chequeo es lo que mantiene mobile/tablet sin edges: setupSimple()
+    // siempre llama con idx entero (localT siempre 0), así que activeEdge
+    // nunca deja de ser -1 ahí, sin necesidad de una rama aparte.
+    const activeEdge = idx < max && localT > 0 ? idx : -1;
+    if (activeEdge !== lastEdge) {
+      lastEdge = activeEdge;
+      if (activeEdge !== -1) {
+        ensureEdgeFeedLoading(activeEdge);
+        ensureEdgeFeedLoading(Math.max(0, activeEdge - 1));
+        ensureEdgeFeedLoading(Math.min(max - 1, activeEdge + 1));
+      }
+    }
+
+    const edgeState = activeEdge !== -1 ? edgeFeedState.get(activeEdge) : null;
+    const edgeReady = !!(edgeState && edgeState.ready);
+    if (edgeReady) {
+      // has-feed es "solo agregar": una vez que una tarjeta mostró video
+      // real, se queda así para siempre — el blob es puro placeholder de
+      // "todavía no hay footage", no algo a lo que se vuelve al alejarse.
+      // Coincide con el flujo del sitio de referencia (el blob de reposo
+      // nunca reaparece una vez que hay contenido real).
+      if (heroViewport) heroViewport.classList.add("has-feed");
+      scrubEdgeFeed(activeEdge, localT);
+    }
   }
 
   function setInCatalog(active) {
@@ -652,7 +725,6 @@ void main() {
   }
 
   function setupSimple() {
-    ensureFeedLoading(0);
     simpleObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -663,14 +735,12 @@ void main() {
           // scroll vertical de la página); este observer solo detecta CUÁL
           // tarjeta quedó activa dentro del carril horizontal — con root:
           // catalog, su intersección es relativa al propio contenedor y se
-          // dispara aunque el catálogo todavía esté fuera del viewport
+          // dispara aunque el catálogo todavía esté fuera del viewport.
+          // Sin scrub continuo acá (idx siempre entero, ver applyProgress),
+          // así que nunca hay edge activo — las tarjetas se ven con su
+          // blob, sin video, en mobile/tablet. Coincide con la separación
+          // ya documentada modo simple/scroll-jacking.
           applyProgress(idx);
-          const s = SPECIMENS[idx];
-          const state = feedState.get(idx);
-          if (s.feed && state && state.ready && state.video.paused) {
-            state.video.loop = true;
-            state.video.play().catch(() => {});
-          }
         });
       },
       { root: catalog, threshold: 0.6 }

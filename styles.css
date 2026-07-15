@@ -508,43 +508,61 @@ body.in-catalog .field-bg { opacity: 1; }
   mix-blend-mode: difference;
 }
 
-/* --- viewport del espécimen: blob + retícula de escaneo + canvas de video --- */
+/* --- viewport del espécimen: ya no contiene el blob (ver .catalog__hero
+     más abajo) — se deja vacío como espaciador, para no perder el ritmo
+     vertical reg → título → hueco → copy dentro de cada tarjeta --- */
 
 .plate__viewport {
   position: relative;
   width: min(42vw, 380px);
   aspect-ratio: 1;
-  display: grid;
-  place-items: center;
   margin: var(--sp-2) 0;
 }
 
-.plate__reticle {
+/* --- catalog__hero: el blob real, fijo y centrado en la pantalla — no
+     vive dentro de ninguna tarjeta del rail, así que nunca se mueve al
+     scrollear. Solo cambia lo que dibuja adentro (morph de forma / frame
+     de transición). Mismo tamaño responsive que tenía .plate__viewport. --- */
+
+.catalog__hero {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(42vw, 380px);
+  aspect-ratio: 1;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.hero-reticle {
   position: absolute;
   inset: -6%;
   pointer-events: none;
   opacity: 0.75;
   mix-blend-mode: difference;
 }
-.plate__reticle span {
+.hero-reticle span {
   position: absolute;
   width: 16px; height: 16px;
   border: 1.5px solid var(--paper);
 }
-.plate__reticle span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
-.plate__reticle span:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
-.plate__reticle span:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
-.plate__reticle span:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+.hero-reticle span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.hero-reticle span:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.hero-reticle span:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+.hero-reticle span:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
 
-.plate__blob {
+.hero-blob {
   width: 100%; height: 100%;
   overflow: visible;
   filter: drop-shadow(0 10px 42px rgba(0, 0, 0, 0.35));
   transition: opacity 0.5s ease;
 }
-.plate__viewport.has-feed .plate__blob { opacity: 0; }
+.catalog__hero.has-feed .hero-blob { opacity: 0; }
 
-.plate__viewport::after {
+.catalog__hero::after {
   /* silueta neutra antes de que JS calcule el path del blob */
   content: "";
   position: absolute;
@@ -553,9 +571,9 @@ body.in-catalog .field-bg { opacity: 1; }
   background: var(--c, #222);
   z-index: -1;
 }
-.plate__viewport.js-ready::after { opacity: 0; transition: opacity 0.3s ease; }
+.catalog__hero.js-ready::after { opacity: 0; transition: opacity 0.3s ease; }
 
-.plate__canvas {
+.hero-canvas {
   position: absolute;
   inset: 8%;
   width: 84%; height: 84%;
@@ -564,7 +582,7 @@ body.in-catalog .field-bg { opacity: 1; }
   opacity: 0;
   transition: opacity 0.5s ease;
 }
-.plate__viewport.has-feed .plate__canvas { opacity: 1; }
+.catalog__hero.has-feed .hero-canvas { opacity: 1; }
 
 /* --- modo mejorado: scroll-jacking vertical -> desplazamiento horizontal con pin --- */
 
@@ -578,25 +596,25 @@ body.catalog-enhanced .plate { width: 100vw; }
 
 /* móvil ≤767 */
 @media (max-width: 767px) {
-  .plate__viewport { width: min(60vw, 320px); }
+  .plate__viewport, .catalog__hero { width: min(60vw, 320px); }
   .plate { padding: var(--sp-5) var(--sp-3); gap: var(--sp-2); }
-  .plate__reticle span { width: 12px; height: 12px; }
+  .plate__reticle span, .hero-reticle span { width: 12px; height: 12px; }
 }
 /* tablet 768–1023 */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .plate__viewport { width: min(50vw, 340px); }
+  .plate__viewport, .catalog__hero { width: min(50vw, 340px); }
   .plate { padding: var(--sp-5) var(--sp-4); }
-  .plate__reticle span { width: 14px; height: 14px; }
+  .plate__reticle span, .hero-reticle span { width: 14px; height: 14px; }
 }
 /* desktop 1440–1919 */
 @media (min-width: 1440px) and (max-width: 1919px) {
-  .plate__viewport { width: min(38vw, 460px); }
+  .plate__viewport, .catalog__hero { width: min(38vw, 460px); }
   .plate { padding: var(--sp-6) var(--sp-5); }
-  .plate__reticle span { width: 18px; height: 18px; }
+  .plate__reticle span, .hero-reticle span { width: 18px; height: 18px; }
 }
 /* pantallas grandes ≥1920 */
 @media (min-width: 1920px) {
-  .plate__viewport { width: min(32vw, 560px); }
+  .plate__viewport, .catalog__hero { width: min(32vw, 560px); }
   .plate { padding: var(--sp-6) var(--sp-6); }
-  .plate__reticle span { width: 22px; height: 22px; }
+  .plate__reticle span, .hero-reticle span { width: 22px; height: 22px; }
 }

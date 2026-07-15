@@ -4,3 +4,8 @@ Thumbs.db
 *.swp
 
 # sitio estático, sin build step — no hay node_modules ni dist/
+
+# clips fuente de las transiciones — el sitio en tiempo de ejecución solo
+# lee assets/disciplinas/frames/ (ya extraído con croma); estos .mp4 son
+# material de trabajo, no hace falta versionarlos (24MB, regenerables)
+assets/disciplinas/VIDEOS/

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Guía de Campo del Creador Digital — Acto I</title>
 <meta name="description" content="Guía de campo del Creador Digital: un instrumento de exploración para una carrera que todavía no tiene cartografía establecida." />
-<link rel="stylesheet" href="styles.css?v=4" />
+<link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
 
@@ -97,6 +97,16 @@
 <div class="field-bg" aria-hidden="true"></div>
 
 <section class="catalog" id="catalog" aria-label="Disciplinas del Creador Digital">
+
+  <!-- blob fijo y centrado en pantalla — no se mueve con las tarjetas del
+       rail, solo cambia lo que dibuja adentro (morph de forma / frame de
+       transición) a medida que se scrollea. Ver CLAUDE.md. -->
+  <div class="catalog__hero" aria-hidden="true">
+    <svg class="hero-blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="hero-blob__path" fill="var(--c)" /></svg>
+    <span class="hero-reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+    <canvas class="hero-canvas" width="600" height="600" aria-hidden="true"></canvas>
+  </div>
+
   <div class="catalog__rail">
 
     <!--
@@ -106,69 +116,45 @@
       copys de este nodo como intocables una vez confirmados).
     -->
 
-    <article class="plate" data-name="UX/UI Design" data-feed="01-ux-ui.mp4" style="--c: var(--spec-1)">
+    <article class="plate" data-name="UX/UI Design" style="--c: var(--spec-1)">
       <p class="plate__reg">ESPÉCIMEN 01 / 06</p>
       <h3 class="plate__title">UX/UI<br />Design</h3>
-      <div class="plate__viewport">
-        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
-        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
-      </div>
+      <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Diseñarás pantallas y experiencias que se sienten naturales, claras y humanas.</p>
     </article>
 
-    <article class="plate" data-name="3D Production" data-feed="02-3d-production.mp4" style="--c: var(--spec-2)">
+    <article class="plate" data-name="3D Production" style="--c: var(--spec-2)">
       <p class="plate__reg">ESPÉCIMEN 02 / 06</p>
       <h3 class="plate__title">3D<br />Production</h3>
-      <div class="plate__viewport">
-        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
-        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
-      </div>
+      <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Darás vida a mundos y objetos virtuales que sumergen al espectador en nuevas realidades visuales.</p>
     </article>
 
-    <article class="plate" data-name="Software Dev" data-feed="03-software-dev.mp4" style="--c: var(--spec-3)">
+    <article class="plate" data-name="Software Dev" style="--c: var(--spec-3)">
       <p class="plate__reg">ESPÉCIMEN 03 / 06</p>
       <h3 class="plate__title">Software<br />Dev</h3>
-      <div class="plate__viewport">
-        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
-        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
-      </div>
+      <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Programarás el motor invisible que hace funcionar la web — la lógica detrás de cada plataforma digital.</p>
     </article>
 
-    <article class="plate" data-name="Game Engineering" data-feed="04-game-engineering.mp4" style="--c: var(--spec-4)">
+    <article class="plate" data-name="Game Engineering" style="--c: var(--spec-4)">
       <p class="plate__reg">ESPÉCIMEN 04 / 06</p>
       <h3 class="plate__title">Game<br />Engineering</h3>
-      <div class="plate__viewport">
-        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
-        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
-      </div>
+      <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Diseñarás las reglas y los sistemas de interacción detrás de cada mundo jugable.</p>
     </article>
 
-    <article class="plate" data-name="Multimedia Artist" data-feed="05-multimedia-artist.mp4" style="--c: var(--spec-5)">
+    <article class="plate" data-name="Multimedia Artist" style="--c: var(--spec-5)">
       <p class="plate__reg">ESPÉCIMEN 05 / 06</p>
       <h3 class="plate__title">Multimedia<br />Artist</h3>
-      <div class="plate__viewport">
-        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
-        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
-      </div>
+      <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Producirás piezas visuales y sonoras que se sienten en cualquier pantalla o formato.</p>
     </article>
 
-    <article class="plate" data-name="AI Technologist" data-feed="06-ai-technologist.mp4" style="--c: var(--spec-6)">
+    <article class="plate" data-name="AI Technologist" style="--c: var(--spec-6)">
       <p class="plate__reg">ESPÉCIMEN 06 / 06</p>
       <h3 class="plate__title">AI<br />Technologist</h3>
-      <div class="plate__viewport">
-        <svg class="plate__blob" viewBox="-120 -120 240 240" aria-hidden="true"><path class="plate__blob-path" fill="var(--c)" /></svg>
-        <span class="plate__reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <canvas class="plate__canvas" width="600" height="600" aria-hidden="true"></canvas>
-      </div>
+      <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Guiarás sistemas de inteligencia artificial cada vez más autónomos hacia un fin humano.</p>
     </article>
 
@@ -177,7 +163,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=4"></script>
+<script src="script.js?v=11"></script>
 
 </body>
 </html>
