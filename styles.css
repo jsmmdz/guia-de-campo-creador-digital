@@ -5,7 +5,7 @@
    idea aplicada en distintos puntos del recorrido.
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
 /* ============================================================
    BREAKPOINTS — escala fija en todo el archivo (no hay unidades
@@ -373,6 +373,87 @@ body:not(.enhanced) .specimen-chip__frame { transform: none; }
   letter-spacing: -0.01em;
   text-transform: uppercase;
   text-shadow: 0 0 26px rgba(27, 25, 168, 0.5), 2px 2px 0 rgba(27, 25, 168, 0.85);
+}
+
+/* "Digital" del hero como arte ASCII animado (Three.js) — portado desde
+   reactbits.dev/text-animations/ascii-text, ver initAsciiText() en script.js
+   / RECURSOS/ascii-text.js para la versión reutilizable comentada. El texto
+   real se queda en el DOM (accesibilidad + respaldo si el CDN de Three.js
+   falla) y solo se desvanece cuando la clase is-ready confirma que el
+   efecto montó — misma lógica que body.enhanced. */
+.threshold__title-digital {
+  position: relative;
+  display: inline-block;
+  /* recorte limpio de lo que sobresalga del canvas ampliado de abajo, en
+     vez de que la rotación/onda empujen geometría fuera del frustum de la
+     cámara (eso se veía como ruido/glitch, no como un corte prolijo). */
+  overflow: hidden;
+}
+.threshold__title-digital .ascii-text-container {
+  position: absolute;
+  /* el canvas 3D se renderiza más grande que la caja real de "Digital"
+     (que sigue siendo la del texto real, mismo tamaño que "Creador") —
+     le da a la cámara margen real de frustum para que la rotación y la
+     onda tengan espacio de sobra sin tocar su propio borde. script.js usa
+     el tamaño de ESTE contenedor para la cámara/canvas, pero dimensiona
+     el plano según la caja del texto real (envolvente, sin este inset) —
+     así el texto renderiza a tamaño completo (igual a "Creador") y el
+     margen extra queda disponible solo para el movimiento, no para
+     agrandar el texto. Lo que se sale de la caja original lo recorta el
+     overflow:hidden del padre. */
+  inset: -18%;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.threshold__title-digital.is-ready .ascii-text-container { opacity: 1; }
+.threshold__title-digital.is-ready .threshold__title-digital-text { opacity: 0; }
+
+.ascii-text-container canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.ascii-text-container pre {
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  line-height: 1em;
+  text-align: left;
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* sin esto, el <pre> toma su tamaño natural de las métricas de fuente
+     reales del navegador — con ~190 columnas de texto, un desfase de
+     fracciones de píxel por carácter contra el <canvas> (que sí ocupa
+     100%/100%) se acumula en un corrimiento visible entre las dos capas. */
+  width: 100%;
+  height: 100%;
+  /* neutralizar herencias del <h1> (italic, uppercase, letter-spacing
+     negativo, text-shadow): cambian el ancho y la forma de los glifos
+     respecto de la grilla calculada — uppercase incluso altera qué
+     carácter se muestra — y desfasan/ensucian el arte ASCII. */
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  z-index: 9;
+  background-image: radial-gradient(circle, var(--paper) 0%, var(--signal-hi) 55%, var(--signal) 100%);
+  background-attachment: fixed;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  mix-blend-mode: difference;
 }
 
 .threshold__query {

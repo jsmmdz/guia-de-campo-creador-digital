@@ -30,7 +30,9 @@ primeros de los 5 nodos que define el vault:
   orbitando, copy de 5 pilares revelado por scroll, cierre "Exploremoslo
   Juntos", fondo de estrellas animado (`.threshold__galaxy`, ver sección
   siguiente). El rastro de cursor tipo cometa que tenía antes se retiró (no
-  era definitivo) y ese lugar lo ocupa ahora el fondo de estrellas.
+  era definitivo) y ese lugar lo ocupa ahora el fondo de estrellas. La
+  palabra "Digital" del título se renderiza como arte ASCII animado con
+  Three.js, reactivo al mouse (ver sección siguiente).
 - **Nodo 1 — Catálogo** (`#catalog`): implementa el **"Nodo 1 · Perfil"**
   del vault (seis competencias híbridas del Creador Digital) — aquí
   construido como "catálogo de especímenes" siguiendo la metáfora de guía de
@@ -55,6 +57,16 @@ dentro de un script clásico, no exige `type="module"`). Si el CDN falla, el
 reutilizable, con comentarios, en `RECURSOS/galaxy.js` + `.css` (fuera del
 repo, ver `industrias y creacion/RECURSOS/`). Fuente original:
 reactbits.dev/backgrounds/galaxy.
+
+**Excepción puntual — Three.js para el texto ASCII animado de "Digital"
+(Nodo 0):** `initAsciiText()` en `script.js` carga `three` por `import()`
+dinámico desde `esm.sh`, mismo patrón que OGL. Si el CDN falla, el texto
+real de "Digital" (que siempre queda en el DOM) se mantiene visible —
+nunca se desvanece hasta que la promesa de `initAsciiText()` confirma que
+el montaje terminó con éxito (clase `is-ready` en
+`.threshold__title-digital`). Versión portada y reutilizable, con
+comentarios, en `RECURSOS/ascii-text.js` + `.css`. Fuente original:
+reactbits.dev/text-animations/ascii-text.
 
 ## Estructura
 
@@ -104,6 +116,22 @@ assets/
   combinación no choca con la paleta del sitio aunque el hue sea distinto
   al azul-violeta exacto de `--signal`. Si se cambia, probar siempre
   visualmente antes de asumir el resultado — el mapeo no es intuitivo.
+- **Cámara del efecto ASCII de "Digital" (`initAsciiText`, `CanvAscii` en
+  `script.js`)**: perspectiva con FOV 18° y distancia calculada
+  (`cameraDistance()`) para que el frustum a z=0 mida exacto los píxeles
+  del contenedor (1 unidad de mundo = 1px CSS) — ni el FOV 45° del demo
+  original (el borde cercano crecía ~35% al rotar y recortaba las letras
+  contra el frustum) ni una cámara ortográfica (sin distorsión de
+  perspectiva, la rotación deja de verse). El plano se dimensiona según
+  un elemento de referencia (`refEl`, el wrapper
+  `.threshold__title-digital`, tamaño real de la palabra) y NO según el
+  contenedor que renderiza (`ctn`, deliberadamente ~36% más grande vía
+  `inset` negativo en CSS + `overflow: hidden` en el wrapper) — así el
+  texto ocupa su tamaño completo (igual a "Creador") y la rotación/onda
+  tienen frustum de sobra para moverse sin recortar contra su propio
+  borde; lo que se pasa de la caja original lo recorta limpio el
+  `overflow:hidden`, no un artefacto de WebGL. Patrón documentado como
+  reutilizable en el header de `RECURSOS/ascii-text.js`.
 
 ## Errores ya corregidos (no reintroducir)
 
@@ -135,6 +163,36 @@ assets/
 8. **`body.classList.add("enhanced")` no debe correr antes de confirmar que
    GSAP cargó** — si el CDN falla, el body no debe quedar en estado
    "animado" con contenido escondido y sin JS que lo revele.
+9. **Desfase entre el `<canvas>` y el `<pre>` del efecto ASCII de
+   "Digital"**: la grilla de columnas/filas se medía con `measureText()`
+   de un canvas 2D, pero el `<pre>` visible renderiza con las métricas de
+   fuente reales del DOM — pueden diferir (cara de fuente aún no cargada,
+   CSS heredado que `measureText` no ve). Ahora se mide con un `<span>`
+   de sonda dentro del propio `<pre>` (`AsciiFilter.reset()`). También
+   hacía falta cargar la cara 400 de IBM Plex Mono (la que usa el
+   `<pre>`) antes de medir — antes solo se cargaban 500/600.
+10. **El `<pre>` del efecto ASCII heredaba `italic`/`uppercase`/
+    `letter-spacing`/`text-shadow` del `<h1>`** — cambia el ancho de los
+    glifos y hasta qué carácter se ve (`uppercase`).
+    `.ascii-text-container pre` neutraliza estas herencias explícitamente
+    en `styles.css`.
+11. **Rotación por mouse sin acotar en el efecto ASCII de "Digital"**: el
+    demo original de reactbits asume un contenedor a pantalla completa
+    donde el cursor casi no sale de sus límites — sobre una sola palabra
+    se sale todo el tiempo, y sin clamp `mapRange` extrapolaba el ángulo
+    sin límite (rotación absurda, geometría plegada sobre sí misma). Se
+    acota el mouse a los límites del contenedor visual antes de mapear a
+    rotación (`updateRotation()`).
+12. **`ResizeObserver` puede no disparar nunca su primer callback**
+    (confirmado en al menos un entorno real de prueba) — el montaje del
+    efecto ASCII no puede depender solo de él. Se agregó una medición
+    inmediata (`getBoundingClientRect`) como respaldo si el contenedor ya
+    mide algo real al momento de llamar `initAsciiText()`.
+13. **Redibujar una textura estática en cada frame**: el efecto ASCII
+    volvía a dibujar el texto "DIGITAL" en un canvas 2D y a resubirlo a
+    la GPU en cada frame de render, aunque el texto nunca cambia — puro
+    desperdicio de CPU/GPU, más notorio cuanto más chica la grilla ASCII
+    (`asciiFontSize` bajo). Se dibuja una sola vez al montar (`setMesh()`).
 
 ## Pendiente
 
@@ -189,6 +247,11 @@ assets/
 - **Copy final de las 6 placas del catálogo** — el actual es un borrador
   provisional (marcado con comentario `COPY PROVISIONAL` en `index.html`),
   a la espera del texto exacto y definitivo.
+- **Efecto ASCII de "Digital" — confirmado por el usuario en desktop, no
+  verificado en mobile/tablet.** El `asciiFontSize` responsive (8 en
+  laptop+, 10 en móvil/tablet, mismo corte de 1023px que `catalogSimple`)
+  se fijó por cálculo, nunca se vio en una pantalla chica real — revisar
+  ahí antes de dar el efecto por cerrado en todos los breakpoints.
 
 ## Correr en local
 

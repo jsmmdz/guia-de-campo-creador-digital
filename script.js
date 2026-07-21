@@ -355,6 +355,569 @@ void main() {
       });
   }
 
+  /* ---------- ASCIIText: la palabra "Digital" del hero como arte ASCII ----------
+     portado desde reactbits.dev/text-animations/ascii-text (Three.js) — misma
+     lógica comentada y reutilizable en RECURSOS/ascii-text.js (fuera del
+     repo). Carga Three.js por import() dinámico desde CDN, mismo patrón que
+     OGL en initGalaxy. El texto real de "Digital" se queda en el DOM como
+     respaldo (accesibilidad + CDN caído) y styles.css lo desvanece recién
+     cuando la promesa resuelve con éxito (clase is-ready, ver más abajo).
+
+     Cambio deliberado sobre el source original de reactbits (no reintroducir):
+     tenía DOS listeners de mousemove independientes con distinto espacio de
+     coordenadas (uno en `document` para el hue-rotate, otro en el contenedor
+     para la rotación del mesh) — solo daban un ángulo correcto si el
+     contenedor ocupaba toda la pantalla desde (0,0). Acá, al vivir dentro
+     del título y no detrás de nada con z-index más alto, alcanza un solo
+     listener en el contenedor que alimenta ambos efectos. */
+  function initAsciiText(ctn) {
+    if (!ctn) return Promise.resolve(null);
+    // caja de referencia = el wrapper que tiene el tamaño real de "Digital"
+    // (el mismo que ocuparía el texto plano, igual a "Creador"). ctn (el
+    // propio .ascii-text-container) es MÁS GRANDE que esta caja (ver
+    // inset negativo en styles.css) — le da a la cámara margen real de
+    // frustum para la rotación/onda. El plano se dimensiona según refEl,
+    // no según ctn, así el texto renderiza a tamaño completo y el margen
+    // extra queda solo para el movimiento (ver CanvAscii más abajo).
+    const refEl = ctn.closest(".threshold__title-digital") || ctn;
+    const cfg = {
+      text: "DIGITAL",
+      // grilla más gruesa = menos celdas que procesar por frame en
+      // asciify() (loop de getImageData sobre cols×rows) — 7 iba pesado y
+      // trababa. Mobile/tablet (mismo corte que catalogSimple, ≤1023px)
+      // sube más todavía: menos CPU disponible y la palabra ya renderiza
+      // más chica ahí.
+      asciiFontSize: mobileMQ.matches ? 10 : 8,
+      textFontSize: 200,
+      textColor: "#fdf9f3",
+      // relativo a refEl (la caja real de "Digital"), no a ctn (que ahora
+      // es más grande a propósito) — 0.98 ya es prácticamente el tamaño
+      // completo, igual a "Creador". El margen para rotación/onda ya no
+      // sale de achicar el texto: sale del espacio extra entre ctn y
+      // refEl (ver inset en styles.css).
+      fillRatio: 0.98,
+      // reescaladas al tamaño real del plano en px (ver uWaveScale en el
+      // vertex shader) — a la escala vieja (unidades de mundo ~20) las
+      // amplitudes 0.5/0.15/1.0 eran visibles; a escala de píxeles reales
+      // sin reescalar habrían sido menos de 1px, invisibles.
+      enableWaves: true,
+      rotationRange: 0.15,
+      // escuchar el mouse sobre todo el hero (eyebrow + título + query),
+      // no solo el <h1> — cuanto más grande el área, menos hace falta
+      // precisión de píxel para que se sienta controlado. Cae de nuevo al
+      // propio contenedor si por algún motivo no encuentra el hero.
+      trackElem: ctn.closest(".threshold__hero") || ctn,
+      refEl,
+    };
+
+    return import("https://esm.sh/three@0.160.0")
+      .then((THREE) => {
+        const vertexShader = `
+varying vec2 vUv;
+uniform float uTime;
+uniform float mouse;
+uniform float uEnableWaves;
+uniform float uWaveScale;
+
+void main() {
+    vUv = uv;
+    float time = uTime * 5.;
+
+    float waveFactor = uEnableWaves;
+
+    vec3 transformed = position;
+
+    // las amplitudes 0.5/0.15/1.0 y la frecuencia (usar position.xy tal
+    // cual) están calibradas para un plano de referencia de 20 unidades de
+    // alto — el tamaño original del port antes de calibrar la cámara a
+    // píxeles reales. uWaveScale = planeH real / 20 reescala ambas cosas:
+    // la posición se "comprime" de vuelta a la escala de referencia antes
+    // de entrar al seno (mismo número de ondas visibles sin importar el
+    // tamaño real en px del contenedor) y la amplitud se multiplica por la
+    // misma escala (así el desplazamiento es un % consistente del tamaño
+    // del plano, no una cantidad fija de unidades que a escala de píxeles
+    // reales queda invisible).
+    transformed.x += sin(time + position.y / uWaveScale) * 0.5 * uWaveScale * waveFactor;
+    transformed.y += cos(time + position.z / uWaveScale) * 0.15 * uWaveScale * waveFactor;
+    transformed.z += sin(time + position.x / uWaveScale) * uWaveScale * waveFactor;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+}
+`;
+
+        const fragmentShader = `
+varying vec2 vUv;
+uniform float mouse;
+uniform float uTime;
+uniform sampler2D uTexture;
+
+void main() {
+    float time = uTime;
+    vec2 pos = vUv;
+
+    float move = sin(time + mouse) * 0.01;
+    float r = texture2D(uTexture, pos + cos(time * 2. - time + pos.x) * .01).r;
+    float g = texture2D(uTexture, pos + tan(time * .5 + pos.x - time) * .01).g;
+    float b = texture2D(uTexture, pos - cos(time * 2. + time + pos.y) * .01).b;
+    float a = texture2D(uTexture, pos).a;
+    gl_FragColor = vec4(r, g, b, a);
+}
+`;
+
+        const mapRange = (n, start, stop, start2, stop2) =>
+          ((n - start) / (stop - start)) * (stop2 - start2) + start2;
+
+        class AsciiFilter {
+          constructor(renderer, { fontSize, fontFamily, charset, invert } = {}) {
+            this.renderer = renderer;
+            this.domElement = document.createElement("div");
+            this.domElement.style.position = "absolute";
+            this.domElement.style.top = "0";
+            this.domElement.style.left = "0";
+            this.domElement.style.width = "100%";
+            this.domElement.style.height = "100%";
+
+            this.pre = document.createElement("pre");
+            this.domElement.appendChild(this.pre);
+
+            this.canvas = document.createElement("canvas");
+            this.context = this.canvas.getContext("2d");
+            this.domElement.appendChild(this.canvas);
+
+            this.deg = 0;
+            this.mouse = { x: 0, y: 0 };
+            this.center = { x: 0, y: 0 };
+            this.invert = invert ?? true;
+            this.fontSize = fontSize ?? 12;
+            this.fontFamily = fontFamily ?? "'Courier New', monospace";
+            this.charset = charset ?? ' .\'`^",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';
+
+            this.context.webkitImageSmoothingEnabled = false;
+            this.context.mozImageSmoothingEnabled = false;
+            this.context.msImageSmoothingEnabled = false;
+            this.context.imageSmoothingEnabled = false;
+          }
+
+          setSize(width, height) {
+            this.width = width;
+            this.height = height;
+            this.renderer.setSize(width, height);
+            this.reset();
+            this.center = { x: width / 2, y: height / 2 };
+          }
+
+          reset() {
+            this.pre.style.fontFamily = this.fontFamily;
+            this.pre.style.fontSize = `${this.fontSize}px`;
+
+            // medir el ancho de carácter en el DOM real (un span dentro del
+            // propio <pre>), NO con measureText() del canvas 2D como hacía
+            // el original: las dos mediciones pueden diferir (cara de la
+            // fuente aún no cargada para el canvas, CSS heredado que
+            // measureText no ve). Si la grilla se calcula con un ancho y el
+            // <pre> renderiza con otro, el texto ASCII queda más ancho que
+            // el canvas estirado — ese era el "desfase"/fantasma entre las
+            // dos capas (medido: grilla a 3.54px/carácter vs mono real a
+            // 4.8px → <pre> 36% más ancho que el contenedor).
+            const probe = document.createElement("span");
+            probe.textContent = "A".repeat(50);
+            this.pre.textContent = "";
+            this.pre.appendChild(probe);
+            const charW = probe.getBoundingClientRect().width / 50 || this.fontSize * 0.6;
+            this.pre.removeChild(probe);
+
+            this.cols = Math.floor(this.width / charW);
+            this.rows = Math.floor(this.height / this.fontSize);
+
+            this.canvas.width = this.cols;
+            this.canvas.height = this.rows;
+          }
+
+          render(scene, camera) {
+            this.renderer.render(scene, camera);
+
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            this.context.clearRect(0, 0, w, h);
+            if (this.context && w && h) {
+              this.context.drawImage(this.renderer.domElement, 0, 0, w, h);
+            }
+
+            this.asciify(this.context, w, h);
+            this.hue();
+          }
+
+          get dx() {
+            return this.mouse.x - this.center.x;
+          }
+
+          get dy() {
+            return this.mouse.y - this.center.y;
+          }
+
+          hue() {
+            const deg = (Math.atan2(this.dy, this.dx) * 180) / Math.PI;
+            this.deg += (deg - this.deg) * 0.075;
+            this.domElement.style.filter = `hue-rotate(${this.deg.toFixed(1)}deg)`;
+          }
+
+          asciify(ctx, w, h) {
+            if (w && h) {
+              const imgData = ctx.getImageData(0, 0, w, h).data;
+              let str = "";
+              for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                  const i = x * 4 + y * 4 * w;
+                  const [r, g, b, a] = [imgData[i], imgData[i + 1], imgData[i + 2], imgData[i + 3]];
+
+                  if (a === 0) {
+                    str += " ";
+                    continue;
+                  }
+
+                  let gray = (0.3 * r + 0.6 * g + 0.1 * b) / 255;
+                  let idx = Math.floor((1 - gray) * (this.charset.length - 1));
+                  if (this.invert) idx = this.charset.length - idx - 1;
+                  str += this.charset[idx];
+                }
+                str += "\n";
+              }
+              this.pre.innerHTML = str;
+            }
+          }
+        }
+
+        class CanvasTxt {
+          constructor(txt, { fontSize = 200, fontFamily = "Arial", color = "#fdf9f3" } = {}) {
+            this.canvas = document.createElement("canvas");
+            this.context = this.canvas.getContext("2d");
+            this.txt = txt;
+            this.fontSize = fontSize;
+            this.fontFamily = fontFamily;
+            this.color = color;
+
+            this.font = `600 ${this.fontSize}px ${this.fontFamily}`;
+          }
+
+          resize() {
+            this.context.font = this.font;
+            const metrics = this.context.measureText(this.txt);
+
+            const textWidth = Math.ceil(metrics.width) + 20;
+            const textHeight = Math.ceil(metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) + 20;
+
+            this.canvas.width = textWidth;
+            this.canvas.height = textHeight;
+          }
+
+          render() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.fillStyle = this.color;
+            this.context.font = this.font;
+
+            const metrics = this.context.measureText(this.txt);
+            const yPos = 10 + metrics.actualBoundingBoxAscent;
+
+            this.context.fillText(this.txt, 10, yPos);
+          }
+
+          get width() {
+            return this.canvas.width;
+          }
+
+          get height() {
+            return this.canvas.height;
+          }
+
+          get texture() {
+            return this.canvas;
+          }
+        }
+
+        class CanvAscii {
+          constructor(
+            { text, asciiFontSize, textFontSize, textColor, fillRatio, enableWaves, rotationRange, trackElem, refEl },
+            containerElem,
+            width,
+            height
+          ) {
+            this.textString = text;
+            this.asciiFontSize = asciiFontSize;
+            this.textFontSize = textFontSize;
+            this.textColor = textColor;
+            this.fillRatio = fillRatio;
+            // caja de referencia (el tamaño real de "Digital", ver
+            // initAsciiText) — el plano se dimensiona según ESTA, no según
+            // el contenedor propio (que es más grande a propósito, ver
+            // styles.css). Cae al propio contenedor si no se pasó una.
+            this.refEl = refEl || containerElem;
+            this.container = containerElem;
+            // el mouse se escucha en un elemento más amplio que el propio
+            // contenedor visual (ver initAsciiText más abajo) — "Digital" es
+            // una sola palabra, muy chica, y exigir que el cursor esté
+            // pixel-perfecto encima para que reaccione se siente como que no
+            // responde. El área de escucha es más grande; el mapeo a
+            // rotación sigue acotado a los límites del contenedor visual
+            // (ver onMouseMove/updateRotation), así que igual queda saturado
+            // y controlado cerca de los bordes, no se dispara sin límite.
+            this.trackElem = trackElem || containerElem;
+            this.width = width;
+            this.height = height;
+            this.enableWaves = enableWaves;
+            this.rotationRange = rotationRange;
+
+            // cámara de perspectiva con FOV chico y distancia calculada
+            // para que el frustum a z=0 mida EXACTO width×height en px
+            // (1 unidad de mundo = 1px CSS). Ni el FOV 45 del original
+            // (el borde cercano crecía ~35% al rotar y recortaba las
+            // letras contra el frustum) ni la ortográfica que se probó
+            // después (sin perspectiva la rotación no produce inclinación
+            // visible — el hover "no hacía nada"). Con FOV 18 el tilt se
+            // ve, pero el crecimiento del borde cercano queda acotado
+            // (~8% a rotación máxima), cubierto por el margen de fillRatio.
+            this.fov = 18;
+            this.camera = new THREE.PerspectiveCamera(this.fov, this.width / this.height, 1, 10000);
+            this.camera.position.z = this.cameraDistance(this.height);
+
+            this.scene = new THREE.Scene();
+            this.mouse = { x: this.width / 2, y: this.height / 2 };
+
+            this.onMouseMove = this.onMouseMove.bind(this);
+          }
+
+          // distancia a la que el frustum vertical mide exactamente h px
+          cameraDistance(h) {
+            return h / 2 / Math.tan((this.fov * Math.PI) / 360);
+          }
+
+          async init() {
+            try {
+              await document.fonts.load(`600 ${this.textFontSize}px "IBM Plex Mono"`);
+              // la cara 400 (la que usa el <pre> del filtro ASCII) también,
+              // ANTES de medir la grilla: el original solo cargaba 600/500,
+              // el <pre> renderizaba en 400 con la fuente de respaldo y al
+              // llegar la mono real cambiaba el ancho de carácter — otra
+              // fuente del desfase entre grilla y texto.
+              await document.fonts.load(`400 ${this.asciiFontSize}px "IBM Plex Mono"`);
+            } catch (e) {
+              // sigue con fuente de respaldo si la carga falla
+            }
+            await document.fonts.ready;
+
+            this.setMesh();
+            this.setRenderer();
+          }
+
+          setMesh() {
+            this.textCanvas = new CanvasTxt(this.textString, {
+              fontSize: this.textFontSize,
+              fontFamily: "IBM Plex Mono",
+              color: this.textColor,
+            });
+            this.textCanvas.resize();
+            this.textCanvas.render();
+
+            this.texture = new THREE.CanvasTexture(this.textCanvas.texture);
+            this.texture.minFilter = THREE.NearestFilter;
+
+            // el plano se dimensiona según refEl (la caja real de
+            // "Digital", ver constructor) — NO según this.width/height
+            // (el propio contenedor, deliberadamente más grande, ver
+            // styles.css). Así el texto renderiza a tamaño completo,
+            // igual a "Creador", y el espacio de sobra entre refEl y el
+            // contenedor queda libre para que la rotación/onda tengan
+            // margen sin tocar el borde del frustum. Se estira a AMBAS
+            // dimensiones (object-fit: fill, no contain): "DIGITAL" en
+            // mono es más ancha por unidad de alto que la palabra en
+            // Archivo que reemplaza, así que contain la dejaba más baja
+            // que "CREADOR"; el estirado resultante no se nota tras la
+            // rasterización ASCII y con eso las alturas sí calzan.
+            const refRect = this.refEl.getBoundingClientRect();
+            const planeW = refRect.width * this.fillRatio;
+            const planeH = refRect.height * this.fillRatio;
+
+            this.geometry = new THREE.PlaneGeometry(planeW, planeH, 36, 36);
+            this.material = new THREE.ShaderMaterial({
+              vertexShader,
+              fragmentShader,
+              transparent: true,
+              uniforms: {
+                uTime: { value: 0 },
+                mouse: { value: 1.0 },
+                uTexture: { value: this.texture },
+                uEnableWaves: { value: this.enableWaves ? 1.0 : 0.0 },
+                // ver nota en el vertex shader — reescala la onda al
+                // tamaño real del plano en px (referencia: 20 unidades)
+                uWaveScale: { value: planeH / 20 },
+              },
+            });
+
+            this.mesh = new THREE.Mesh(this.geometry, this.material);
+            this.scene.add(this.mesh);
+          }
+
+          setRenderer() {
+            this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+            this.renderer.setPixelRatio(1);
+            this.renderer.setClearColor(0x000000, 0);
+
+            this.filter = new AsciiFilter(this.renderer, {
+              fontFamily: "IBM Plex Mono",
+              fontSize: this.asciiFontSize,
+              invert: true,
+            });
+
+            this.container.appendChild(this.filter.domElement);
+            this.setSize(this.width, this.height);
+
+            this.trackElem.addEventListener("mousemove", this.onMouseMove);
+            this.trackElem.addEventListener("touchmove", this.onMouseMove);
+          }
+
+          setSize(w, h) {
+            this.width = w;
+            this.height = h;
+
+            // recalibrar el frustum a los px reales del contenedor (la
+            // distancia depende del alto, ver cameraDistance)
+            this.camera.aspect = w / h;
+            this.camera.position.z = this.cameraDistance(h);
+            this.camera.updateProjectionMatrix();
+
+            this.filter.setSize(w, h);
+            this.filter.mouse = { x: w / 2, y: h / 2 };
+
+            this.center = { x: w / 2, y: h / 2 };
+          }
+
+          load() {
+            this.animate();
+          }
+
+          onMouseMove(evt) {
+            const e = evt.touches ? evt.touches[0] : evt;
+            const bounds = this.container.getBoundingClientRect();
+            const x = e.clientX - bounds.left;
+            const y = e.clientY - bounds.top;
+            this.mouse = { x, y };
+            this.filter.mouse = { x, y };
+          }
+
+          animate() {
+            const animateFrame = () => {
+              this.animationFrameId = requestAnimationFrame(animateFrame);
+              this.render();
+            };
+            animateFrame();
+          }
+
+          render() {
+            const time = new Date().getTime() * 0.001;
+
+            // el texto "DIGITAL" nunca cambia — redibujarlo al canvas y
+            // resubir la textura a la GPU en cada frame (como hacía el
+            // original) es puro desperdicio. Ya se dibujó una vez en
+            // setMesh(); acá no hace falta tocarlo de nuevo.
+            this.mesh.material.uniforms.uTime.value = Math.sin(time);
+
+            this.updateRotation();
+            this.filter.render(this.scene, this.camera);
+          }
+
+          updateRotation() {
+            // el original de reactbits asume un contenedor a pantalla completa,
+            // donde el mouse casi no sale de sus límites — acá el contenedor es
+            // una sola palabra, muy chico, así que el cursor se sale todo el
+            // tiempo. Sin clamp, mapRange extrapola sin límite fuera de [0,w]/
+            // [0,h] y la rotación se dispara a ángulos absurdos, plegando la
+            // malla (con desplazamiento de onda) sobre sí misma — eso es el
+            // "se corta"/glitch de colores que se ve en vez del texto.
+            const mx = Math.max(0, Math.min(this.width, this.mouse.x));
+            const my = Math.max(0, Math.min(this.height, this.mouse.y));
+            const range = this.rotationRange;
+            const x = mapRange(my, 0, this.height, range, -range);
+            const y = mapRange(mx, 0, this.width, -range, range);
+
+            this.mesh.rotation.x += (x - this.mesh.rotation.x) * 0.05;
+            this.mesh.rotation.y += (y - this.mesh.rotation.y) * 0.05;
+          }
+
+          clear() {
+            this.scene.traverse((obj) => {
+              if (obj.isMesh && typeof obj.material === "object" && obj.material !== null) {
+                Object.keys(obj.material).forEach((key) => {
+                  const matProp = obj.material[key];
+                  if (matProp !== null && typeof matProp === "object" && typeof matProp.dispose === "function") {
+                    matProp.dispose();
+                  }
+                });
+                obj.material.dispose();
+                obj.geometry.dispose();
+              }
+            });
+            this.scene.clear();
+          }
+
+          dispose() {
+            cancelAnimationFrame(this.animationFrameId);
+            if (this.filter && this.filter.domElement.parentNode) {
+              this.container.removeChild(this.filter.domElement);
+            }
+            this.trackElem.removeEventListener("mousemove", this.onMouseMove);
+            this.trackElem.removeEventListener("touchmove", this.onMouseMove);
+            this.clear();
+            if (this.renderer) {
+              this.renderer.dispose();
+              this.renderer.forceContextLoss();
+            }
+          }
+        }
+
+        let instance = null;
+
+        async function mount(w, h) {
+          instance = new CanvAscii(cfg, ctn, w, h);
+          await instance.init();
+          instance.load();
+        }
+
+        // instance se asigna sincrónicamente como primera línea de mount(),
+        // antes del primer await — así que llamar mount() acá Y dejar el
+        // ResizeObserver abajo no genera doble montaje (el callback del
+        // observer, si llega, ve instance ya asignado). Hace falta esta
+        // medición inmediata además del observer: en algunos entornos (visto
+        // en preview headless) el primer callback de ResizeObserver puede no
+        // llegar nunca — sin este respaldo, el contenedor se queda vacío para
+        // siempre aunque ya tenga tamaño real al montar.
+        const initialRect = ctn.getBoundingClientRect();
+        // el caller usa la resolución de esta promesa para recién ahí
+        // desvanecer el texto real y mostrar el contenedor (ver script.js,
+        // llamada a initAsciiText) — si resolviera antes de que mount()
+        // termine, quedaría un hueco vacío entre "se esconde el texto real"
+        // y "aparece el canvas", que es justo lo que se ve si is-ready se
+        // agrega apenas carga Three.js en vez de esperar al montaje real.
+        const ready =
+          initialRect.width > 0 && initialRect.height > 0 ? mount(initialRect.width, initialRect.height) : Promise.resolve();
+
+        const ro = new ResizeObserver((entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          const { width, height } = entry.contentRect;
+          if (width === 0 || height === 0) return;
+
+          if (!instance) {
+            mount(width, height);
+          } else if (instance.filter) {
+            instance.setSize(width, height);
+          }
+        });
+        ro.observe(ctn);
+
+        return ready.then(() => ({ destroy: () => { ro.disconnect(); if (instance) instance.dispose(); } }));
+      })
+      .catch(() => null);
+  }
+
   /* ============================================================
      THRESHOLD — Nodo 0
      ============================================================ */
@@ -390,6 +953,16 @@ void main() {
        versión reutilizable con comentarios en RECURSOS/galaxy.js. Reemplaza
        el cometa del cursor (no era definitivo, se retiró a pedido). */
     initGalaxy(document.querySelector(".threshold__galaxy"));
+
+    /* ---------- ASCIIText: "Digital" del hero como arte ASCII (Three.js) ----------
+       ver initAsciiText() más arriba / RECURSOS/ascii-text.js. El texto real
+       se desvanece recién cuando la promesa resuelve con éxito. */
+    const titleDigital = document.getElementById("titleDigital");
+    if (titleDigital) {
+      initAsciiText(titleDigital.querySelector(".ascii-text-container")).then((handle) => {
+        if (handle) titleDigital.classList.add("is-ready");
+      });
+    }
 
     document.querySelectorAll(".specimen-chip__frame").forEach((frame, i) => {
       gsap.to(frame, {
