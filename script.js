@@ -21,6 +21,19 @@
   const mobileMQ = window.matchMedia("(max-width: 1023px)");
   let catalogSimple = !motionOK || mobileMQ.matches;
 
+  // conexión de datos móviles limitada o hardware de gama baja/media: se usa
+  // más abajo para saltar initGalaxy/initAsciiText (WebGL puro decorativo,
+  // sin efecto en el contenido) y reusar el mismo fallback gracioso que ya
+  // existe para cuando el CDN falla — texto real + gradient/sweep de CSS,
+  // sin estado nuevo que mantener. navigator.connection no existe en
+  // Safari/iOS; ahí el `&&` deja esa parte simplemente en false.
+  const conn = navigator.connection;
+  const isConstrained = !!(
+    (conn && (conn.saveData || ["slow-2g", "2g"].includes(conn.effectiveType))) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4)
+  );
+
   /* ---------- especímenes (íconos): reservan espacio, aparecen al resolver ---------- */
 
   document.querySelectorAll(".specimen-chip__frame img").forEach((img) => {
@@ -962,14 +975,20 @@ void main() {
     /* ---------- galaxy: fondo de estrellas del umbral ----------
        portado desde reactbits.dev/backgrounds/galaxy (OGL/WebGL) a vanilla —
        versión reutilizable con comentarios en RECURSOS/galaxy.js. Reemplaza
-       el cometa del cursor (no era definitivo, se retiró a pedido). */
-    initGalaxy(document.querySelector(".threshold__galaxy"));
+       el cometa del cursor (no era definitivo, se retiró a pedido).
+       Se salta en isConstrained (datos móviles limitados o hardware de gama
+       baja/media) — queda el radial-gradient + sweep de CSS que .threshold
+       ya tiene de fondo, mismo fallback que si el CDN de OGL fallara. */
+    if (!isConstrained) initGalaxy(document.querySelector(".threshold__galaxy"));
 
     /* ---------- ASCIIText: "Digital" del hero como arte ASCII (Three.js) ----------
        ver initAsciiText() más arriba / RECURSOS/ascii-text.js. El texto real
-       se desvanece recién cuando la promesa resuelve con éxito. */
+       se desvanece recién cuando la promesa resuelve con éxito. Se salta en
+       isConstrained (ver initGalaxy arriba) — el texto real de "Digital"
+       ya está en el DOM y se queda visible, mismo camino que si Three.js
+       nunca llegara a montar. */
     const titleDigital = document.getElementById("titleDigital");
-    if (titleDigital) {
+    if (titleDigital && !isConstrained) {
       initAsciiText(titleDigital.querySelector(".ascii-text-container")).then((handle) => {
         if (handle) titleDigital.classList.add("is-ready");
       });
@@ -1104,12 +1123,17 @@ void main() {
   if (heroViewport) heroViewport.classList.add("js-ready");
 
   /* ---------- carga perezosa de transiciones por edge (frame-scrubbing con
-     secuencias de PNG con alfa real pre-extraídas vía croma, no
+     secuencias de WebP con alfa real pre-extraídas vía croma, no
      video.currentTime — técnica portada de RECURSOS/blobsite/index.html:
      sin latencia de seek, scrub fluido en ambas direcciones). Un edge cubre
      el cruce entre la tarjeta i y la i+1; con 6 especímenes hay 5 edges
-     posibles. Cada carpeta tiene N frames 0000.png..NNNN.png extraídos con
-     ffmpeg (chromakey + -r 12) a partir de los clips con fondo verde/azul. ---------- */
+     posibles. Cada carpeta tiene N frames 0000.webp..NNNN.webp: extraídos
+     con ffmpeg (chromakey + -r 12) a partir de los clips con fondo
+     verde/azul, y recomprimidos a WebP (recorte cuadrado 720×720 + q95) —
+     el PNG crudo pesaba ~192MB para los 5 edges, inviable en datos
+     móviles; el recorte a cuadrado coincide con el object-fit:cover real
+     de .hero-canvas, no se pierde nada que ya no se recortara en el
+     cliente. ---------- */
 
   // count viene de la extracción real con ffmpeg (62 frames a 12fps en los
   // 5 edges ya producidos con croma limpio — los 5 posibles están cubiertos).
@@ -1142,7 +1166,7 @@ void main() {
     for (let i = 0; i < edge.count; i += batchSize) {
       const batch = [];
       for (let j = i; j < Math.min(i + batchSize, edge.count); j++) {
-        batch.push(loadImage("assets/disciplinas/frames/" + edge.dir + "/" + String(j).padStart(4, "0") + ".png"));
+        batch.push(loadImage("assets/disciplinas/frames/" + edge.dir + "/" + String(j).padStart(4, "0") + ".webp"));
       }
       const loaded = await Promise.all(batch);
       // si el primer frame del edge falla, no hay assets para este edge:

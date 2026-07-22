@@ -5,7 +5,10 @@
    idea aplicada en distintos puntos del recorrido.
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+/* Archivo + IBM Plex Mono se cargan desde index.html (<link
+   rel="stylesheet"> + preconnect) en vez de @import acá — un @import
+   dentro de un CSS bloquea el CSSOM hasta que ese round-trip completa,
+   antes de que cualquier estilo de este archivo aplique. */
 
 /* ============================================================
    BREAKPOINTS — escala fija en todo el archivo (no hay unidades

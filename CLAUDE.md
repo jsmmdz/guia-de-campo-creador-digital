@@ -75,8 +75,10 @@ index.html
 styles.css
 script.js
 assets/
-  home/          8 fotos de herramientas (1122×1402, verticales)
-  disciplinas/   vacía — ver convención de nombres más abajo
+  home/          8 fotos de herramientas — WebP, 340px de ancho (fuente
+                 real 1122×1402, ver "Optimización de carga" más abajo)
+  disciplinas/   frames/<edge>/NNNN.webp — ver convención de nombres y
+                 "Optimización de carga" más abajo
 ```
 
 ## Decisiones de diseño (no reabrir sin razón)
@@ -101,7 +103,14 @@ assets/
   `gsap.utils.interpolate` sin plugin de morph.
 - **Órbita de íconos**: radio calculado desde `Math.min(innerWidth,
   innerHeight)`, no desde ancho y alto por separado — si se separan, la
-  órbita queda ovalada en pantallas anchas.
+  órbita queda ovalada en pantallas anchas. Cada chip se centra sobre su
+  punto de órbita con `xPercent:-50, yPercent:-50` (ver error #14) — sin
+  eso, el punto trasladado es la esquina superior-izquierda del chip, no
+  su centro visual. Factor de radio: 0.47/0.40 (rx/ry) en `narrow`
+  (`mobileMQ`, ≤1023px — móvil+tablet) y 0.52/0.45 el resto (laptop en
+  adelante) — valores elegidos para que ningún breakpoint pase más de
+  ~30-34% del giro con el ícono parcial o totalmente fuera de pantalla
+  (medido analíticamente, ver error #14).
 - **Sin marco en los íconos de herramientas**: las imágenes se muestran tal
   cual vienen (sin circular/cuadrar, sin `object-fit: cover`, sin tinte de
   color) — decisión explícita del usuario, no reintroducir bordes/fondos.
@@ -193,6 +202,76 @@ assets/
     la GPU en cada frame de render, aunque el texto nunca cambia — puro
     desperdicio de CPU/GPU, más notorio cuanto más chica la grilla ASCII
     (`asciiFontSize` bajo). Se dibuja una sola vez al montar (`setMesh()`).
+14. **`.catalog__hero` (el blob fijo del catálogo) se veía centrado sobre
+    el Umbral**: es `position:fixed`, y no tenía ninguna regla que lo
+    ocultara fuera del catálogo (a diferencia de `.field-bg`, que ya usaba
+    `body.in-catalog` para esto). En laptop+ "no se notaba" solo porque el
+    pin de ScrollTrigger sobre `.catalog` le da a ese ancestro un efecto
+    de `will-change`/transform que de casualidad contiene el `fixed` del
+    blob dentro de su propia caja (fuera de pantalla hasta hacer scroll)
+    — no por diseño. En modo simple (móvil/tablet, sin pin) no hay ese
+    efecto secundario, así que aparecía centrado en pantalla desde el
+    primer frame. Fix: `opacity:0` + `body.in-catalog .catalog__hero
+    {opacity:1}`, mismo patrón que `.field-bg`.
+15. **Órbita de íconos con excesivo clipping en móvil/tablet**: dos causas
+    combinadas — (a) `gsap.set(el, {x, y})` trasladaba la esquina
+    superior-izquierda del chip al punto de la órbita, no su centro
+    visual (corregido con `xPercent:-50, yPercent:-50`, ver bullet
+    "Órbita de íconos" más arriba); (b) el factor de radio de `narrow`
+    (antes solo `innerWidth<=767`, o sea que tablet ni entraba en esa
+    rama) era **mayor** que el de desktop (0.62/0.54 vs 0.58/0.5) — al
+    revés de lo que compensaría una pantalla ya más angosta. Medido
+    analíticamente (mismo cálculo que el código, con el tamaño real de
+    frame por breakpoint): móvil pasaba 53.6% del giro con un ícono fuera
+    de pantalla, tablet 44.6%, vs ~29% en laptop/desktop/large (ya
+    aceptado). `narrow` ahora usa el mismo corte que `mobileMQ` (≤1023,
+    móvil+tablet juntos) con factores 0.47/0.40, bajando a ~30-34%.
+16. **Nota "Cognición Aumentada" (`.sensor-note--title`) superpuesta con
+    la flecha de scroll (`.threshold__nudge`) en móvil**: el override de
+    `@media (max-width:767px)` la anclaba a `bottom:26%`, un porcentaje
+    fijo sin relación con dónde cae realmente la flecha (centrada por
+    flexbox, con rebote ±10px) — se superponían ~4-14px. Bajado a
+    `bottom:18%`.
+
+## Optimización de carga (móviles de gama media / datos móviles)
+
+- **Assets de `assets/disciplinas/frames/` y `assets/home/` recomprimidos a
+  WebP** (antes PNG): 214MB → ~28MB. Los frames de edge se recortan
+  además a 720×720 (cuadrado) en vez de 1280×720 — coincide con el
+  `object-fit:cover` real de `.hero-canvas`, no se pierde nada que el
+  cliente no recortara ya. Calidad `libwebp -quality 95` (elegida por el
+  usuario tras comparar contra q78/q95/lossless — a q78 el ahorro era
+  mayor pero con suavizado perceptible en zoom; a q95 es indistinguible
+  del original). Pipeline (recomprime los PNG ya extraídos por chromakey,
+  no rehace la extracción desde los `.mp4`):
+  ```
+  # frames de edge (por archivo, ver assets/disciplinas/frames/<edge>/NNNN.png)
+  ffmpeg -i NNNN.png -vf "scale=720:720:force_original_aspect_ratio=increase,crop=720:720" \
+    -c:v libwebp -lossless 0 -quality 95 -compression_level 6 NNNN.webp
+
+  # fotos de home (por archivo, preserva aspect-ratio real 1122:1402)
+  ffmpeg -i tool.png -vf "scale=340:-1" \
+    -c:v libwebp -lossless 0 -quality 95 -compression_level 6 tool.webp
+  ```
+  Si se regeneran frames nuevos desde los `.mp4` (chromakey), correr este
+  segundo paso sobre el PNG recién extraído antes de commitear.
+- **`initGalaxy`/`initAsciiText` no se llaman con conexión/hardware
+  limitado** (`script.js`, `isConstrained` cerca de `motionOK`/`mobileMQ`):
+  `navigator.connection.saveData` o `effectiveType` en `slow-2g`/`2g`, o
+  `navigator.deviceMemory<=4`, o `navigator.hardwareConcurrency<=4`. Ambos
+  efectos son WebGL puro decorativo con fallback ya existente si el CDN
+  falla (gradient/sweep de CSS, texto real de "Digital") — saltarlos
+  reusa ese mismo camino, no hay estado nuevo. `navigator.connection` no
+  existe en Safari/iOS, ahí queda simplemente en `false`.
+- **Google Fonts ya no se carga con `@import` dentro de `styles.css`**: un
+  `@import` bloquea la construcción del CSSOM hasta que ese round-trip
+  completa, antes de que cualquier estilo del archivo aplique. Ahora es
+  `<link rel="preconnect">` (×2, googleapis + gstatic) + `<link
+  rel="stylesheet">` en el `<head>` de `index.html`, en paralelo con
+  `styles.css`.
+- **Fuera de alcance a propósito**: el historial de git todavía tiene los
+  PNG viejos pesados (no se reescribió — requeriría force-push, decisión
+  aparte).
 
 ## Pendiente
 
@@ -229,10 +308,12 @@ assets/
   `03-04` (Software→Game), `04-05` (Game→Multimedia, croma azul — el
   blob de Multimedia ya es verde-amarillento, `--spec-5`, choca con
   croma verde), `05-06` (Multimedia→IA, croma azul por el mismo motivo).
-  Convención: `assets/disciplinas/frames/<edge>/0000.png`…`NNNN.png`, 62
+  Convención: `assets/disciplinas/frames/<edge>/0000.webp`…`NNNN.webp`, 62
   frames cada uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i
   clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
-  -start_number 0 frames/<edge>/%04d.png`). `has-feed` es solo-agregar:
+  -start_number 0 frames/<edge>/%04d.png`, y recién después recomprimidos
+  a WebP 720×720 — ver "Optimización de carga" más arriba, ahí está el
+  comando exacto). `has-feed` es solo-agregar:
   una vez que una tarjeta muestra video real se queda así para siempre,
   el blob nunca vuelve (coincide con el flujo del sitio de referencia).
   `has-feed` ON en ambas tarjetas del edge activo, toggleado en
