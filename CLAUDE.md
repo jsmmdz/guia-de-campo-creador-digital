@@ -97,6 +97,38 @@ assets/
   táctiles) usan scroll-snap nativo; laptop+ (≥1024px) usa scroll-jacking
   con pin de GSAP ScrollTrigger. La tablet se agrupó con móvil porque
   comparte gestos de swipe-back que el scroll-jacking rompería.
+- **Transiciones reales de blobs — 5/5 edges resueltos, con equivalente en
+  mobile/tablet.** El modelo no es un video por disciplina: son videos de
+  transición ENTRE tarjetas consecutivas ("edges"), reproducidos como
+  secuencia de frames WebP con alfa real (recorte por croma verde/azul, no
+  `video.currentTime` — técnica portada de `RECURSOS/blobsite/index.html`,
+  sin latencia de seek, scrub fluido en ambas direcciones). Con 6 tarjetas
+  hay 5 edges posibles, los 5 cubiertos: `01-02` (UX/UI→3D), `02-03`
+  (3D→Software), `03-04` (Software→Game), `04-05` (Game→Multimedia, croma
+  azul — el blob de Multimedia ya es verde-amarillento, `--spec-5`, choca
+  con croma verde), `05-06` (Multimedia→IA, croma azul por el mismo
+  motivo). Convención: `assets/disciplinas/frames/<edge>/0000.webp`…
+  `NNNN.webp`, 62 frames cada uno (clips de ~5s, extraídos a 12fps con
+  `ffmpeg -i clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
+  -start_number 0 frames/<edge>/%04d.png`, y recién después recomprimidos
+  a WebP 720×720 — ver "Optimización de carga" más abajo, ahí está el
+  comando exacto). `has-feed` es solo-agregar: una vez que una tarjeta
+  muestra video real se queda así para siempre, el blob nunca vuelve
+  (coincide con el flujo del sitio de referencia). `has-feed` ON en ambas
+  tarjetas del edge activo, toggleado en `applyProgress()`; nunca se
+  apaga. Config y carga perezosa por proximidad (±1 edge) en `EDGE_FEEDS`
+  / `ensureEdgeFeedLoading()` / `scrubEdgeFeed()` en `script.js` — ojo con
+  `ctx.clearRect()` antes de cada `drawImage()`: con alfa real, sin el
+  clear queda "fantasma" del frame anterior en las zonas transparentes.
+  **Modo simple (móvil/tablet) deriva el mismo progreso fraccional del
+  scroll horizontal nativo**: `setupSimple()` calcula `activeFloat =
+  catalog.scrollLeft / window.innerWidth` (mismo supuesto de `.plate`
+  midiendo `100vw` que ya usa `setupEnhanced()`), throttleado con
+  `requestAnimationFrame` (`onCatalogScroll()`), y se lo pasa a
+  `applyProgress()` — el mismo camino que ya dispara el scrub en
+  laptop+. Reemplazó al `IntersectionObserver` que había antes (solo
+  producía índices enteros, nunca progreso fraccional — el video no se
+  disparaba nunca en mobile/tablet; no reintroducir esa limitación).
 - **Blobs del catálogo**: SVG generado en JS, no assets. Los 6 paths usan
   la *misma estructura de comandos* (`M` + 8×`C` + `Z`, ver `blobPath()` en
   `script.js`) para poder interpolarse en caliente con
@@ -158,11 +190,14 @@ assets/
    se borra, cada vez que la tarjeta vuelve a ser vecina se reintenta la
    descarga. Se deja la entrada con `ready:false` para siempre.
 5. **`in-catalog` se activaba al cargar la página** (modo simple/tablet):
-   el `IntersectionObserver` para detectar la tarjeta activa usa `root:
-   catalog`, lo que lo hace disparar sin importar si el catálogo está
-   fuera del viewport de la página. El estado `in-catalog` lo controla
-   **únicamente** `simpleBoundaryST` (el ScrollTrigger de límite); el
-   observer solo llama `applyProgress(idx)`, nunca `setInCatalog()`.
+   lo que detecta el progreso activo dentro del carril horizontal (antes
+   un `IntersectionObserver` con `root: catalog`, que disparaba sin
+   importar si el catálogo estaba fuera del viewport de la página; ahora
+   el listener de `scroll` nativo de `onCatalogScroll()`, ver "Transiciones
+   reales de blobs") **nunca** debe decidir `in-catalog` — ese estado lo
+   controla **únicamente** `simpleBoundaryST` (el ScrollTrigger de
+   límite). Quien detecta progreso solo debe llamar `applyProgress()`,
+   nunca `setInCatalog()`.
 6. **`<canvas>` no se estira con `inset` solo**: los elementos reemplazados
    (`canvas`, `img`, `video`) necesitan `width`/`height` explícitos en CSS
    además de `inset`, si no usan su tamaño intrínseco (300×150 en canvas).
@@ -255,14 +290,18 @@ assets/
   ```
   Si se regeneran frames nuevos desde los `.mp4` (chromakey), correr este
   segundo paso sobre el PNG recién extraído antes de commitear.
-- **`initGalaxy`/`initAsciiText` no se llaman con conexión/hardware
-  limitado** (`script.js`, `isConstrained` cerca de `motionOK`/`mobileMQ`):
-  `navigator.connection.saveData` o `effectiveType` en `slow-2g`/`2g`, o
-  `navigator.deviceMemory<=4`, o `navigator.hardwareConcurrency<=4`. Ambos
-  efectos son WebGL puro decorativo con fallback ya existente si el CDN
-  falla (gradient/sweep de CSS, texto real de "Digital") — saltarlos
-  reusa ese mismo camino, no hay estado nuevo. `navigator.connection` no
-  existe en Safari/iOS, ahí queda simplemente en `false`.
+- **`initGalaxy`/`initAsciiText` no se llaman con conexión realmente
+  limitada** (`script.js`, `isConstrained` cerca de `motionOK`/`mobileMQ`):
+  `navigator.connection.saveData` o `effectiveType` en `slow-2g`/`2g` —
+  **SOLO señales de conexión, nunca de hardware**. Una primera versión
+  también chequeaba `deviceMemory<=4` / `hardwareConcurrency<=4` y apagaba
+  las animaciones en casi cualquier celular de gama media (la mayoría
+  reporta exactamente 4GB/4 núcleos) — contradice la decisión "el sitio
+  anima siempre" de más arriba; no reintroducir. Ambos efectos son WebGL
+  puro decorativo con fallback ya existente si el CDN falla (gradient/
+  sweep de CSS, texto real de "Digital") — saltarlos reusa ese mismo
+  camino, no hay estado nuevo. `navigator.connection` no existe en
+  Safari/iOS, ahí queda simplemente en `false`.
 - **Google Fonts ya no se carga con `@import` dentro de `styles.css`**: un
   `@import` bloquea la construcción del CSSOM hasta que ese round-trip
   completa, antes de que cualquier estilo del archivo aplique. Ahora es
@@ -298,33 +337,6 @@ assets/
   se repite igual en los 5 nodos y conviene resolverla una sola vez como
   componente reutilizable. El HUD de coordenadas (`.hud`, `.hud__reg`,
   `.hud__coord`) es un elemento aparte, no forma parte de este componente.
-- **Transiciones reales de blobs — 5/5 edges resueltos.** El modelo ya no
-  es un video por disciplina: son videos de transición ENTRE tarjetas
-  consecutivas ("edges"), reproducidos como secuencia de frames PNG con
-  alfa real (recorte por croma verde/azul, no `video.currentTime` —
-  técnica portada de `RECURSOS/blobsite/index.html`, sin latencia de
-  seek, scrub fluido en ambas direcciones). Con 6 tarjetas hay 5 edges
-  posibles, los 5 cubiertos: `01-02` (UX/UI→3D), `02-03` (3D→Software),
-  `03-04` (Software→Game), `04-05` (Game→Multimedia, croma azul — el
-  blob de Multimedia ya es verde-amarillento, `--spec-5`, choca con
-  croma verde), `05-06` (Multimedia→IA, croma azul por el mismo motivo).
-  Convención: `assets/disciplinas/frames/<edge>/0000.webp`…`NNNN.webp`, 62
-  frames cada uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i
-  clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
-  -start_number 0 frames/<edge>/%04d.png`, y recién después recomprimidos
-  a WebP 720×720 — ver "Optimización de carga" más arriba, ahí está el
-  comando exacto). `has-feed` es solo-agregar:
-  una vez que una tarjeta muestra video real se queda así para siempre,
-  el blob nunca vuelve (coincide con el flujo del sitio de referencia).
-  `has-feed` ON en ambas tarjetas del edge activo, toggleado en
-  `applyProgress()`; nunca se apaga. Config y carga perezosa por
-  proximidad (±1 edge) en `EDGE_FEEDS` / `ensureEdgeFeedLoading()` /
-  `scrubEdgeFeed()` en `script.js` — ojo con `ctx.clearRect()` antes de
-  cada `drawImage()`: con alfa real, sin el clear queda "fantasma" del
-  frame anterior en las zonas transparentes. Sin equivalente en
-  mobile/tablet — `setupSimple()` nunca produce progreso
-  fraccional entre tarjetas, así que ahí el catálogo se ve solo con blobs,
-  consistente con la separación ya documentada modo simple/scroll-jacking.
 - **Copy final de las 6 placas del catálogo** — el actual es un borrador
   provisional (marcado con comentario `COPY PROVISIONAL` en `index.html`),
   a la espera del texto exacto y definitivo.

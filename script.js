@@ -21,17 +21,20 @@
   const mobileMQ = window.matchMedia("(max-width: 1023px)");
   let catalogSimple = !motionOK || mobileMQ.matches;
 
-  // conexión de datos móviles limitada o hardware de gama baja/media: se usa
-  // más abajo para saltar initGalaxy/initAsciiText (WebGL puro decorativo,
-  // sin efecto en el contenido) y reusar el mismo fallback gracioso que ya
-  // existe para cuando el CDN falla — texto real + gradient/sweep de CSS,
-  // sin estado nuevo que mantener. navigator.connection no existe en
-  // Safari/iOS; ahí el `&&` deja esa parte simplemente en false.
+  // conexión de datos realmente limitada (ahorro de datos activado por el
+  // usuario, o red 2G): se usa más abajo para saltar initGalaxy/
+  // initAsciiText (WebGL puro decorativo, sin efecto en el contenido) y
+  // reusar el mismo fallback gracioso que ya existe para cuando el CDN
+  // falla — texto real + gradient/sweep de CSS, sin estado nuevo que
+  // mantener. SOLO señales de conexión, nunca de hardware: una primera
+  // versión también chequeaba deviceMemory/hardwareConcurrency <= 4, y eso
+  // apagaba las animaciones en casi cualquier celular de gama media (la
+  // mayoría reporta exactamente 4GB / 4 núcleos) — contradice la decisión
+  // de producto "el sitio anima siempre" (ver CLAUDE.md). navigator.
+  // connection no existe en Safari/iOS; ahí queda simplemente en false.
   const conn = navigator.connection;
   const isConstrained = !!(
-    (conn && (conn.saveData || ["slow-2g", "2g"].includes(conn.effectiveType))) ||
-    (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
-    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4)
+    conn && (conn.saveData || ["slow-2g", "2g"].includes(conn.effectiveType))
   );
 
   /* ---------- especímenes (íconos): reservan espacio, aparecen al resolver ---------- */
@@ -976,9 +979,10 @@ void main() {
        portado desde reactbits.dev/backgrounds/galaxy (OGL/WebGL) a vanilla —
        versión reutilizable con comentarios en RECURSOS/galaxy.js. Reemplaza
        el cometa del cursor (no era definitivo, se retiró a pedido).
-       Se salta en isConstrained (datos móviles limitados o hardware de gama
-       baja/media) — queda el radial-gradient + sweep de CSS que .threshold
-       ya tiene de fondo, mismo fallback que si el CDN de OGL fallara. */
+       Se salta en isConstrained (ahorro de datos o red 2G — solo señales
+       de conexión, ver arriba) — queda el radial-gradient + sweep de CSS
+       que .threshold ya tiene de fondo, mismo fallback que si el CDN de
+       OGL fallara. */
     if (!isConstrained) initGalaxy(document.querySelector(".threshold__galaxy"));
 
     /* ---------- ASCIIText: "Digital" del hero como arte ASCII (Three.js) ----------
@@ -1294,7 +1298,7 @@ void main() {
   /* ---------- modo mejorado: scroll-jacking vertical -> horizontal con pin ---------- */
 
   let railTween = null;
-  let simpleObserver = null;
+  let simpleScrollRAF = null;
   let simpleBoundaryST = null;
 
   function teardownEnhanced() {
@@ -1303,8 +1307,29 @@ void main() {
     document.body.classList.remove("catalog-enhanced");
   }
 
+  // progreso continuo en modo simple, derivado del scroll horizontal NATIVO
+  // de .catalog (scroll-snap por dedo) — mismo tipo de valor fraccional que
+  // ya produce setupEnhanced() vía ScrollTrigger (self.progress * (plates.
+  // length-1)), así que aplyProgress() dispara el mismo camino de
+  // ensureEdgeFeedLoading/scrubEdgeFeed en los dos modos. window.innerWidth
+  // (no catalog.clientWidth) porque cada .plate mide literalmente 100vw
+  // (styles.css), el mismo supuesto que ya usa setupEnhanced (x: () =>
+  // -(plates.length-1) * window.innerWidth) — mismo criterio en ambos modos.
+  function computeSimpleActiveFloat() {
+    return catalog.scrollLeft / window.innerWidth;
+  }
+
+  function onCatalogScroll() {
+    if (simpleScrollRAF) return; // ya hay un tick pendiente, coalescer
+    simpleScrollRAF = requestAnimationFrame(() => {
+      simpleScrollRAF = null;
+      applyProgress(computeSimpleActiveFloat());
+    });
+  }
+
   function teardownSimple() {
-    if (simpleObserver) { simpleObserver.disconnect(); simpleObserver = null; }
+    catalog.removeEventListener("scroll", onCatalogScroll);
+    if (simpleScrollRAF) { cancelAnimationFrame(simpleScrollRAF); simpleScrollRAF = null; }
     if (simpleBoundaryST) { simpleBoundaryST.kill(); simpleBoundaryST = null; }
   }
 
@@ -1333,27 +1358,22 @@ void main() {
   }
 
   function setupSimple() {
-    simpleObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const idx = plates.indexOf(entry.target);
-          if (idx === -1) return;
-          // el estado in-catalog lo decide únicamente simpleBoundaryST (según
-          // scroll vertical de la página); este observer solo detecta CUÁL
-          // tarjeta quedó activa dentro del carril horizontal — con root:
-          // catalog, su intersección es relativa al propio contenedor y se
-          // dispara aunque el catálogo todavía esté fuera del viewport.
-          // Sin scrub continuo acá (idx siempre entero, ver applyProgress),
-          // así que nunca hay edge activo — las tarjetas se ven con su
-          // blob, sin video, en mobile/tablet. Coincide con la separación
-          // ya documentada modo simple/scroll-jacking.
-          applyProgress(idx);
-        });
-      },
-      { root: catalog, threshold: 0.6 }
-    );
-    plates.forEach((p) => simpleObserver.observe(p));
+    // el estado in-catalog lo decide únicamente simpleBoundaryST (según
+    // scroll vertical de la página) — este listener solo detecta el
+    // progreso activo dentro del carril horizontal (scroll-snap nativo por
+    // dedo), nunca debe tocar in-catalog (ver error #5 en CLAUDE.md).
+    catalog.addEventListener("scroll", onCatalogScroll, { passive: true });
+
+    // respaldo síncrono, mismo motivo que el de ResizeObserver en
+    // initAsciiText (ver CLAUDE.md, error #12): si catalog.scrollLeft no
+    // CAMBIA al montar, nunca se dispara un evento "scroll" y este cálculo
+    // es la única vía de sincronizar el hero con la tarjeta visible. Se
+    // calcula desde el scrollLeft REAL, no se hardcodea a 0 — un remount
+    // con scrollLeft ya distinto de 0 (p. ej. se vuelve a modo simple
+    // después de haber estado en enhanced) dejaría el hero mostrando la
+    // tarjeta 0 aunque el usuario esté viendo otra, sin nada que lo
+    // corrija después.
+    applyProgress(computeSimpleActiveFloat());
 
     simpleBoundaryST = ScrollTrigger.create({
       trigger: catalog,
