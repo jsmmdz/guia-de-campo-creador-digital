@@ -928,17 +928,28 @@ void main() {
     const REV_SECONDS = 80;
 
     chips.forEach((el, i) => {
-      gsap.set(el, { left: 0, top: 0 });
+      // xPercent/yPercent centra el chip sobre su propio punto de órbita —
+      // sin esto, x/y (abajo) traslada la esquina superior-izquierda del
+      // chip al punto calculado, no su centro visual, y el ícono queda
+      // permanentemente corrido hacia +x/+y por la mitad de su propio
+      // ancho/alto. GSAP compone xPercent/yPercent con el x/y del ticker
+      // sin pisarlo, así que no hace falta conocer el tamaño real del frame.
+      gsap.set(el, { left: 0, top: 0, xPercent: -50, yPercent: -50 });
       gsap.set(el.querySelector(".specimen-chip__frame"), { rotation: TILTS[i % TILTS.length] });
     });
 
     gsap.ticker.add((time) => {
-      const narrow = window.innerWidth <= 767;
+      // mismo corte que mobileMQ (≤1023, móvil+tablet, ver arriba): con el
+      // centrado de arriba, un factor más chico ahí evita que los íconos
+      // pasen la mitad del giro fuera de pantalla (medido: ~34-38% en
+      // móvil / ~18-24% en tablet vs ~54%/~45% con el factor viejo),
+      // acercándolo al ~29% que ya tenían laptop/desktop/pantallas grandes.
+      const narrow = mobileMQ.matches;
       // radio a partir del lado corto del viewport: mantiene la órbita casi
       // circular en vez de un óvalo alargado en pantallas anchas
       const base = Math.min(window.innerWidth, window.innerHeight);
-      const rx = base * (narrow ? 0.62 : 0.58);
-      const ry = base * (narrow ? 0.54 : 0.5);
+      const rx = base * (narrow ? 0.47 : 0.52);
+      const ry = base * (narrow ? 0.40 : 0.45);
       const cx = window.innerWidth / 2;
       const cy = window.innerHeight / 2;
       const spin = (time * Math.PI * 2) / REV_SECONDS;

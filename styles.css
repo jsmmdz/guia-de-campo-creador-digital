@@ -236,7 +236,9 @@ body.sensor-on.in-catalog .sensor-note--plate { opacity: 1; transform: translate
 @media (max-width: 767px) {
   .sensor__state { display: none; }
   .sensor-note--orbit { display: none; }
-  .sensor-note--title { top: auto; bottom: 26%; left: var(--sp-3); right: var(--sp-3); max-width: none; }
+  /* bottom:18% (antes 26%) deja hueco frente a .threshold__nudge y su
+     rebote (±10px) — a 26% la nota le pisaba la flecha ~4-14px */
+  .sensor-note--title { top: auto; bottom: 18%; left: var(--sp-3); right: var(--sp-3); max-width: none; }
 }
 /* desktop y pantallas grandes: la nota gana un poco de aire para leerse cómoda */
 @media (min-width: 1440px) {
@@ -616,7 +618,15 @@ body.in-catalog .field-bg { opacity: 1; }
   display: grid;
   place-items: center;
   pointer-events: none;
+  /* oculto fuera del catálogo (mismo patrón que .field-bg): al ser fixed y
+     sin esto, se veía centrado sobre el Umbral en modo simple (móvil/
+     tablet) desde el primer frame — en laptop+ "no se notaba" solo porque
+     el pin de ScrollTrigger sobre .catalog contiene su fixed por accidente
+     mientras el catálogo está fuera de pantalla, no por diseño. */
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
+body.in-catalog .catalog__hero { opacity: 1; }
 
 .hero-reticle {
   position: absolute;
