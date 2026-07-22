@@ -542,21 +542,19 @@ body.in-catalog .field-bg { opacity: 1; }
 .catalog {
   position: relative;
   z-index: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pinch-zoom;
-  scrollbar-width: none;
+  /* modo simple (móvil/tablet): sin contenedor de scroll propio — es parte
+     del flujo normal de la página, cada tarjeta es una sección de pantalla
+     completa apilada verticalmente, navegada con el scroll vertical nativo
+     (nunca scroll horizontal). El modo scroll-jacking (laptop+, ver
+     body.catalog-enhanced más abajo) es la excepción que reintroduce el
+     eje horizontal, no al revés. */
 }
-.catalog::-webkit-scrollbar { display: none; }
 
-.catalog__rail { display: flex; width: max-content; }
+.catalog__rail { display: flex; flex-direction: column; }
 
 .plate {
   position: relative;
-  flex: 0 0 100vw;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   min-height: 100svh;
   display: flex;
@@ -566,7 +564,6 @@ body.in-catalog .field-bg { opacity: 1; }
   gap: var(--sp-3);
   padding: var(--sp-6) var(--sp-4);
   text-align: center;
-  scroll-snap-align: start;
 }
 
 .plate__reg {
@@ -678,15 +675,16 @@ body.in-catalog .catalog__hero { opacity: 1; }
 }
 .catalog__hero.has-feed .hero-canvas { opacity: 1; }
 
-/* --- modo mejorado: scroll-jacking vertical -> desplazamiento horizontal con pin --- */
+/* --- modo mejorado: scroll-jacking vertical -> desplazamiento horizontal con pin ---
+     única parte del sitio con eje horizontal — reintroduce fila + ancho
+     100vw por tarjeta sobre la base vertical de arriba. */
 
 body.catalog-enhanced .catalog {
   height: 100vh; height: 100svh;
   overflow: hidden;
-  scroll-snap-type: none;
 }
-body.catalog-enhanced .catalog__rail { width: 600%; will-change: transform; }
-body.catalog-enhanced .plate { width: 100vw; }
+body.catalog-enhanced .catalog__rail { flex-direction: row; width: 600%; will-change: transform; }
+body.catalog-enhanced .plate { flex: 0 0 100vw; width: 100vw; }
 
 /* móvil ≤767 */
 @media (max-width: 767px) {

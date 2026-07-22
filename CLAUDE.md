@@ -93,23 +93,50 @@ assets/
 - **Breakpoints** (fijos, documentados también en el header de
   `styles.css`): móvil ≤767 · tablet 768–1023 · laptop 1024–1439 (tier
   base, sin `@media`) · desktop 1440–1919 · pantallas grandes ≥1920.
-- **Catálogo — modo simple vs. scroll-jacking**: móvil + tablet (≤1023px,
-  táctiles) usan scroll-snap nativo; laptop+ (≥1024px) usa scroll-jacking
-  con pin de GSAP ScrollTrigger. La tablet se agrupó con móvil porque
-  comparte gestos de swipe-back que el scroll-jacking rompería.
-- **Transiciones reales de blobs — 5/5 edges resueltos, con equivalente en
-  mobile/tablet.** El modelo no es un video por disciplina: son videos de
-  transición ENTRE tarjetas consecutivas ("edges"), reproducidos como
-  secuencia de frames WebP con alfa real (recorte por croma verde/azul, no
-  `video.currentTime` — técnica portada de `RECURSOS/blobsite/index.html`,
-  sin latencia de seek, scrub fluido en ambas direcciones). Con 6 tarjetas
-  hay 5 edges posibles, los 5 cubiertos: `01-02` (UX/UI→3D), `02-03`
-  (3D→Software), `03-04` (Software→Game), `04-05` (Game→Multimedia, croma
-  azul — el blob de Multimedia ya es verde-amarillento, `--spec-5`, choca
-  con croma verde), `05-06` (Multimedia→IA, croma azul por el mismo
-  motivo). Convención: `assets/disciplinas/frames/<edge>/0000.webp`…
-  `NNNN.webp`, 62 frames cada uno (clips de ~5s, extraídos a 12fps con
-  `ffmpeg -i clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
+- **Catálogo — scroll-jacking con pin en TODOS los breakpoints por
+  defecto** (`setupEnhanced()`, `script.js`): `catalogSimple` ya no
+  depende del ancho de pantalla (`mobileMQ`) — depende únicamente de
+  `motionOK` (`!motionOK`, o sea solo con `?static=1`). El input siempre
+  es 100% scroll vertical, incluso en touch (el `pin` de ScrollTrigger no
+  exige swipe horizontal: traduce scroll vertical normal en desplazamiento
+  horizontal visual del carril) — a pedido explícito, para que mobile
+  tenga el mismo efecto visual que laptop+.
+  **Riesgo aceptado, no resuelto — probar en dispositivo real**: la razón
+  original para separar mobile/tablet (scroll-snap horizontal en vez de
+  pin) era que el `pin` puede chocar con el gesto nativo de "volver atrás"
+  deslizando desde el borde de pantalla en navegadores móviles. Se decidió
+  probarlo igual; si en un celular real se rompe ese gesto, la opción de
+  volver a separar mobile/tablet (con `setupSimple()`, ver más abajo)
+  sigue disponible y ya está implementada.
+  `setupSimple()` (stack vertical de las 6 tarjetas, SIN pin ni swipe
+  horizontal) queda como fallback de `motionOK=false` (`?static=1`) — ya
+  no es una rama de mobile/tablet. Ahí un `ScrollTrigger` sin `pin`
+  (`trigger: catalog, start:"top top", end:"bottom bottom"`) traduce el
+  scroll vertical normal en `self.progress * (plates.length-1)`, mismo
+  cálculo que `setupEnhanced()`, pasado a `applyProgress()` — decide
+  `in-catalog` y el progreso juntos, en un solo ScrollTrigger.
+  Historial (no reintroducir ninguna de estas dos versiones anteriores de
+  `setupSimple()`, ya reemplazadas): primero un `IntersectionObserver`
+  (solo producía índices enteros, nunca progreso fraccional — el video de
+  transición nunca se disparaba); después scroll-snap horizontal con
+  progreso derivado de `catalog.scrollLeft` (el video sí funcionaba, pero
+  el scroll-snap horizontal cortaba en seco el scroll vertical de la
+  página al llegar al catálogo — el problema que motivó pasar `setupSimple`
+  a stack vertical, y que dejó de importar para mobile/tablet en cuanto
+  se unificó todo bajo `setupEnhanced()`).
+- **Transiciones reales de blobs — 5/5 edges resueltos.** El modelo no es
+  un video por disciplina: son videos de transición ENTRE tarjetas
+  consecutivas ("edges"), reproducidos como secuencia de frames WebP con
+  alfa real (recorte por croma verde/azul, no `video.currentTime` —
+  técnica portada de `RECURSOS/blobsite/index.html`, sin latencia de
+  seek, scrub fluido en ambas direcciones). Con 6 tarjetas hay 5 edges
+  posibles, los 5 cubiertos: `01-02` (UX/UI→3D), `02-03` (3D→Software),
+  `03-04` (Software→Game), `04-05` (Game→Multimedia, croma azul — el
+  blob de Multimedia ya es verde-amarillento, `--spec-5`, choca con
+  croma verde), `05-06` (Multimedia→IA, croma azul por el mismo motivo).
+  Convención: `assets/disciplinas/frames/<edge>/0000.webp`…`NNNN.webp`,
+  62 frames cada uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i
+  clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
   -start_number 0 frames/<edge>/%04d.png`, y recién después recomprimidos
   a WebP 720×720 — ver "Optimización de carga" más abajo, ahí está el
   comando exacto). `has-feed` es solo-agregar: una vez que una tarjeta
@@ -120,15 +147,6 @@ assets/
   / `ensureEdgeFeedLoading()` / `scrubEdgeFeed()` en `script.js` — ojo con
   `ctx.clearRect()` antes de cada `drawImage()`: con alfa real, sin el
   clear queda "fantasma" del frame anterior en las zonas transparentes.
-  **Modo simple (móvil/tablet) deriva el mismo progreso fraccional del
-  scroll horizontal nativo**: `setupSimple()` calcula `activeFloat =
-  catalog.scrollLeft / window.innerWidth` (mismo supuesto de `.plate`
-  midiendo `100vw` que ya usa `setupEnhanced()`), throttleado con
-  `requestAnimationFrame` (`onCatalogScroll()`), y se lo pasa a
-  `applyProgress()` — el mismo camino que ya dispara el scrub en
-  laptop+. Reemplazó al `IntersectionObserver` que había antes (solo
-  producía índices enteros, nunca progreso fraccional — el video no se
-  disparaba nunca en mobile/tablet; no reintroducir esa limitación).
 - **Blobs del catálogo**: SVG generado en JS, no assets. Los 6 paths usan
   la *misma estructura de comandos* (`M` + 8×`C` + `Z`, ver `blobPath()` en
   `script.js`) para poder interpolarse en caliente con
@@ -189,14 +207,25 @@ assets/
    handler de `error` NO debe borrar la entrada de `feedState` (Map) — si
    se borra, cada vez que la tarjeta vuelve a ser vecina se reintenta la
    descarga. Se deja la entrada con `ready:false` para siempre.
-5. **`in-catalog` se activaba al cargar la página** (modo simple/tablet):
-   lo que detecta el progreso activo dentro del carril horizontal (antes
-   un `IntersectionObserver` con `root: catalog`, que disparaba sin
-   importar si el catálogo estaba fuera del viewport de la página; ahora
-   el listener de `scroll` nativo de `onCatalogScroll()`, ver "Transiciones
-   reales de blobs") **nunca** debe decidir `in-catalog` — ese estado lo
-   controla **únicamente** `simpleBoundaryST` (el ScrollTrigger de
-   límite). Quien detecta progreso solo debe llamar `applyProgress()`,
+5. **`in-catalog` se activaba al cargar la página** (`setupSimple()`, con
+   el diseño viejo de carril horizontal — hoy es el fallback de
+   `?static=1`, ver "Catálogo" en Decisiones de diseño): el
+   `IntersectionObserver` de
+   entonces usaba `root: catalog`, lo que lo hacía disparar sin importar si
+   el catálogo estaba fuera del viewport de la página — por eso, con ESE
+   mecanismo específico, quien detectaba progreso no podía tocar
+   `in-catalog` bajo ningún concepto. Ya no existe ese observer (ver
+   "Transiciones reales de blobs": el catálogo simple ahora apila las
+   tarjetas verticalmente y un único `ScrollTrigger` sin `pin`, atado al
+   scroll vertical real de la página, decide progreso e `in-catalog`
+   juntos — es seguro combinarlos acá porque a diferencia del observer
+   viejo, este sí sabe si el catálogo está realmente en el viewport de la
+   página). La lección que sigue valiendo: si alguna vez se vuelve a medir
+   progreso con algo cuya intersección/disparo sea independiente de la
+   posición real del catálogo en la página (otro `IntersectionObserver`
+   con `root` propio, por ejemplo), **ese** mecanismo no debe decidir
+   `in-catalog` — ese estado lo controla **únicamente** `simpleBoundaryST`.
+   Quien detecta progreso solo debe llamar `applyProgress()`,
    nunca `setInCatalog()`.
 6. **`<canvas>` no se estira con `inset` solo**: los elementos reemplazados
    (`canvas`, `img`, `video`) necesitan `width`/`height` explícitos en CSS

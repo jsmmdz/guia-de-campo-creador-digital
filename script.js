@@ -15,11 +15,19 @@
   // mundo (no se apaga con prefers-reduced-motion) — quien quiera la versión
   // calma puede pedirla explícitamente con ?static=1
   const motionOK = !staticParam;
-  // móvil + tablet (táctiles, con gestos de swipe-back) usan el catálogo
-  // simple; laptop en adelante usa el scroll-jacking con pin — mismo corte
-  // que el breakpoint "tablet" de styles.css (1023px)
+  // el catálogo usa scroll-jacking con pin (setupEnhanced) en TODOS los
+  // breakpoints por defecto — a pedido explícito, el input sigue siendo
+  // 100% scroll vertical incluso en touch (el pin no exige swipe
+  // horizontal, solo traduce scroll vertical normal en desplazamiento
+  // horizontal visual). El modo simple (setupSimple, stack vertical sin
+  // pin) queda como fallback de motionOK=false (?static=1) — no como
+  // rama de mobile/tablet. Antes esto se cortaba por mobileMQ (≤1023px)
+  // porque el pin podía chocar con el gesto nativo de "volver atrás"
+  // deslizando desde el borde en navegadores móviles — riesgo conocido,
+  // aceptado a pedido del usuario; probar ese gesto específicamente en
+  // dispositivos reales antes de dar esto por cerrado.
   const mobileMQ = window.matchMedia("(max-width: 1023px)");
-  let catalogSimple = !motionOK || mobileMQ.matches;
+  let catalogSimple = !motionOK;
 
   // conexión de datos realmente limitada (ahorro de datos activado por el
   // usuario, o red 2G): se usa más abajo para saltar initGalaxy/
@@ -1298,7 +1306,6 @@ void main() {
   /* ---------- modo mejorado: scroll-jacking vertical -> horizontal con pin ---------- */
 
   let railTween = null;
-  let simpleScrollRAF = null;
   let simpleBoundaryST = null;
 
   function teardownEnhanced() {
@@ -1307,29 +1314,7 @@ void main() {
     document.body.classList.remove("catalog-enhanced");
   }
 
-  // progreso continuo en modo simple, derivado del scroll horizontal NATIVO
-  // de .catalog (scroll-snap por dedo) — mismo tipo de valor fraccional que
-  // ya produce setupEnhanced() vía ScrollTrigger (self.progress * (plates.
-  // length-1)), así que aplyProgress() dispara el mismo camino de
-  // ensureEdgeFeedLoading/scrubEdgeFeed en los dos modos. window.innerWidth
-  // (no catalog.clientWidth) porque cada .plate mide literalmente 100vw
-  // (styles.css), el mismo supuesto que ya usa setupEnhanced (x: () =>
-  // -(plates.length-1) * window.innerWidth) — mismo criterio en ambos modos.
-  function computeSimpleActiveFloat() {
-    return catalog.scrollLeft / window.innerWidth;
-  }
-
-  function onCatalogScroll() {
-    if (simpleScrollRAF) return; // ya hay un tick pendiente, coalescer
-    simpleScrollRAF = requestAnimationFrame(() => {
-      simpleScrollRAF = null;
-      applyProgress(computeSimpleActiveFloat());
-    });
-  }
-
   function teardownSimple() {
-    catalog.removeEventListener("scroll", onCatalogScroll);
-    if (simpleScrollRAF) { cancelAnimationFrame(simpleScrollRAF); simpleScrollRAF = null; }
     if (simpleBoundaryST) { simpleBoundaryST.kill(); simpleBoundaryST = null; }
   }
 
@@ -1358,32 +1343,27 @@ void main() {
   }
 
   function setupSimple() {
-    // el estado in-catalog lo decide únicamente simpleBoundaryST (según
-    // scroll vertical de la página) — este listener solo detecta el
-    // progreso activo dentro del carril horizontal (scroll-snap nativo por
-    // dedo), nunca debe tocar in-catalog (ver error #5 en CLAUDE.md).
-    catalog.addEventListener("scroll", onCatalogScroll, { passive: true });
-
-    // respaldo síncrono, mismo motivo que el de ResizeObserver en
-    // initAsciiText (ver CLAUDE.md, error #12): si catalog.scrollLeft no
-    // CAMBIA al montar, nunca se dispara un evento "scroll" y este cálculo
-    // es la única vía de sincronizar el hero con la tarjeta visible. Se
-    // calcula desde el scrollLeft REAL, no se hardcodea a 0 — un remount
-    // con scrollLeft ya distinto de 0 (p. ej. se vuelve a modo simple
-    // después de haber estado en enhanced) dejaría el hero mostrando la
-    // tarjeta 0 aunque el usuario esté viendo otra, sin nada que lo
-    // corrija después.
-    applyProgress(computeSimpleActiveFloat());
-
+    // móvil/tablet: sin swipe horizontal — cada tarjeta es una sección de
+    // 100vh apilada verticalmente en el flujo normal de la página
+    // (styles.css, .catalog__rail{flex-direction:column} por defecto), así
+    // que .catalog mide de forma natural plates.length × 100vh y el scroll
+    // vertical de la página NUNCA se detiene. Un solo ScrollTrigger sin
+    // pin (a diferencia de setupEnhanced) traduce ese scroll normal en el
+    // mismo progreso fraccional continuo que ya usa setupEnhanced —
+    // aplyProgress() dispara el mismo camino de ensureEdgeFeedLoading/
+    // scrubEdgeFeed en los dos modos, el video de transición funciona
+    // igual, solo que scrubeado por scroll vertical en vez de horizontal.
     simpleBoundaryST = ScrollTrigger.create({
       trigger: catalog,
-      start: "top center",
-      end: "bottom center",
+      start: "top top",
+      end: "bottom bottom",
       onEnter: () => setInCatalog(true),
-      onLeave: () => setInCatalog(false),
       onEnterBack: () => setInCatalog(true),
+      onLeave: () => setInCatalog(false),
       onLeaveBack: () => setInCatalog(false),
+      onUpdate: (self) => applyProgress(self.progress * (plates.length - 1)),
     });
+    applyProgress(0);
   }
 
   function applyMode() {
@@ -1400,7 +1380,7 @@ void main() {
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      const nextSimple = !motionOK || mobileMQ.matches;
+      const nextSimple = !motionOK;
       if (nextSimple !== catalogSimple) {
         catalogSimple = nextSimple;
         applyMode();
