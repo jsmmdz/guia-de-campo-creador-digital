@@ -45,6 +45,14 @@
     conn && (conn.saveData || ["slow-2g", "2g"].includes(conn.effectiveType))
   );
 
+  // interactividad de puntero (mouse/touch) de galaxy y del texto ASCII —
+  // decisión explícita del usuario: en móvil/tablet (mismo corte que
+  // mobileMQ, ≤1023px) quedaba pesada. El efecto visual (fondo animado,
+  // texto ASCII con onda) se mantiene igual ahí; sale solo la parte que
+  // reacciona al dedo/mouse (repulsión de estrellas, rotación/hue del
+  // texto). En laptop+ sigue reaccionando como antes.
+  const pointerFxOK = !mobileMQ.matches;
+
   /* ---------- especímenes (íconos): reservan espacio, aparecen al resolver ---------- */
 
   document.querySelectorAll(".specimen-chip__frame img").forEach((img) => {
@@ -358,8 +366,11 @@ void main() {
         // contenedor; acá escuchamos en document (mismo patrón que ya usaba
         // el cometa del cursor que reemplaza) porque el contenido del
         // umbral (hero, z-index más alto) cubre toda el área y absorbería
-        // el evento antes de que llegue al fondo
-        if (cfg.mouseInteraction) {
+        // el evento antes de que llegue al fondo. Sin listener en móvil/
+        // tablet (pointerFxOK, ver arriba): uMouse/uMouseActiveFactor
+        // quedan en sus valores neutros iniciales y la repulsión del
+        // shader nunca se activa ahí.
+        if (cfg.mouseInteraction && pointerFxOK) {
           document.addEventListener("mousemove", (e) => {
             const rect = ctn.getBoundingClientRect();
             const x = (e.clientX - rect.left) / rect.width;
@@ -411,7 +422,7 @@ void main() {
       // trababa. Mobile/tablet (mismo corte que catalogSimple, ≤1023px)
       // sube más todavía: menos CPU disponible y la palabra ya renderiza
       // más chica ahí.
-      asciiFontSize: mobileMQ.matches ? 10 : 8,
+      asciiFontSize: mobileMQ.matches ? 6 : 8,
       textFontSize: 200,
       textColor: "#fdf9f3",
       // relativo a refEl (la caja real de "Digital"), no a ctn (que ahora
@@ -794,8 +805,15 @@ void main() {
             this.container.appendChild(this.filter.domElement);
             this.setSize(this.width, this.height);
 
-            this.trackElem.addEventListener("mousemove", this.onMouseMove);
-            this.trackElem.addEventListener("touchmove", this.onMouseMove);
+            // sin listener en móvil/tablet (pointerFxOK, ver arriba):
+            // this.mouse/filter.mouse quedan centrados (valores iniciales)
+            // y updateRotation()/hue() convergen a su estado neutro (sin
+            // tilt, sin hue-rotate) ahí — el texto se sigue animando igual
+            // (onda + fade).
+            if (pointerFxOK) {
+              this.trackElem.addEventListener("mousemove", this.onMouseMove);
+              this.trackElem.addEventListener("touchmove", this.onMouseMove);
+            }
           }
 
           setSize(w, h) {

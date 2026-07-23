@@ -212,6 +212,23 @@ assets/
   recortar contra su propio borde; lo que se pasa de la caja original lo
   recorta limpio el `overflow:hidden`, no un artefacto de WebGL. Patrón
   documentado como reutilizable en el header de `RECURSOS/ascii-text.js`.
+- **Interactividad de puntero de galaxy/texto ASCII desactivada en
+  móvil/tablet** (`pointerFxOK` en `script.js`, junto a `isConstrained`):
+  en pantallas ≤1023px (mismo corte que `mobileMQ`) ninguno de los dos
+  efectos reacciona al mouse/touch — decisión explícita del usuario,
+  quedaba pesado en mobile. El efecto visual en sí (fondo de estrellas
+  animado, texto ASCII con onda) se mantiene igual en todos los
+  breakpoints; lo único que se saca ahí es el listener (`mousemove` en
+  `initGalaxy`, `mousemove`/`touchmove` en `initAsciiText`) que dispara la
+  repulsión de estrellas y la rotación/hue-rotate del texto. En laptop+
+  sigue reaccionando al mouse exactamente como antes. Ojo: esto NO baja el
+  costo del render loop en sí — el WebGL sigue dibujando cuadro a cuadro
+  igual en mobile con o sin listener, porque `uMouse`/`uMouseActiveFactor`
+  (galaxy) y `this.mouse`/`filter.mouse` (ASCII) ya quedan neutros por
+  defecto sin necesidad de tocar el loop. Si el peso persiste, el próximo
+  paso sería saltar `initGalaxy`/`initAsciiText` por completo en
+  móvil/tablet (mismo mecanismo que ya usa `isConstrained` más abajo), no
+  solo la interactividad.
 
 ## Errores ya corregidos (no reintroducir)
 
@@ -269,6 +286,10 @@ assets/
   sweep de CSS, texto real de "Digital") — saltarlos reusa ese mismo
   camino, no hay estado nuevo. `navigator.connection` no existe en
   Safari/iOS, ahí queda simplemente en `false`.
+- **`pointerFxOK`** (ver "Decisiones de diseño" más arriba): mecanismo
+  distinto y más liviano que `isConstrained` — no salta el montaje de
+  `initGalaxy`/`initAsciiText`, solo la interactividad de mouse/touch, en
+  móvil/tablet (`mobileMQ`, ≤1023px) sin importar la conexión.
 - **Google Fonts ya no se carga con `@import` dentro de `styles.css`**: un
   `@import` bloquea la construcción del CSSOM hasta que ese round-trip
   completa, antes de que cualquier estilo del archivo aplique. Ahora es
@@ -307,11 +328,19 @@ assets/
 - **Copy final de las 6 placas del catálogo** — el actual es un borrador
   provisional (marcado con comentario `COPY PROVISIONAL` en `index.html`),
   a la espera del texto exacto y definitivo.
-- **Efecto ASCII de "Digital" — confirmado por el usuario en desktop, no
-  verificado en mobile/tablet.** El `asciiFontSize` responsive (8 en
-  laptop+, 10 en móvil/tablet, mismo corte de 1023px que `catalogSimple`)
-  se fijó por cálculo, nunca se vio en una pantalla chica real — revisar
-  ahí antes de dar el efecto por cerrado en todos los breakpoints.
+- **Efecto ASCII de "Digital" — `asciiFontSize` de mobile bajado de 10 a 6**
+  (probado en 5, el usuario pidió subirlo un punto a 6). A 10px el
+  contenedor real en mobile (~64px de alto) sólo alcanzaba ~6 filas de
+  grilla (~4 útiles) — muy poca resolución vertical para 7 letras, se leía
+  como ruido, no como "DIGITAL" (reportado por el usuario). A 6px la
+  grilla sube a ~10-11 filas y las 7 letras se distinguen (confirmado
+  leyendo el `textContent` real del `<pre>` en un viewport de 375px vía
+  navegador embebido, a probar todavía en un dispositivo físico real).
+  `asciiFontSize` en laptop+ queda en 8 sin cambios (ya confirmado por el
+  usuario ahí). Subir la grilla sube el número de celdas que procesa
+  `asciify()` por frame en mobile — costo absoluto sigue siendo chico,
+  pero si la investigación de performance en curso muestra que ese loop
+  sí pesa, reconsiderar este valor junto con esa mejora.
 
 ## Correr en local
 
