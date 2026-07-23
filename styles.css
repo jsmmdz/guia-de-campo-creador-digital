@@ -493,6 +493,27 @@ body:not(.enhanced) .specimen-chip__frame { transform: none; }
 }
 .threshold__emoji { display: inline-block; will-change: transform; }
 
+/* BlurText (splitBlurText en script.js) — cada fragmento de "reading" queda
+   como palabra > letra.
+
+   .threshold__word evita que el navegador parta una palabra a la mitad al
+   hacer wrap (visto en producción: "complejos" → "co" / "mplejos" en
+   móvil): display:inline-block la vuelve un bloque atómico en el flujo de
+   línea, y white-space:nowrap desactiva cualquier corte DENTRO de ese
+   bloque — sin nowrap, dos <span> inline-block adyacentes (las letras)
+   igual pueden recibir un punto de corte entre ellas aunque no haya
+   espacio en blanco de por medio, partiendo la palabra igual. Aplica en
+   TODOS los breakpoints por igual (no es un problema exclusivo de móvil,
+   solo más visible ahí porque el contenedor es más angosto).
+
+   .threshold__letter: inline-block es obligatorio para que filter/transform
+   tengan efecto (no aplican sobre elementos inline reales). Los espacios
+   entre palabras quedan como texto plano (ninguna de las dos clases), así
+   el salto de línea natural del navegador sigue funcionando igual que con
+   el texto sin dividir. */
+.threshold__word { display: inline-block; white-space: nowrap; }
+.threshold__letter { display: inline-block; will-change: transform, filter; }
+
 /* ---------- seal (cierre) ---------- */
 
 .threshold__seal { display: flex; align-items: center; justify-content: center; text-align: center; }

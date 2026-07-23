@@ -942,6 +942,92 @@ void main() {
       .catch(() => null);
   }
 
+  /* ---------- BlurText: reveal de texto letra por letra con blur ----------
+     Portado desde reactbits.dev/text-animations/blur-text (React +
+     motion/react) a vanilla — versión reutilizable con comentarios más
+     extensos en RECURSOS/componentes/texto-storytelling.js. Acá NO dispara
+     nada por sí sola (a diferencia del original, que usa su propio
+     IntersectionObserver): solo separa el texto en spans y los deja en su
+     estado "from" (blureado/corrido) — quien la llama decide cómo animar el
+     "to". Se usa para enganchar el reveal al thresholdTl con scrub que ya
+     pinea el Nodo 0 (ver más abajo), en vez de sumar un segundo mecanismo de
+     scroll desacoplado del real (ver error #5 en CLAUDE.md).
+
+     Estructura de DOS niveles (palabra > letra), no una lista plana de
+     letras: CSS permite un punto de corte de línea entre dos cajas
+     inline-block adyacentes aunque no haya espacio en blanco entre ellas
+     (se tratan como unidades atómicas sueltas) — una lista plana de
+     `<span class="threshold__letter">` parte palabras a la mitad
+     ("complejos" → "co" / "mplejos") apenas el texto ocupa más de una
+     línea, que es el caso normal acá. Por eso cada palabra se envuelve
+     además en un `<span class="threshold__word">` con white-space:nowrap
+     (ver styles.css) — el navegador entonces solo puede partir línea
+     ANTES/DESPUÉS de una palabra completa, nunca entre sus letras.
+
+     Deja intactos los nodos que ya son elementos (p.ej. el <span
+     class="threshold__emoji"> dentro de cada fragmento de "reading", que ya
+     tiene su propio vuelo animado aparte) — solo toca nodos de texto. Los
+     espacios en blanco no se envuelven en su propio span: quedan como
+     texto plano entre los contenedores de palabra, así el navegador sigue
+     partiendo líneas ahí con normalidad. */
+  function splitBlurText(el, opts = {}) {
+    const {
+      by = "letters",
+      direction = "bottom",
+      distance = 20,
+      blur = 8,
+      opacity,
+      letterClass = "threshold__letter",
+      wordClass = "threshold__word",
+    } = opts;
+
+    const targets = [];
+
+    // childNodes es una NodeList viva y node.replaceWith() la modifica
+    // mientras se recorre — copiar a array antes de iterar.
+    Array.from(el.childNodes).forEach((node) => {
+      if (node.nodeType !== Node.TEXT_NODE) return;
+
+      const chunks = node.textContent.split(/(\s+)/); // alterna palabra/espacio/palabra...
+      const frag = document.createDocumentFragment();
+
+      chunks.forEach((chunk) => {
+        if (!chunk) return;
+        if (/^\s+$/.test(chunk)) {
+          frag.appendChild(document.createTextNode(chunk)); // espacio: texto plano, nunca span
+          return;
+        }
+
+        const wordEl = document.createElement("span");
+        wordEl.className = wordClass;
+
+        if (by === "words") {
+          wordEl.classList.add(letterClass);
+          wordEl.textContent = chunk;
+          targets.push(wordEl);
+        } else {
+          chunk.split("").forEach((ch) => {
+            const letterEl = document.createElement("span");
+            letterEl.className = letterClass;
+            letterEl.textContent = ch;
+            wordEl.appendChild(letterEl);
+            targets.push(letterEl);
+          });
+        }
+
+        frag.appendChild(wordEl);
+      });
+
+      node.replaceWith(frag);
+    });
+
+    const fromVars = { filter: `blur(${blur}px)`, y: direction === "bottom" ? distance : -distance };
+    if (typeof opacity === "number") fromVars.opacity = opacity;
+    gsap.set(targets, fromVars);
+
+    return targets;
+  }
+
   /* ============================================================
      THRESHOLD — Nodo 0
      ============================================================ */
@@ -1049,8 +1135,21 @@ void main() {
 
     document.querySelectorAll(".threshold__fragment").forEach((frag, i) => {
       const emoji = frag.querySelector(".threshold__emoji");
+      // letra por letra (BlurText, ver splitBlurText arriba / RECURSOS/
+      // componentes/texto-storytelling.js) — no reemplaza el fade de
+      // opacidad del fragmento (abajo), se suma: el fragmento sigue yendo
+      // de 0.08→1 (el "ghosting" de los 5 fragmentos ya visible desde el
+      // arranque de la sección) mientras, en simultáneo, cada letra se
+      // desenfoca y asienta desde abajo — por eso NO se le pasa `opacity`
+      // acá, la controla el fragmento contenedor.
+      const letters = splitBlurText(frag, { by: "letters", direction: "bottom", distance: 20, blur: 8 });
       const f = FLIGHTS[i % FLIGHTS.length];
       thresholdTl.to(frag, { opacity: 1, duration: 0.8, ease: "none" });
+      thresholdTl.to(
+        letters,
+        { y: 0, filter: "blur(0px)", duration: 0.5, stagger: 0.04, ease: "power1.out" },
+        "<"
+      );
       thresholdTl.fromTo(
         emoji,
         { x: f.x, y: f.y, rotation: f.r, scale: 1.9, autoAlpha: 0 },

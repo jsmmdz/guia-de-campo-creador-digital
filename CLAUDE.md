@@ -21,23 +21,24 @@ commitear primero y mostrar después.
 ## Qué es esto
 
 Sitio scrollytelling estático (sin build step) para la carrera de Creación
-Digital — Universidad El Bosque. "Acto I" es la etiqueta de este primer tramo
-de construcción — cubre, con nombres propios de implementación, los dos
-primeros de los 5 nodos que define el vault:
+Digital — Universidad El Bosque. "Acto I" es la etiqueta de este primer
+tramo de construcción — cubre, con nombres propios de implementación, los
+dos primeros de los 5 nodos que define el vault:
 
-- **Nodo 0 — Umbral** (`#threshold`): implementa el "Nodo 0 · Umbral" del
-  vault. Título ancla, constelación de las 8 herramientas de la carrera
+- **Nodo 0 — Umbral** (`#threshold`): implementa "Nodo 0 · Umbral" del
+  vault — título ancla, constelación de las 8 herramientas de la carrera
   orbitando, copy de 5 pilares revelado por scroll, cierre "Exploremoslo
-  Juntos", fondo de estrellas animado (`.threshold__galaxy`, ver sección
-  siguiente). El rastro de cursor tipo cometa que tenía antes se retiró (no
-  era definitivo) y ese lugar lo ocupa ahora el fondo de estrellas. La
-  palabra "Digital" del título se renderiza como arte ASCII animado con
-  Three.js, reactivo al mouse (ver sección siguiente).
-- **Nodo 1 — Catálogo** (`#catalog`): implementa el **"Nodo 1 · Perfil"**
-  del vault (seis competencias híbridas del Creador Digital) — aquí
-  construido como "catálogo de especímenes" siguiendo la metáfora de guía de
-  campo naturalista del resto del sitio (HUD, "Registro N.01", especímenes
-  en órbita del Nodo 0). 6 placas de disciplina en carrusel horizontal, blob
+  Juntos", fondo de estrellas animado (`.threshold__galaxy`, ver Stack). El
+  rastro de cursor tipo cometa que tenía antes se retiró (no era
+  definitivo); ese lugar lo
+  ocupa ahora el fondo de estrellas. La palabra "Digital" del título se
+  renderiza como arte ASCII animado con Three.js, reactivo al mouse (ver
+  Stack).
+- **Nodo 1 — Catálogo** (`#catalog`): implementa "Nodo 1 · Perfil" del
+  vault (seis competencias híbridas del Creador Digital) — construido como
+  "catálogo de especímenes" siguiendo la metáfora de guía de campo
+  naturalista del resto del sitio (HUD, "Registro N.01", especímenes en
+  órbita del Nodo 0). 6 placas de disciplina en carrusel horizontal, blob
   por disciplina generado por código que muta entre tarjetas, fondo
   reactivo al color de la activa. **Nombre sin confirmar con el vault** —
   "Catálogo" no aparece en el plan de desarrollo; si se documenta ahí
@@ -50,20 +51,20 @@ bundler ni framework. Un solo `script.js` en un IIFE, un solo `styles.css`.
 
 **Excepción puntual — OGL (WebGL) para el fondo de estrellas del Nodo 0:**
 `initGalaxy()` en `script.js` carga `ogl` por `import()` dinámico desde
-`esm.sh` (no rompe el patrón "sin bundler": `import()` dinámico funciona
-dentro de un script clásico, no exige `type="module"`). Si el CDN falla, el
-`.catch()` no hace nada — queda el radial-gradient + sweep de CSS que
-`.threshold` ya tenía de fondo, no se rompe la página. Versión portada y
-reutilizable, con comentarios, en `RECURSOS/galaxy.js` + `.css` (fuera del
-repo, ver `industrias y creacion/RECURSOS/`). Fuente original:
+`esm.sh` (no rompe "sin bundler": `import()` dinámico funciona dentro de un
+script clásico, no exige `type="module"`). Si el CDN falla, el `.catch()`
+no hace nada — queda el radial-gradient + sweep de CSS que `.threshold` ya
+tenía de fondo, no se rompe la página. Versión portada y reutilizable, con
+comentarios, en `RECURSOS/galaxy.js` + `.css` (fuera del repo, ver
+`industrias y creacion/RECURSOS/`). Fuente original:
 reactbits.dev/backgrounds/galaxy.
 
 **Excepción puntual — Three.js para el texto ASCII animado de "Digital"
 (Nodo 0):** `initAsciiText()` en `script.js` carga `three` por `import()`
 dinámico desde `esm.sh`, mismo patrón que OGL. Si el CDN falla, el texto
-real de "Digital" (que siempre queda en el DOM) se mantiene visible —
-nunca se desvanece hasta que la promesa de `initAsciiText()` confirma que
-el montaje terminó con éxito (clase `is-ready` en
+real de "Digital" (siempre en el DOM) se mantiene visible — nunca se
+desvanece hasta que la promesa de `initAsciiText()` confirma que el
+montaje terminó con éxito (clase `is-ready` en
 `.threshold__title-digital`). Versión portada y reutilizable, con
 comentarios, en `RECURSOS/ascii-text.js` + `.css`. Fuente original:
 reactbits.dev/text-animations/ascii-text.
@@ -90,218 +91,155 @@ assets/
 - **Motion por defecto**: el sitio anima siempre, **ignora
   `prefers-reduced-motion`** — decisión de producto explícita del usuario.
   Quien quiera la versión calma la pide con `?static=1`.
-- **Breakpoints** (fijos, documentados también en el header de
-  `styles.css`): móvil ≤767 · tablet 768–1023 · laptop 1024–1439 (tier
-  base, sin `@media`) · desktop 1440–1919 · pantallas grandes ≥1920.
+- **Breakpoints** (fijos, también en el header de `styles.css`): móvil
+  ≤767 · tablet 768–1023 · laptop 1024–1439 (tier base, sin `@media`) ·
+  desktop 1440–1919 · pantallas grandes ≥1920.
 - **Catálogo — scroll-jacking con pin en TODOS los breakpoints por
-  defecto** (`setupEnhanced()`, `script.js`): `catalogSimple` ya no
-  depende del ancho de pantalla (`mobileMQ`) — depende únicamente de
-  `motionOK` (`!motionOK`, o sea solo con `?static=1`). El input siempre
-  es 100% scroll vertical, incluso en touch (el `pin` de ScrollTrigger no
-  exige swipe horizontal: traduce scroll vertical normal en desplazamiento
-  horizontal visual del carril) — a pedido explícito, para que mobile
-  tenga el mismo efecto visual que laptop+.
+  defecto** (`setupEnhanced()` en `script.js`): `catalogSimple` depende
+  únicamente de `motionOK` (nunca de `mobileMQ`) — el input es 100% scroll
+  vertical incluso en touch, porque el `pin` de ScrollTrigger traduce
+  scroll vertical normal en desplazamiento horizontal visual del carril
+  sin exigir swipe, a pedido explícito para que mobile tenga el mismo
+  efecto visual que laptop+.
   **Riesgo aceptado, no resuelto — probar en dispositivo real**: la razón
   original para separar mobile/tablet (scroll-snap horizontal en vez de
-  pin) era que el `pin` puede chocar con el gesto nativo de "volver atrás"
-  deslizando desde el borde de pantalla en navegadores móviles. Se decidió
-  probarlo igual; si en un celular real se rompe ese gesto, la opción de
-  volver a separar mobile/tablet (con `setupSimple()`, ver más abajo)
-  sigue disponible y ya está implementada.
-  `setupSimple()` (stack vertical de las 6 tarjetas, SIN pin ni swipe
-  horizontal) queda como fallback de `motionOK=false` (`?static=1`) — ya
-  no es una rama de mobile/tablet. Ahí un `ScrollTrigger` sin `pin`
-  (`trigger: catalog, start:"top top", end:"bottom bottom"`) traduce el
-  scroll vertical normal en `self.progress * (plates.length-1)`, mismo
-  cálculo que `setupEnhanced()`, pasado a `applyProgress()` — decide
-  `in-catalog` y el progreso juntos, en un solo ScrollTrigger.
-  Historial (no reintroducir ninguna de estas dos versiones anteriores de
-  `setupSimple()`, ya reemplazadas): primero un `IntersectionObserver`
-  (solo producía índices enteros, nunca progreso fraccional — el video de
-  transición nunca se disparaba); después scroll-snap horizontal con
-  progreso derivado de `catalog.scrollLeft` (el video sí funcionaba, pero
-  el scroll-snap horizontal cortaba en seco el scroll vertical de la
-  página al llegar al catálogo — el problema que motivó pasar `setupSimple`
-  a stack vertical, y que dejó de importar para mobile/tablet en cuanto
-  se unificó todo bajo `setupEnhanced()`).
-- **Transiciones reales de blobs — 5/5 edges resueltos.** El modelo no es
-  un video por disciplina: son videos de transición ENTRE tarjetas
-  consecutivas ("edges"), reproducidos como secuencia de frames WebP con
-  alfa real (recorte por croma verde/azul, no `video.currentTime` —
-  técnica portada de `RECURSOS/blobsite/index.html`, sin latencia de
-  seek, scrub fluido en ambas direcciones). Con 6 tarjetas hay 5 edges
-  posibles, los 5 cubiertos: `01-02` (UX/UI→3D), `02-03` (3D→Software),
-  `03-04` (Software→Game), `04-05` (Game→Multimedia, croma azul — el
-  blob de Multimedia ya es verde-amarillento, `--spec-5`, choca con
-  croma verde), `05-06` (Multimedia→IA, croma azul por el mismo motivo).
-  Convención: `assets/disciplinas/frames/<edge>/0000.webp`…`NNNN.webp`,
-  62 frames cada uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i
-  clip.mp4 -vf "chromakey=<color>:0.15:0.05,format=rgba" -r 12
-  -start_number 0 frames/<edge>/%04d.png`, y recién después recomprimidos
-  a WebP 720×720 — ver "Optimización de carga" más abajo, ahí está el
-  comando exacto). `has-feed` es solo-agregar: una vez que una tarjeta
-  muestra video real se queda así para siempre, el blob nunca vuelve
-  (coincide con el flujo del sitio de referencia). `has-feed` ON en ambas
-  tarjetas del edge activo, toggleado en `applyProgress()`; nunca se
-  apaga. Config y carga perezosa por proximidad (±1 edge) en `EDGE_FEEDS`
-  / `ensureEdgeFeedLoading()` / `scrubEdgeFeed()` en `script.js` — ojo con
-  `ctx.clearRect()` antes de cada `drawImage()`: con alfa real, sin el
-  clear queda "fantasma" del frame anterior en las zonas transparentes.
+  pin) era que el pin podría chocar con el gesto nativo de "volver atrás"
+  deslizando desde el borde en navegadores móviles. Se decidió probarlo
+  igual; si se rompe en un celular real, la opción de volver a separar
+  mobile/tablet (con `setupSimple()`, ver abajo) sigue disponible y ya
+  está implementada.
+  `setupSimple()` (fallback de `motionOK=false`, o sea `?static=1`; ya no
+  es una rama de mobile/tablet): apila las 6 tarjetas verticalmente, SIN
+  pin ni swipe horizontal. Un `ScrollTrigger` sin `pin` (`trigger:
+  catalog, start:"top top", end:"bottom bottom"`) traduce el scroll
+  vertical en `self.progress * (plates.length-1)` — mismo cálculo que
+  `setupEnhanced()` — pasado a `applyProgress()`, que decide `in-catalog` y
+  el progreso juntos, en un solo ScrollTrigger.
+  Historial (no reintroducir, ya reemplazadas): (1) `IntersectionObserver`
+  — solo producía índices enteros, nunca progreso fraccional, el video de
+  transición nunca se disparaba; (2) scroll-snap horizontal con progreso
+  derivado de `catalog.scrollLeft` — el video sí funcionaba, pero el
+  scroll-snap cortaba en seco el scroll vertical de la página al llegar al
+  catálogo (el problema que motivó pasar a stack vertical, y que dejó de
+  importar para mobile/tablet en cuanto se unificó todo bajo
+  `setupEnhanced()`).
+- **Transiciones reales de blobs — 5/5 edges resueltos.** No es un video
+  por disciplina: son videos de transición ENTRE tarjetas consecutivas
+  ("edges"), reproducidos como secuencia de frames WebP con alfa real
+  (recorte por croma verde/azul, no `video.currentTime` — técnica portada
+  de `RECURSOS/blobsite/index.html`, sin latencia de seek, scrub fluido en
+  ambas direcciones). Con 6 tarjetas hay 5 edges posibles, los 5 cubiertos:
+  `01-02` (UX/UI→3D), `02-03` (3D→Software), `03-04` (Software→Game),
+  `04-05` (Game→Multimedia, croma azul — el blob de Multimedia ya es
+  verde-amarillento, `--spec-5`, choca con croma verde), `05-06`
+  (Multimedia→IA, croma azul por el mismo motivo). Convención:
+  `assets/disciplinas/frames/<edge>/0000.webp`…`NNNN.webp`, 62 frames cada
+  uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i clip.mp4 -vf
+  "chromakey=<color>:0.15:0.05,format=rgba" -r 12 -start_number 0
+  frames/<edge>/%04d.png`, recomprimidos después a WebP 720×720 — comando
+  exacto en "Optimización de carga"). `has-feed` es solo-agregar: una vez
+  que una tarjeta muestra video real se queda así para siempre, el blob
+  nunca vuelve (coincide con el flujo del sitio de referencia). Se activa
+  ON en ambas tarjetas del edge activo, toggleado en `applyProgress()`,
+  nunca se apaga. Config y carga perezosa por proximidad (±1 edge) en
+  `EDGE_FEEDS` / `ensureEdgeFeedLoading()` / `scrubEdgeFeed()` en
+  `script.js` — ojo con `ctx.clearRect()` antes de cada `drawImage()`: con
+  alfa real, sin el clear queda "fantasma" del frame anterior en las zonas
+  transparentes.
+- **Reveal letra por letra del copy de 5 pilares (`.threshold__reading`)**:
+  portado desde reactbits.dev/text-animations/blur-text ("BlurText") a
+  vanilla — `splitBlurText()` en `script.js` (versión reutilizable
+  comentada en `RECURSOS/componentes/texto-storytelling.js` +
+  `RECURSOS/docs/TEXTO-STORYTELLING.md`). El original dispara la animación
+  una sola vez con su propio `IntersectionObserver`; acá NO se usó ese
+  mecanismo — `splitBlurText()` solo separa el texto en spans y deja el
+  estado inicial (blureado + corrido), y el reveal en sí queda enganchado
+  al mismo `thresholdTl` con scrub que ya pinea todo el Nodo 0, sumado
+  (no en reemplazo) al fade de opacidad 0.08→1 que cada `.threshold__fragment`
+  ya tenía — ver error #5 más abajo: cualquier reveal de esta sección debe
+  colgar del scroll real vía ese timeline, nunca de un observer aparte.
+  `animateBy` quedó en "letters" (así estaba configurado en la URL de
+  origen citada en el .md); distancia de entrada y blur bajados de los
+  defaults del demo (50px/10px → 20px/8px) para no chocar con el resto del
+  motion, ya más contenido, del sitio. El `<span class="threshold__emoji">`
+  de cada fragmento (que ya tiene su propio vuelo animado) queda intacto:
+  `splitBlurText()` solo toca nodos de texto, nunca elementos hijos
+  existentes. Estructura de DOM en dos niveles, palabra > letra
+  (`.threshold__word` > `.threshold__letter`), no una lista plana de
+  letras — ver error #17: sin el contenedor de palabra con
+  `white-space:nowrap`, el navegador parte palabras a la mitad al hacer
+  wrap.
 - **Blobs del catálogo**: SVG generado en JS, no assets. Los 6 paths usan
-  la *misma estructura de comandos* (`M` + 8×`C` + `Z`, ver `blobPath()` en
-  `script.js`) para poder interpolarse en caliente con
+  la *misma estructura de comandos* (`M` + 8×`C` + `Z`, ver `blobPath()`
+  en `script.js`) para poder interpolarse en caliente con
   `gsap.utils.interpolate` sin plugin de morph.
 - **Órbita de íconos**: radio calculado desde `Math.min(innerWidth,
-  innerHeight)`, no desde ancho y alto por separado — si se separan, la
-  órbita queda ovalada en pantallas anchas. Cada chip se centra sobre su
-  punto de órbita con `xPercent:-50, yPercent:-50` (ver error #14) — sin
+  innerHeight)`, no desde ancho y alto por separado (si se separan, la
+  órbita queda ovalada en pantallas anchas). Cada chip se centra sobre su
+  punto de órbita con `xPercent:-50, yPercent:-50` (ver error #15) — sin
   eso, el punto trasladado es la esquina superior-izquierda del chip, no
   su centro visual. Factor de radio: 0.47/0.40 (rx/ry) en `narrow`
   (`mobileMQ`, ≤1023px — móvil+tablet) y 0.52/0.45 el resto (laptop en
   adelante) — valores elegidos para que ningún breakpoint pase más de
   ~30-34% del giro con el ícono parcial o totalmente fuera de pantalla
-  (medido analíticamente, ver error #14).
+  (medido analíticamente, ver error #15).
 - **Sin marco en los íconos de herramientas**: las imágenes se muestran tal
   cual vienen (sin circular/cuadrar, sin `object-fit: cover`, sin tinte de
   color) — decisión explícita del usuario, no reintroducir bordes/fondos.
-- **Config del fondo galaxy (`initGalaxy`, objeto `cfg` en `script.js`)**:
+- **Config del fondo galaxy** (`initGalaxy`, objeto `cfg` en `script.js`):
   `density: 2.5, hueShift: 0, saturation: 0.1, speed: 0.8, starSpeed: 0.2,
   glowIntensity: 0.3, twinkleIntensity: 0.1, rotationSpeed: 0.05,
   repulsionStrength: 1` — valores elegidos a mano por el usuario probando
   en el sitio de origen, no son los defaults del componente. El shader no
-  usa HSL estándar: `uHueShift` rota un tono pseudoaleatorio por estrella,
-  no fija un color único, y con `saturation` baja (acá 0.1) el resultado
+  usa HSL estándar: `uHueShift` rota un tono pseudoaleatorio por estrella
+  (no fija un color único), y con `saturation` baja (0.1 acá) el resultado
   se mantiene cerca del blanco/gris sin importar el hue — por eso esta
   combinación no choca con la paleta del sitio aunque el hue sea distinto
   al azul-violeta exacto de `--signal`. Si se cambia, probar siempre
   visualmente antes de asumir el resultado — el mapeo no es intuitivo.
-- **Cámara del efecto ASCII de "Digital" (`initAsciiText`, `CanvAscii` en
-  `script.js`)**: perspectiva con FOV 18° y distancia calculada
+- **Cámara del efecto ASCII de "Digital"** (`initAsciiText`, `CanvAscii`
+  en `script.js`): perspectiva con FOV 18° y distancia calculada
   (`cameraDistance()`) para que el frustum a z=0 mida exacto los píxeles
   del contenedor (1 unidad de mundo = 1px CSS) — ni el FOV 45° del demo
   original (el borde cercano crecía ~35% al rotar y recortaba las letras
   contra el frustum) ni una cámara ortográfica (sin distorsión de
-  perspectiva, la rotación deja de verse). El plano se dimensiona según
-  un elemento de referencia (`refEl`, el wrapper
-  `.threshold__title-digital`, tamaño real de la palabra) y NO según el
-  contenedor que renderiza (`ctn`, deliberadamente ~36% más grande vía
-  `inset` negativo en CSS + `overflow: hidden` en el wrapper) — así el
-  texto ocupa su tamaño completo (igual a "Creador") y la rotación/onda
-  tienen frustum de sobra para moverse sin recortar contra su propio
-  borde; lo que se pasa de la caja original lo recorta limpio el
-  `overflow:hidden`, no un artefacto de WebGL. Patrón documentado como
-  reutilizable en el header de `RECURSOS/ascii-text.js`.
+  perspectiva, la rotación deja de verse). El plano se dimensiona según un
+  elemento de referencia (`refEl`, el wrapper `.threshold__title-digital`,
+  tamaño real de la palabra) y NO según el contenedor que renderiza (`ctn`,
+  deliberadamente ~36% más grande vía `inset` negativo en CSS + `overflow:
+  hidden` en el wrapper) — así el texto ocupa su tamaño completo (igual a
+  "Creador") y la rotación/onda tienen frustum de sobra para moverse sin
+  recortar contra su propio borde; lo que se pasa de la caja original lo
+  recorta limpio el `overflow:hidden`, no un artefacto de WebGL. Patrón
+  documentado como reutilizable en el header de `RECURSOS/ascii-text.js`.
 
 ## Errores ya corregidos (no reintroducir)
 
-1. **Constelación partida en 5 + 3**: los 8 íconos deben estar TODOS en
-   `.threshold__field` orbitando juntos. Hubo una versión con Ps/Blender/Ai
-   en una fila estática aparte (heredada del spec de home viejo) — el spec
-   de Acto I pide los 8 en una sola constelación.
-2. **Tinte azul en GitHub/Unreal**: se quitó `mix-blend-mode: color` sobre
-   esos íconos — con las fotos reales (no logos monocromos) se veía mal.
-3. **Imágenes recortadas a cuadrado**: las fotos fuente son 1122×1402
-   (verticales). El frame usa `aspect-ratio: 1122/1402` + `object-fit:
-   contain`, nunca un contenedor cuadrado con `cover`.
-4. **Retry-storm de videos 404**: si un video de disciplina no existe, el
-   handler de `error` NO debe borrar la entrada de `feedState` (Map) — si
-   se borra, cada vez que la tarjeta vuelve a ser vecina se reintenta la
-   descarga. Se deja la entrada con `ready:false` para siempre.
-5. **`in-catalog` se activaba al cargar la página** (`setupSimple()`, con
-   el diseño viejo de carril horizontal — hoy es el fallback de
-   `?static=1`, ver "Catálogo" en Decisiones de diseño): el
-   `IntersectionObserver` de
-   entonces usaba `root: catalog`, lo que lo hacía disparar sin importar si
-   el catálogo estaba fuera del viewport de la página — por eso, con ESE
-   mecanismo específico, quien detectaba progreso no podía tocar
-   `in-catalog` bajo ningún concepto. Ya no existe ese observer (ver
-   "Transiciones reales de blobs": el catálogo simple ahora apila las
-   tarjetas verticalmente y un único `ScrollTrigger` sin `pin`, atado al
-   scroll vertical real de la página, decide progreso e `in-catalog`
-   juntos — es seguro combinarlos acá porque a diferencia del observer
-   viejo, este sí sabe si el catálogo está realmente en el viewport de la
-   página). La lección que sigue valiendo: si alguna vez se vuelve a medir
-   progreso con algo cuya intersección/disparo sea independiente de la
-   posición real del catálogo en la página (otro `IntersectionObserver`
-   con `root` propio, por ejemplo), **ese** mecanismo no debe decidir
-   `in-catalog` — ese estado lo controla **únicamente** `simpleBoundaryST`.
-   Quien detecta progreso solo debe llamar `applyProgress()`,
-   nunca `setInCatalog()`.
-6. **`<canvas>` no se estira con `inset` solo**: los elementos reemplazados
-   (`canvas`, `img`, `video`) necesitan `width`/`height` explícitos en CSS
-   además de `inset`, si no usan su tamaño intrínseco (300×150 en canvas).
-7. **Cache del navegador durante desarrollo activo**: `styles.css` y
-   `script.js` se referencian con `?v=N` en `index.html`; subir la versión
-   al editarlos evita servir una copia vieja cacheada.
-8. **`body.classList.add("enhanced")` no debe correr antes de confirmar que
-   GSAP cargó** — si el CDN falla, el body no debe quedar en estado
-   "animado" con contenido escondido y sin JS que lo revele.
-9. **Desfase entre el `<canvas>` y el `<pre>` del efecto ASCII de
-   "Digital"**: la grilla de columnas/filas se medía con `measureText()`
-   de un canvas 2D, pero el `<pre>` visible renderiza con las métricas de
-   fuente reales del DOM — pueden diferir (cara de fuente aún no cargada,
-   CSS heredado que `measureText` no ve). Ahora se mide con un `<span>`
-   de sonda dentro del propio `<pre>` (`AsciiFilter.reset()`). También
-   hacía falta cargar la cara 400 de IBM Plex Mono (la que usa el
-   `<pre>`) antes de medir — antes solo se cargaban 500/600.
-10. **El `<pre>` del efecto ASCII heredaba `italic`/`uppercase`/
-    `letter-spacing`/`text-shadow` del `<h1>`** — cambia el ancho de los
-    glifos y hasta qué carácter se ve (`uppercase`).
-    `.ascii-text-container pre` neutraliza estas herencias explícitamente
-    en `styles.css`.
-11. **Rotación por mouse sin acotar en el efecto ASCII de "Digital"**: el
-    demo original de reactbits asume un contenedor a pantalla completa
-    donde el cursor casi no sale de sus límites — sobre una sola palabra
-    se sale todo el tiempo, y sin clamp `mapRange` extrapolaba el ángulo
-    sin límite (rotación absurda, geometría plegada sobre sí misma). Se
-    acota el mouse a los límites del contenedor visual antes de mapear a
-    rotación (`updateRotation()`).
-12. **`ResizeObserver` puede no disparar nunca su primer callback**
-    (confirmado en al menos un entorno real de prueba) — el montaje del
-    efecto ASCII no puede depender solo de él. Se agregó una medición
-    inmediata (`getBoundingClientRect`) como respaldo si el contenedor ya
-    mide algo real al momento de llamar `initAsciiText()`.
-13. **Redibujar una textura estática en cada frame**: el efecto ASCII
-    volvía a dibujar el texto "DIGITAL" en un canvas 2D y a resubirlo a
-    la GPU en cada frame de render, aunque el texto nunca cambia — puro
-    desperdicio de CPU/GPU, más notorio cuanto más chica la grilla ASCII
-    (`asciiFontSize` bajo). Se dibuja una sola vez al montar (`setMesh()`).
-14. **`.catalog__hero` (el blob fijo del catálogo) se veía centrado sobre
-    el Umbral**: es `position:fixed`, y no tenía ninguna regla que lo
-    ocultara fuera del catálogo (a diferencia de `.field-bg`, que ya usaba
-    `body.in-catalog` para esto). En laptop+ "no se notaba" solo porque el
-    pin de ScrollTrigger sobre `.catalog` le da a ese ancestro un efecto
-    de `will-change`/transform que de casualidad contiene el `fixed` del
-    blob dentro de su propia caja (fuera de pantalla hasta hacer scroll)
-    — no por diseño. En modo simple (móvil/tablet, sin pin) no hay ese
-    efecto secundario, así que aparecía centrado en pantalla desde el
-    primer frame. Fix: `opacity:0` + `body.in-catalog .catalog__hero
-    {opacity:1}`, mismo patrón que `.field-bg`.
-15. **Órbita de íconos con excesivo clipping en móvil/tablet**: dos causas
-    combinadas — (a) `gsap.set(el, {x, y})` trasladaba la esquina
-    superior-izquierda del chip al punto de la órbita, no su centro
-    visual (corregido con `xPercent:-50, yPercent:-50`, ver bullet
-    "Órbita de íconos" más arriba); (b) el factor de radio de `narrow`
-    (antes solo `innerWidth<=767`, o sea que tablet ni entraba en esa
-    rama) era **mayor** que el de desktop (0.62/0.54 vs 0.58/0.5) — al
-    revés de lo que compensaría una pantalla ya más angosta. Medido
-    analíticamente (mismo cálculo que el código, con el tamaño real de
-    frame por breakpoint): móvil pasaba 53.6% del giro con un ícono fuera
-    de pantalla, tablet 44.6%, vs ~29% en laptop/desktop/large (ya
-    aceptado). `narrow` ahora usa el mismo corte que `mobileMQ` (≤1023,
-    móvil+tablet juntos) con factores 0.47/0.40, bajando a ~30-34%.
-16. **Nota "Cognición Aumentada" (`.sensor-note--title`) superpuesta con
-    la flecha de scroll (`.threshold__nudge`) en móvil**: el override de
-    `@media (max-width:767px)` la anclaba a `bottom:26%`, un porcentaje
-    fijo sin relación con dónde cae realmente la flecha (centrada por
-    flexbox, con rebote ±10px) — se superponían ~4-14px. Bajado a
-    `bottom:18%`.
+| # | Bug | Causa | Fix / regla |
+|---|-----|-------|--------------|
+| 1 | Constelación partida en 5+3 | Versión heredada del spec de home viejo tenía Ps/Blender/Ai en fila estática aparte | Los 8 íconos van TODOS en `.threshold__field` orbitando juntos — el spec de Acto I pide una sola constelación |
+| 2 | Tinte azul en GitHub/Unreal | `mix-blend-mode: color` sobre esos íconos se veía mal con fotos reales (no logos monocromos) | Se quitó ese blend-mode en esos íconos |
+| 3 | Imágenes recortadas a cuadrado | Fotos fuente son 1122×1402 (verticales) | El frame usa `aspect-ratio: 1122/1402` + `object-fit: contain`, nunca un contenedor cuadrado con `cover` |
+| 4 | Retry-storm de videos 404 | El handler de `error` borraba la entrada de `feedState` (Map); cada vez que la tarjeta volvía a ser vecina se reintentaba la descarga | NO borrar la entrada — dejarla con `ready:false` para siempre |
+| 5 | `in-catalog` se activaba al cargar la página (`setupSimple()`, con el diseño viejo de carril horizontal — hoy `setupSimple()` es el fallback de `?static=1`) | El `IntersectionObserver` viejo (`root: catalog`) disparaba sin importar si el catálogo estaba fuera del viewport de la página. Ya no existe ese observer: el catálogo simple ahora apila las tarjetas verticalmente y un único `ScrollTrigger` sin `pin`, atado al scroll vertical real de la página (ver "Catálogo" en Decisiones de diseño), decide progreso e `in-catalog` juntos — es seguro combinarlos ahí porque, a diferencia del observer viejo, ese `ScrollTrigger` sí sabe si el catálogo está realmente en el viewport de la página | Regla vigente: `in-catalog` lo controla ÚNICAMENTE `simpleBoundaryST`. Cualquier mecanismo de progreso cuyo disparo sea independiente de la posición real del catálogo en la página nunca debe tocar `in-catalog` — solo debe llamar `applyProgress()`, nunca `setInCatalog()` |
+| 6 | `<canvas>` no se estira con `inset` solo | Elementos reemplazados (`canvas`, `img`, `video`) usan su tamaño intrínseco (300×150 en canvas) si no se fuerza | Dar `width`/`height` explícitos en CSS además de `inset` |
+| 7 | Cache del navegador durante desarrollo activo | `styles.css`/`script.js` quedaban cacheados por el navegador | Referenciarlos con `?v=N` en `index.html` y subir la versión al editarlos |
+| 8 | Body queda "animado" con contenido escondido para siempre (sin JS que lo revele) si el CDN falla | `body.classList.add("enhanced")` corría antes de confirmar que GSAP cargó | Solo agregar la clase tras confirmar la carga de GSAP |
+| 9 | Desfase entre `<canvas>` y `<pre>` en el efecto ASCII | La grilla de columnas/filas se medía con `measureText()` de un canvas 2D, pero el `<pre>` visible renderiza con las métricas de fuente reales del DOM (pueden diferir: cara de fuente aún no cargada, CSS heredado que `measureText` no ve) | Medir con un `<span>` de sonda dentro del propio `<pre>` (`AsciiFilter.reset()`); cargar también la cara 400 de IBM Plex Mono (la que usa el `<pre>`) antes de medir — antes solo se cargaban 500/600 |
+| 10 | `<pre>` del ASCII heredaba estilos del `<h1>` | `italic`/`uppercase`/`letter-spacing`/`text-shadow` cambian el ancho de los glifos y hasta qué carácter se ve (`uppercase`) | `.ascii-text-container pre` neutraliza estas herencias explícitamente en `styles.css` |
+| 11 | Rotación por mouse sin acotar en el efecto ASCII | El demo original de reactbits asume un contenedor a pantalla completa donde el cursor casi no sale de sus límites; sobre una sola palabra se sale todo el tiempo, y sin clamp `mapRange` extrapolaba el ángulo sin límite (rotación absurda, geometría plegada sobre sí misma) | Acotar el mouse a los límites del contenedor visual antes de mapear a rotación (`updateRotation()`) |
+| 12 | `ResizeObserver` puede no disparar nunca su primer callback (confirmado en al menos un entorno real de prueba) | El montaje del efecto ASCII no puede depender solo de él | Medición inmediata de respaldo (`getBoundingClientRect`) si el contenedor ya mide algo real al momento de llamar `initAsciiText()` |
+| 13 | Redibujar una textura estática en cada frame | El efecto ASCII volvía a dibujar el texto "DIGITAL" en un canvas 2D y a resubirlo a la GPU en cada frame, aunque el texto nunca cambia (desperdicio de CPU/GPU, más notorio con `asciiFontSize` bajo) | Dibujar una sola vez al montar (`setMesh()`) |
+| 14 | `.catalog__hero` (blob fijo del catálogo) se veía centrado sobre el Umbral | Es `position:fixed` sin regla que lo ocultara fuera del catálogo (a diferencia de `.field-bg`, que ya usaba `body.in-catalog`). En laptop+ "no se notaba" solo porque el pin de ScrollTrigger sobre `.catalog` le da a ese ancestro un efecto de `will-change`/transform que de casualidad contiene el `fixed` del blob dentro de su propia caja — no por diseño. En modo simple (móvil/tablet, sin pin) no hay ese efecto secundario, así que aparecía centrado en pantalla desde el primer frame | `opacity:0` + `body.in-catalog .catalog__hero {opacity:1}`, mismo patrón que `.field-bg` |
+| 15 | Órbita de íconos con excesivo clipping en móvil/tablet | Dos causas combinadas: (a) `gsap.set(el, {x, y})` trasladaba la esquina superior-izquierda del chip al punto de órbita, no su centro visual (corregido con `xPercent:-50, yPercent:-50`, ver bullet "Órbita de íconos" más arriba); (b) el factor de radio `narrow` (antes solo `innerWidth<=767`, tablet no entraba en esa rama) era **mayor** que el de desktop (0.62/0.54 vs 0.58/0.5) — al revés de lo que compensaría una pantalla ya más angosta. Medido analíticamente (mismo cálculo que el código, con el tamaño real de frame por breakpoint): móvil pasaba 53.6% del giro con un ícono fuera de pantalla, tablet 44.6%, vs ~29% en laptop/desktop/large (ya aceptado) | (a) `xPercent:-50, yPercent:-50`; (b) `narrow` ahora usa el mismo corte que `mobileMQ` (≤1023, móvil+tablet juntos) con factores 0.47/0.40, bajando a ~30-34% |
+| 16 | Nota "Cognición Aumentada" (`.sensor-note--title`) superpuesta con la flecha de scroll (`.threshold__nudge`) en móvil | El override de `@media (max-width:767px)` la anclaba a `bottom:26%`, un porcentaje fijo sin relación con dónde cae realmente la flecha (centrada por flexbox, con rebote ±10px) — se superponían ~4-14px | Bajado a `bottom:18%` |
+| 17 | BlurText (`splitBlurText()`, reveal letra por letra de "reading") partía palabras a la mitad al hacer wrap ("complejos" → "co" / "mplejos"), en todos los breakpoints, no solo móvil | Una lista plana de `<span class="threshold__letter">` (uno por letra, sin agrupar) permite que el navegador inserte un punto de corte de línea entre dos `inline-block` adyacentes aunque no haya espacio en blanco entre ellos — se tratan como cajas atómicas sueltas, no como parte de la misma palabra | Envolver cada palabra en un `<span class="threshold__word">` con `white-space:nowrap` (contenedor atómico); las letras quedan adentro. El navegador solo puede partir línea antes/después de una palabra completa, nunca entre sus letras |
 
 ## Optimización de carga (móviles de gama media / datos móviles)
 
 - **Assets de `assets/disciplinas/frames/` y `assets/home/` recomprimidos a
-  WebP** (antes PNG): 214MB → ~28MB. Los frames de edge se recortan
-  además a 720×720 (cuadrado) en vez de 1280×720 — coincide con el
+  WebP** (antes PNG): 214MB → ~28MB. Los frames de edge se recortan además
+  a 720×720 (cuadrado) en vez de 1280×720 — coincide con el
   `object-fit:cover` real de `.hero-canvas`, no se pierde nada que el
   cliente no recortara ya. Calidad `libwebp -quality 95` (elegida por el
   usuario tras comparar contra q78/q95/lossless — a q78 el ahorro era
