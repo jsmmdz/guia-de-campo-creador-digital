@@ -133,7 +133,7 @@ uniform bool uTransparent;
 
 varying vec2 vUv;
 
-#define NUM_LAYER 4.0
+#define NUM_LAYER ${(mobileMQ.matches ? 2 : 4).toFixed(1)}
 #define STAR_COLOR_CUTOFF 0.2
 #define MAT45 mat2(0.7071, -0.7071, 0.7071, 0.7071)
 #define PERIOD 3.0
@@ -272,7 +272,11 @@ void main() {
           focal: [0.5, 0.5],
           rotation: [1.0, 0.0],
           starSpeed: 0.2,
-          density: 2.5,
+          // menos estrellas en móvil/tablet (pedido explícito del usuario,
+          // "reducir la cantidad") — density más baja = grilla de estrellas
+          // más grande/espaciada, además de menos capas (NUM_LAYER, ver
+          // fragment shader arriba)
+          density: mobileMQ.matches ? 1.6 : 2.5,
           hueShift: 0,
           speed: 0.8,
           mouseInteraction: true,
@@ -354,6 +358,14 @@ void main() {
         const mesh = new Mesh(gl, { geometry, program });
         ctn.appendChild(gl.canvas);
 
+        // en móvil/tablet el fondo queda estático tras el primer frame —
+        // pedido explícito del usuario ("pausar el movimiento de las
+        // estrellas"): a diferencia de pause()/resume() (que solo evitan
+        // renderizar cuando el Umbral no se ve), esto elimina el costo por
+        // frame también mientras SÍ se ve. El fondo sigue apareciendo
+        // (no es isConstrained/CDN caído), solo no se anima ahí.
+        const animateGalaxy = !mobileMQ.matches;
+
         // rafId guardado (en vez de solo llamar requestAnimationFrame "a
         // ciegas") para poder pausar/reanudar el loop desde afuera —ver
         // pause()/resume() más abajo y setThresholdVisible() donde se usan—
@@ -362,7 +374,7 @@ void main() {
         // Umbral ya haya salido de vista (scrolleado al Catálogo).
         let rafId = null;
         function update(t) {
-          rafId = requestAnimationFrame(update);
+          rafId = animateGalaxy ? requestAnimationFrame(update) : null;
           program.uniforms.uTime.value = t * 0.001;
           program.uniforms.uStarSpeed.value = (t * 0.001 * cfg.starSpeed) / 10.0;
 
@@ -413,7 +425,9 @@ void main() {
             }
           },
           resume() {
-            if (rafId === null) rafId = requestAnimationFrame(update);
+            // en móvil/tablet (animateGalaxy=false) nunca reinicia el loop
+            // continuo — el fondo queda estático a propósito, ver arriba
+            if (animateGalaxy && rafId === null) rafId = requestAnimationFrame(update);
           },
         };
       })

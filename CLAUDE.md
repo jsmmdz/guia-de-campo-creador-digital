@@ -225,10 +225,32 @@ assets/
   costo del render loop en sí — el WebGL sigue dibujando cuadro a cuadro
   igual en mobile con o sin listener, porque `uMouse`/`uMouseActiveFactor`
   (galaxy) y `this.mouse`/`filter.mouse` (ASCII) ya quedan neutros por
-  defecto sin necesidad de tocar el loop. Si el peso persiste, el próximo
-  paso sería saltar `initGalaxy`/`initAsciiText` por completo en
-  móvil/tablet (mismo mecanismo que ya usa `isConstrained` más abajo), no
-  solo la interactividad.
+  defecto sin necesidad de tocar el loop. El peso persistió incluso
+  después de esto y de pausar por visibilidad (ver bullet siguiente) — el
+  usuario pidió explícitamente ir más lejos en galaxy, ver ese bullet.
+- **Galaxy: movimiento congelado del todo en móvil/tablet + menos
+  estrellas** (`animateGalaxy`, `NUM_LAYER`, `cfg.density` en
+  `initGalaxy`/`script.js`) — pedido explícito del usuario ("pausar el
+  movimiento... y reducir la cantidad") porque el lag persistía en mobile
+  incluso con la interactividad ya sacada y con el loop ya pausado cuando
+  el Umbral no está en pantalla (ver "se pausan cuando el Umbral sale de
+  pantalla" más abajo). A diferencia de esa pausa por visibilidad, esto
+  apaga el movimiento SIEMPRE en `mobileMQ` (≤1023px), aunque el Umbral
+  esté a la vista: `update()` renderiza un único frame (`rafId =
+  animateGalaxy ? requestAnimationFrame(update) : null` — con
+  `animateGalaxy=false` nunca se vuelve a programar) y `resume()` también
+  respeta el flag, así que ni siquiera el pausado/reanudado por
+  scroll reinicia la animación ahí. El fondo de estrellas se sigue viendo
+  (no desaparece, solo queda estático) y además tiene menos densidad
+  (`density: 1.6` vs `2.5`) y menos capas (`NUM_LAYER` interpolado a `2.0`
+  en mobile/tablet vs `4.0` en laptop+, directo en el string del fragment
+  shader — MENOS capas de verdad baja el trabajo por píxel del shader, a
+  diferencia de bajar solo `density`, que cambia la escala de la grilla
+  pero no el número de iteraciones). En laptop+ nada cambia. Ojo con el
+  interpolado del `#define`: `${valor}` en un template string de JS
+  convierte `2.0` a `"2"` (sin el punto), y GLSL exige que el literal sea
+  float (`2.0`), no int, en esa división — hay que forzar `.toFixed(1)` al
+  interpolar o el shader no compila (error real, ya pasó acá).
 
 ## Errores ya corregidos (no reintroducir)
 
