@@ -94,8 +94,8 @@
      sin bundler": si el CDN falla, el radial-gradient + sweep de CSS que ya
      tiene .threshold siguen de fondo, nada se rompe. */
   function initGalaxy(ctn) {
-    if (!ctn) return;
-    import("https://esm.sh/ogl@1.0.11")
+    if (!ctn) return Promise.resolve(null);
+    return import("https://esm.sh/ogl@1.0.11")
       .then(({ Renderer, Program, Mesh, Color, Triangle }) => {
         const vertexShader = `
 attribute vec2 uv;
@@ -307,7 +307,17 @@ void main() {
             );
           }
         }
-        window.addEventListener("resize", resize);
+        // debounce ~200ms, mismo patrón que ya usa el catálogo (resizeTimer,
+        // más abajo en el archivo) — sin esto, renderer.setSize() (que
+        // redimensiona el framebuffer de WebGL) se ejecuta en cada evento
+        // crudo de "resize", y el navegador dispara varios seguidos en
+        // mobile (p.ej. al ocultar/mostrar la barra de direcciones al
+        // hacer scroll — justo la interacción reportada como lenta).
+        let galaxyResizeTimer = null;
+        window.addEventListener("resize", () => {
+          clearTimeout(galaxyResizeTimer);
+          galaxyResizeTimer = setTimeout(resize, 200);
+        });
         resize();
 
         const geometry = new Triangle(gl);
@@ -344,8 +354,15 @@ void main() {
         const mesh = new Mesh(gl, { geometry, program });
         ctn.appendChild(gl.canvas);
 
+        // rafId guardado (en vez de solo llamar requestAnimationFrame "a
+        // ciegas") para poder pausar/reanudar el loop desde afuera —ver
+        // pause()/resume() más abajo y setThresholdVisible() donde se usan—
+        // sin este id, cancelAnimationFrame no tiene qué cancelar y el
+        // shader de pantalla completa sigue renderizando a 60fps aunque el
+        // Umbral ya haya salido de vista (scrolleado al Catálogo).
+        let rafId = null;
         function update(t) {
-          requestAnimationFrame(update);
+          rafId = requestAnimationFrame(update);
           program.uniforms.uTime.value = t * 0.001;
           program.uniforms.uStarSpeed.value = (t * 0.001 * cfg.starSpeed) / 10.0;
 
@@ -360,7 +377,7 @@ void main() {
 
           renderer.render({ scene: mesh });
         }
-        requestAnimationFrame(update);
+        rafId = requestAnimationFrame(update);
 
         // el componente original escuchaba mousemove sobre su propio
         // contenedor; acá escuchamos en document (mismo patrón que ya usaba
@@ -383,10 +400,27 @@ void main() {
             }
           });
         }
+
+        // handle para pausar/reanudar el loop de render desde afuera (ver
+        // setThresholdVisible más abajo) sin apagar el efecto — se sigue
+        // "animando siempre" mientras el Umbral está en pantalla, solo deja
+        // de gastar CPU/GPU cuando el usuario ya scrolleó a otra sección.
+        return {
+          pause() {
+            if (rafId !== null) {
+              cancelAnimationFrame(rafId);
+              rafId = null;
+            }
+          },
+          resume() {
+            if (rafId === null) rafId = requestAnimationFrame(update);
+          },
+        };
       })
       .catch(() => {
         // sin conexión al CDN de OGL: se queda el radial-gradient + sweep
         // de fondo que ya existían, nada se rompe
+        return null;
       });
   }
 
@@ -485,15 +519,16 @@ varying vec2 vUv;
 uniform float mouse;
 uniform float uTime;
 uniform sampler2D uTexture;
+uniform float uChroma;
 
 void main() {
     float time = uTime;
     vec2 pos = vUv;
 
     float move = sin(time + mouse) * 0.01;
-    float r = texture2D(uTexture, pos + cos(time * 2. - time + pos.x) * .01).r;
-    float g = texture2D(uTexture, pos + tan(time * .5 + pos.x - time) * .01).g;
-    float b = texture2D(uTexture, pos - cos(time * 2. + time + pos.y) * .01).b;
+    float r = texture2D(uTexture, pos + cos(time * 2. - time + pos.x) * .01 * uChroma).r;
+    float g = texture2D(uTexture, pos + tan(time * .5 + pos.x - time) * .01 * uChroma).g;
+    float b = texture2D(uTexture, pos - cos(time * 2. + time + pos.y) * .01 * uChroma).b;
     float a = texture2D(uTexture, pos).a;
     gl_FragColor = vec4(r, g, b, a);
 }
@@ -784,6 +819,17 @@ void main() {
                 // ver nota en el vertex shader — reescala la onda al
                 // tamaño real del plano en px (referencia: 20 unidades)
                 uWaveScale: { value: planeH / 20 },
+                // aberración cromática (separación de canales r/g/b del
+                // fragment shader): en desktop es un fringe sutil porque el
+                // canvas de asciify() tiene resolución alta (~160×20). En
+                // móvil/tablet ese canvas es mucho más chico y encima se
+                // downsamplea con imageSmoothingEnabled:false (nearest-
+                // neighbor, ver AsciiFilter) — el mismo fringe de un par de
+                // píxeles queda una fracción enorme de cada letra y se ve
+                // como bloques de color sólidos en vez de texto (reportado
+                // por el usuario en un celular real). Se apaga por completo
+                // ahí; en laptop+ sigue igual que antes.
+                uChroma: { value: mobileMQ.matches ? 0 : 1 },
               },
             });
 
@@ -1066,7 +1112,12 @@ void main() {
       gsap.set(el.querySelector(".specimen-chip__frame"), { rotation: TILTS[i % TILTS.length] });
     });
 
-    gsap.ticker.add((time) => {
+    // función con nombre (no arrow inline) para poder sacarla/ponerla de
+    // gsap.ticker con .remove()/.add() — ver setThresholdVisible más abajo.
+    // Antes corría para siempre en cada tick global de GSAP, incluso con
+    // el Umbral scrolleado lejos (en el Catálogo, que ya es pesado de por
+    // sí) — mismo problema que el loop de render de galaxy más abajo.
+    function orbitTick(time) {
       // mismo corte que mobileMQ (≤1023, móvil+tablet, ver arriba): con el
       // centrado de arriba, un factor más chico ahí evita que los íconos
       // pasen la mitad del giro fuera de pantalla (medido: ~34-38% en
@@ -1085,7 +1136,7 @@ void main() {
         const a = -Math.PI / 2 + (i * Math.PI * 2) / chips.length + spin;
         gsap.set(el, { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) });
       });
-    });
+    }
 
     /* ---------- galaxy: fondo de estrellas del umbral ----------
        portado desde reactbits.dev/backgrounds/galaxy (OGL/WebGL) a vanilla —
@@ -1095,7 +1146,18 @@ void main() {
        de conexión, ver arriba) — queda el radial-gradient + sweep de CSS
        que .threshold ya tiene de fondo, mismo fallback que si el CDN de
        OGL fallara. */
-    if (!isConstrained) initGalaxy(document.querySelector(".threshold__galaxy"));
+    let galaxyHandle = null;
+    // último estado pedido por setThresholdVisible (ver más abajo) — si el
+    // usuario ya scrolleó lejos del Umbral ANTES de que resuelva el
+    // import() dinámico de OGL, el handle debe nacer pausado en vez de
+    // arrancar a renderizar un fondo que ya nadie ve.
+    let thresholdVisible = true;
+    if (!isConstrained) {
+      initGalaxy(document.querySelector(".threshold__galaxy")).then((handle) => {
+        galaxyHandle = handle;
+        if (handle && !thresholdVisible) handle.pause();
+      });
+    }
 
     /* ---------- ASCIIText: "Digital" del hero como arte ASCII (Three.js) ----------
        ver initAsciiText() más arriba / RECURSOS/ascii-text.js. El texto real
@@ -1127,6 +1189,20 @@ void main() {
 
     gsap.set([".threshold__reading", ".threshold__seal"], { autoAlpha: 0 });
 
+    // pausa/reanuda el ticker de la órbita y el loop de render de galaxy
+    // (nunca el efecto en sí, solo el trabajo por frame) según si el Umbral
+    // está realmente en pantalla — mismo mecanismo que ya usa el Catálogo
+    // (setInCatalog) para su propio scroll-jacking. gsap.ticker.remove() de
+    // una función no agregada es un no-op seguro, así que es válido
+    // llamarla en cualquier orden/cantidad de veces sin duplicar el tick.
+    function setThresholdVisible(visible) {
+      thresholdVisible = visible;
+      if (galaxyHandle) visible ? galaxyHandle.resume() : galaxyHandle.pause();
+      gsap.ticker.remove(orbitTick);
+      if (visible) gsap.ticker.add(orbitTick);
+    }
+    setThresholdVisible(true);
+
     const thresholdTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".threshold",
@@ -1134,6 +1210,10 @@ void main() {
         end: "+=4200",
         pin: true,
         scrub: 1,
+        onEnter: () => setThresholdVisible(true),
+        onEnterBack: () => setThresholdVisible(true),
+        onLeave: () => setThresholdVisible(false),
+        onLeaveBack: () => setThresholdVisible(false),
       },
     });
 

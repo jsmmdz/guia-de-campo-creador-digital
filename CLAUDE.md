@@ -251,6 +251,8 @@ assets/
 | 15 | Órbita de íconos con excesivo clipping en móvil/tablet | Dos causas combinadas: (a) `gsap.set(el, {x, y})` trasladaba la esquina superior-izquierda del chip al punto de órbita, no su centro visual (corregido con `xPercent:-50, yPercent:-50`, ver bullet "Órbita de íconos" más arriba); (b) el factor de radio `narrow` (antes solo `innerWidth<=767`, tablet no entraba en esa rama) era **mayor** que el de desktop (0.62/0.54 vs 0.58/0.5) — al revés de lo que compensaría una pantalla ya más angosta. Medido analíticamente (mismo cálculo que el código, con el tamaño real de frame por breakpoint): móvil pasaba 53.6% del giro con un ícono fuera de pantalla, tablet 44.6%, vs ~29% en laptop/desktop/large (ya aceptado) | (a) `xPercent:-50, yPercent:-50`; (b) `narrow` ahora usa el mismo corte que `mobileMQ` (≤1023, móvil+tablet juntos) con factores 0.47/0.40, bajando a ~30-34% |
 | 16 | Nota "Cognición Aumentada" (`.sensor-note--title`) superpuesta con la flecha de scroll (`.threshold__nudge`) en móvil | El override de `@media (max-width:767px)` la anclaba a `bottom:26%`, un porcentaje fijo sin relación con dónde cae realmente la flecha (centrada por flexbox, con rebote ±10px) — se superponían ~4-14px | Bajado a `bottom:18%` |
 | 17 | BlurText (`splitBlurText()`, reveal letra por letra de "reading") partía palabras a la mitad al hacer wrap ("complejos" → "co" / "mplejos"), en todos los breakpoints, no solo móvil | Una lista plana de `<span class="threshold__letter">` (uno por letra, sin agrupar) permite que el navegador inserte un punto de corte de línea entre dos `inline-block` adyacentes aunque no haya espacio en blanco entre ellos — se tratan como cajas atómicas sueltas, no como parte de la misma palabra | Envolver cada palabra en un `<span class="threshold__word">` con `white-space:nowrap` (contenedor atómico); las letras quedan adentro. El navegador solo puede partir línea antes/después de una palabra completa, nunca entre sus letras |
+| 18 | Solo 5 de los 8 íconos de la constelación aparecían en móvil ≤767px (confirmado en dispositivo real) | Clase `is-compact` (leftover de un layout viejo, ver error #1) en 3 `specimen-chip` (`webflow`, `blender`, `figma`) + regla `@media (max-width:767px) { .specimen-chip.is-compact { display:none } }` en `styles.css` — nunca se sacó del todo al pasar a "los 8 orbitan siempre juntos" | Sacada la regla CSS y la clase `is-compact` de los 3 `<div>` en `index.html` — los 8 quedan iguales, ninguno se oculta en ningún breakpoint |
+| 19 | Texto ASCII de "Digital" se veía como bloques de colores sólidos (no como letras) en móvil, en un celular real | El fragment shader de `initAsciiText` separa los canales r/g/b con un offset de UV distinto por canal (aberración cromática/glitch, intencional) — en desktop es un fringe sutil porque el canvas interno de `asciify()` tiene resolución alta (~160×20); en móvil ese canvas es mucho más chico (~80×10) y además se downsamplea con `imageSmoothingEnabled:false` (nearest-neighbor) desde la resolución real del `WebGLRenderer` — el mismo fringe de un par de píxeles pasa a ser una fracción enorme de cada letra | Uniform nuevo `uChroma` que multiplica el offset de los 3 canales — `0` en móvil/tablet (`mobileMQ`, efecto apagado del todo), `1` en laptop+ (sin cambios) |
 
 ## Optimización de carga (móviles de gama media / datos móviles)
 
@@ -290,6 +292,30 @@ assets/
   distinto y más liviano que `isConstrained` — no salta el montaje de
   `initGalaxy`/`initAsciiText`, solo la interactividad de mouse/touch, en
   móvil/tablet (`mobileMQ`, ≤1023px) sin importar la conexión.
+- **Galaxy y la órbita de íconos se pausan cuando el Umbral sale de
+  pantalla, en TODOS los breakpoints** (no solo mobile): investigación de
+  lag encontró que ninguno de los dos efectos tenía guard de visibilidad —
+  corrían para siempre (60fps) aunque el usuario ya estuviera scrolleado
+  en el Catálogo, compitiendo por el mismo frame budget que su propio
+  scroll-jacking + scrub de video. Se enganchó `onEnter`/`onEnterBack`
+  (reanudar) y `onLeave`/`onLeaveBack` (pausar) al mismo `ScrollTrigger`
+  del pin de `thresholdTl` — mismo patrón que ya usaba el Catálogo
+  (`setInCatalog`) para su propio scroll-jacking. `setThresholdVisible()`
+  en `script.js` centraliza el toggle de ambos: `galaxyHandle.pause()/
+  resume()` (nuevo, `initGalaxy` ahora devuelve un handle en vez de
+  ser fire-and-forget) y `gsap.ticker.remove/add(orbitTick)` (el callback
+  de la órbita pasó de arrow inline a función con nombre para poder
+  sacarlo/ponerlo del ticker). Ninguno de los dos efectos se apaga
+  visualmente — solo dejan de gastar CPU/GPU cuando de verdad no se ven.
+  Verificado con `gsap.ticker.tick()` + `ScrollTrigger.update()` forzados a
+  mano (el entorno de preview no compositea frames reales sin la pestaña
+  visible, así que el loop normal de rAF no se puede observar esperando).
+  También se le agregó debounce (~200ms, mismo patrón que ya usaba el
+  resize del catálogo) al listener de `resize` de Galaxy, que antes
+  llamaba `renderer.setSize()` en cada evento crudo — los navegadores
+  móviles disparan varios `resize` seguidos al ocultar/mostrar la barra de
+  direcciones durante el scroll, justo la interacción reportada como
+  lenta.
 - **Google Fonts ya no se carga con `@import` dentro de `styles.css`**: un
   `@import` bloquea la construcción del CSSOM hasta que ese round-trip
   completa, antes de que cualquier estilo del archivo aplique. Ahora es

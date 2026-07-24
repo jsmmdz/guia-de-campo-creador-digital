@@ -528,7 +528,6 @@ body:not(.enhanced) .specimen-chip__frame { transform: none; }
 
 /* móvil ≤767 */
 @media (max-width: 767px) {
-  .specimen-chip.is-compact { display: none; }
   body.enhanced .threshold__field { opacity: 0.42; }
   .specimen-chip__frame { width: 72px; }
 }
