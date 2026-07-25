@@ -18,25 +18,16 @@
      devuelve 400), así que el "corte Condensed" del spec se aproxima con
      tracking/tamaño en CSS, no con una variante real de la fuente. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..700&family=Gantari:ital,wght@1,700;1,800&family=Martian+Mono:wght@400;500&display=swap" />
-<link rel="stylesheet" href="styles.css?v=17" />
+<link rel="stylesheet" href="styles.css?v=18" />
 </head>
 <body>
 
-<!-- HUD: chrome fijo del instrumento -->
-<div class="hud" aria-hidden="true"></div>
+<!-- HUD: lecturas fijas del instrumento (sin el marco decorativo — no
+     está en el Figma. El switch de "Cognición Aumentada" y sus notas se
+     sacaron: los reemplaza la Bitácora Oculta, todavía sin construir —
+     ver CLAUDE.md §Pendiente) -->
 <p class="hud__reg" aria-hidden="true">Registro N.01 — Territorio sin cartografía</p>
 <p class="hud__coord" aria-hidden="true">4°45′ N&nbsp;&nbsp;74°06′ O</p>
-<div class="scanlines" aria-hidden="true"></div>
-
-<!-- sensor: switch de Cognición Aumentada — funcional desde el Nodo 0 -->
-<button class="sensor" id="sensor" type="button" aria-pressed="false">
-  <span class="sensor__light" aria-hidden="true"></span>
-  <span>Cognición Aumentada</span>
-  <span class="sensor__state" aria-hidden="true">OFF</span>
-</button>
-<aside class="sensor-note sensor-note--title" aria-hidden="true">El título, la paleta y esta estructura se co-crearon con Claude (Anthropic) a partir de research sobre la carrera.</aside>
-<aside class="sensor-note sensor-note--orbit" aria-hidden="true">Cada ícono es la foto real de la herramienta; su órbita se ajustó con asistencia de IA generativa.</aside>
-<aside class="sensor-note sensor-note--plate" aria-hidden="true">Este blob es geometría generada por IA — se reemplaza por el video de cada disciplina en cuanto está disponible.</aside>
 
 <!-- ============================================================
      NODO 0 — Umbral
@@ -417,7 +408,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=47"></script>
+<script src="script.js?v=48"></script>
 
 </body>
 </html>

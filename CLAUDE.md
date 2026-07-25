@@ -418,14 +418,20 @@ assets/
 
 ## Pendiente
 
-- **El switch actual ("Cognición Aumentada") NO es la Bitácora Oculta del
-  vault — falta construir el componente real.** Hoy `#sensor` es un
-  toggle simple (`sensor-on`, OFF/ON) que revela 3 `<aside class="sensor-
-  note">` sueltos (título, órbita, placa) con una frase corta cada uno. El
-  vault (`Plan de Desarrollo y Especificacion Tecnica.md`, sección 1.2)
-  especifica algo más grande y ya con nombre fijo, **"Bitácora Oculta"**
-  (nunca "Cognición Aumentada" — ese nombre no aparece en el vault; el
-  nombre viejo y ya reemplazado en el vault era "Modo Rayos X"):
+- **La Bitácora Oculta del vault todavía no existe — falta construir el
+  componente real desde cero.** Hasta hace poco había un placeholder
+  (`#sensor`, toggle "Cognición Aumentada" que revelaba 3 `<aside
+  class="sensor-note">` sueltos) — se sacó por completo (HTML, CSS y el
+  listener en `script.js`) porque no correspondía al diseño de Figma ni al
+  vault: ni el nombre, ni el copy, ni el mecanismo. También se sacó el
+  marco/corchetes decorativos de `.hud` (el border fijo con corner-
+  brackets) por el mismo motivo — no está en el Figma. `.hud__reg`/
+  `.hud__coord` (las lecturas de sección/coordenadas) quedaron intactas,
+  son dato, no decoración. El vault (`Plan de Desarrollo y Especificacion
+  Tecnica.md`, sección 1.2) especifica algo más grande y ya con nombre
+  fijo, **"Bitácora Oculta"** (nunca "Cognición Aumentada" — ese nombre no
+  aparece en el vault; el nombre viejo y ya reemplazado en el vault era
+  "Modo Rayos X"):
   - Panel con copy fijo: título *Bitácora Oculta*, cuerpo *"Aquí descansa
     la deconstrucción de cada decisión, cada código rechazado y cada
     prompt que dio forma a la realidad que acabas de navegar"*, llamado

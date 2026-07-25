@@ -64,17 +64,6 @@
     else img.addEventListener("load", reveal);
   });
 
-  /* ---------- sensor: switch de Cognición Aumentada ---------- */
-
-  const sensor = document.getElementById("sensor");
-  if (sensor) {
-    sensor.addEventListener("click", () => {
-      const on = document.body.classList.toggle("sensor-on");
-      sensor.setAttribute("aria-pressed", String(on));
-      sensor.querySelector(".sensor__state").textContent = on ? "ON" : "OFF";
-    });
-  }
-
   /* ---------- sin GSAP (falla de red): el contenido ya es legible tal cual ---------- */
 
   if (typeof gsap === "undefined") return;

@@ -74,25 +74,12 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
-   HUD — chrome fijo del instrumento
+   HUD — lecturas fijas del instrumento
+   El marco/corchetes decorativos (antes `.hud`, con su border +
+   corner-brackets) se sacaron: no están en el Figma, eran margen
+   puramente visual. `.hud__reg`/`.hud__coord` quedan — son lectura de
+   dato (sección activa, coordenadas), no decoración.
    ============================================================ */
-
-.hud {
-  position: fixed;
-  inset: var(--sp-3);
-  z-index: 40;
-  pointer-events: none;
-  border: 1px solid rgba(61, 58, 224, 0.32);
-  mix-blend-mode: difference;
-}
-.hud::before, .hud::after {
-  content: "";
-  position: absolute;
-  width: 10px; height: 10px;
-  border: 1px solid var(--signal-hi);
-}
-.hud::before { top: -5px; left: -5px; border-right: 0; border-bottom: 0; }
-.hud::after  { bottom: -5px; right: -5px; border-left: 0; border-top: 0; }
 
 .hud__reg,
 .hud__coord {
@@ -112,7 +99,6 @@ img { max-width: 100%; display: block; }
 
 /* móvil ≤767 */
 @media (max-width: 767px) {
-  .hud { inset: var(--sp-2); }
   .hud__reg, .hud__coord { font-size: 8px; letter-spacing: 0.1em; }
   .hud__reg   { top: calc(var(--sp-2) + 8px); left: calc(var(--sp-2) + 8px); }
   .hud__coord { bottom: calc(var(--sp-2) + 8px); right: calc(var(--sp-2) + 8px); max-width: 40vw; }
@@ -123,129 +109,15 @@ img { max-width: 100%; display: block; }
 }
 /* desktop 1440–1919 */
 @media (min-width: 1440px) and (max-width: 1919px) {
-  .hud { inset: var(--sp-4); }
   .hud__reg, .hud__coord { font-size: 10.5px; letter-spacing: 0.18em; }
   .hud__reg   { top: calc(var(--sp-4) + 10px); left: calc(var(--sp-4) + var(--sp-2)); }
   .hud__coord { bottom: calc(var(--sp-4) + 10px); right: calc(var(--sp-4) + var(--sp-2)); }
 }
 /* pantallas grandes ≥1920 */
 @media (min-width: 1920px) {
-  .hud { inset: var(--sp-5); }
   .hud__reg, .hud__coord { font-size: 12px; letter-spacing: 0.2em; }
   .hud__reg   { top: calc(var(--sp-5) + 10px); left: calc(var(--sp-5) + var(--sp-2)); }
   .hud__coord { bottom: calc(var(--sp-5) + 10px); right: calc(var(--sp-5) + var(--sp-2)); }
-}
-
-/* ============================================================
-   SENSOR — switch de Cognición Aumentada
-   ============================================================ */
-
-.sensor {
-  position: fixed;
-  top: var(--sp-3);
-  right: var(--sp-3);
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 14px 9px 12px;
-  border: 1px solid rgba(61, 58, 224, 0.55);
-  background: rgba(3, 3, 4, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 3px;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.8);
-  font-family: var(--f-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  transition: border-color 0.25s ease, color 0.25s ease;
-}
-.sensor:hover, .sensor:focus-visible { border-color: var(--signal-hi); color: var(--paper); }
-.sensor:focus-visible { outline: 1px solid var(--signal-hi); outline-offset: 3px; }
-
-.sensor__light {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow: none;
-  flex-shrink: 0;
-  transition: background 0.25s ease, box-shadow 0.25s ease;
-}
-.sensor[aria-pressed="true"] .sensor__light {
-  background: #5be08a;
-  box-shadow: 0 0 7px #5be08a, 0 0 2px #5be08a;
-  animation: sensor-pulse 1.8s ease-in-out infinite;
-}
-@keyframes sensor-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-
-.sensor__state { min-width: 22px; }
-
-/* scanline: overlay sutil que aparece con el sensor activo, cubre todo el sitio */
-.scanlines {
-  position: fixed;
-  inset: 0;
-  z-index: 35;
-  pointer-events: none;
-  opacity: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.05) 0px,
-    rgba(255, 255, 255, 0.05) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  transition: opacity 0.5s ease;
-}
-body.sensor-on .scanlines { opacity: 1; }
-@media (prefers-reduced-motion: no-preference) {
-  body.sensor-on .scanlines { animation: scan-drift 9s linear infinite; }
-}
-@keyframes scan-drift { from { background-position: 0 0; } to { background-position: 0 240px; } }
-
-.sensor-note {
-  position: fixed;
-  max-width: 210px;
-  font-family: var(--f-mono);
-  font-size: 10px;
-  line-height: 1.6;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(3, 3, 4, 0.85);
-  border-left: 2px solid var(--signal-hi);
-  padding: 9px 12px;
-  z-index: 55;
-  opacity: 0;
-  transform: translateY(6px);
-  pointer-events: none;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-.sensor-note::before {
-  content: "// ";
-  color: var(--signal-hi);
-}
-.sensor-note--title { top: 16%; left: var(--sp-3); }
-.sensor-note--orbit  { bottom: 16%; right: var(--sp-3); }
-.sensor-note--plate  { bottom: var(--sp-4); left: 50%; transform: translate(-50%, 6px); text-align: left; }
-
-/* título/órbita solo aplican al umbral; la placa solo al catálogo */
-body.sensor-on:not(.in-catalog) .sensor-note--title { opacity: 1; transform: translateY(0); }
-body.sensor-on:not(.in-catalog) .sensor-note--orbit { opacity: 1; transform: translateY(0); }
-body.sensor-on.in-catalog .sensor-note--plate { opacity: 1; transform: translate(-50%, 0); }
-
-/* móvil ≤767 */
-@media (max-width: 767px) {
-  .sensor__state { display: none; }
-  .sensor-note--orbit { display: none; }
-  /* bottom:18% (antes 26%) deja hueco frente a .threshold__nudge y su
-     rebote (±10px) — a 26% la nota le pisaba la flecha ~4-14px */
-  .sensor-note--title { top: auto; bottom: 18%; left: var(--sp-3); right: var(--sp-3); max-width: none; }
-}
-/* desktop y pantallas grandes: la nota gana un poco de aire para leerse cómoda */
-@media (min-width: 1440px) {
-  .sensor-note { max-width: 250px; font-size: 11px; }
 }
 
 /* ============================================================
