@@ -730,3 +730,467 @@ body.catalog-enhanced .plate { flex: 0 0 100vw; width: 100vw; }
   .plate { padding: var(--sp-6) var(--sp-6); }
   .plate__reticle span, .hero-reticle span { width: 22px; height: 22px; }
 }
+
+/* ============================================================
+   TERRITORIO — Nodo 2
+   Instrumento de campo en la oscuridad: paleta fría + un único acento
+   cálido reservado para el callout, corte brutal entre titulares enormes
+   y captions de instrumento diminutas (no normalizar hacia un tamaño
+   intermedio — ver Spec v2 §5). Tokens nuevos acá porque son exclusivos
+   de este nodo (--spec-1..6 del Catálogo NO se usan acá).
+   ============================================================ */
+
+:root {
+  --t-ink: #f2f1ec;
+  --t-panel: #0d0d10;
+  --t-accent: #c9803d; /* provisional — sin confirmar contra Figma, ver CLAUDE.md */
+  --t-hairline: rgba(242, 241, 236, 0.12);
+  --t-hairline-hi: rgba(242, 241, 236, 0.15);
+
+  --t-f-display: "Gantari", var(--f-display);
+  --t-f-serif: "Fraunces", serif;
+  --t-f-mono: "Martian Mono", var(--f-mono);
+}
+
+.territory {
+  position: relative;
+  z-index: 1;
+  background: var(--depth);
+  color: var(--t-ink);
+}
+
+/* ---------- tramos: uno por ScrollTrigger pineado ---------- */
+
+.territory__stint {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* ---------- páginas: capas de crossfade dentro de un tramo ----------
+   Sin JS/GSAP (o ?static=1, ver error #8 del CLAUDE.md — "enhanced" solo
+   se agrega tras confirmar que GSAP cargó): flujo normal, todo visible,
+   apilado — es el fallback que exige el spec (§4 "?static=1"). Con JS,
+   se vuelven capas absolutas que initTerritory() cruza en fundido. */
+.territory__page {
+  position: static;
+  opacity: 1;
+  visibility: visible;
+  padding: var(--sp-4) var(--sp-4);
+}
+body.enhanced .territory__page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  will-change: opacity, filter;
+}
+body.enhanced .territory__page[data-page="0"] { opacity: 1; visibility: visible; }
+
+/* .territory__compare SÍ es flex (columna: label arriba, grid de 3
+   fichas abajo — ver su propia regla más abajo, nunca tuvo grid-template
+   propio). NUNCA en .territory__card/.territory__note: esas dos ya son
+   display:grid (grid-template-columns:1fr 1.2fr 1fr, ver sus reglas más
+   abajo) para que sus hijos con grid-column:1/-1 ocupen el ancho
+   completo — un display:flex acá pisaría ese grid. Bug real encontrado
+   en verificación en navegador: una versión anterior de esta regla
+   agregaba display:flex a los 3 selectores para centrar verticalmente,
+   y eso convertía nota-de-campo + callout (dos grid-column:1/-1) en dos
+   flex items lado a lado en vez de apilados — confirmado inspeccionando
+   getBoundingClientRect (125px + 164px de ancho, uno al lado del otro,
+   en vez de 100% cada uno apilados). El centrado vertical de ficha/nota
+   se resuelve con align-content:center en sus propias reglas grid, sin
+   tocar display. */
+body.enhanced .territory__compare {
+  display: flex;
+  align-items: center;
+}
+
+/* páginas de texto crudo: el <p>/<h2> ES la página, centrado vertical
+   sin flex/grid sobre el propio elemento (ver comentario arriba). */
+body.enhanced .territory__zigzag,
+body.enhanced .territory__emphasis,
+body.enhanced .territory__closing-line,
+body.enhanced .territory__outro {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
+/* títulos (título de tramo, nombre de nivel): pedido explícito del
+   usuario — arriba y centrados horizontalmente, no en el medio vertical
+   de la pantalla como el resto del texto crudo. */
+body.enhanced .territory__stint-title,
+body.enhanced .territory__level-name {
+  top: var(--sp-6);
+  bottom: auto;
+  transform: none;
+}
+body:not(.enhanced) .territory__stint { height: auto; overflow: visible; }
+body:not(.enhanced) .territory__page { min-height: 60vh; display: flex; align-items: center; }
+body:not(.enhanced) .territory__center,
+body:not(.enhanced) .territory__marquee { display: none; }
+
+/* ---------- marquesina "TERRITORIO." ----------
+   Única pieza del nodo que NO cuelga del scroll (loop independiente,
+   gsap.to xPercent:-50 en script.js). overflow-x:hidden es lo único que
+   necesita el loop — overflow-y queda libre a propósito (error #2:
+   itálica bold grande se recorta si se le pone overflow:hidden en los
+   dos ejes). */
+.territory__marquee {
+  position: absolute;
+  top: var(--sp-4);
+  left: 0;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+  padding: var(--sp-2) 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.territory__marquee-track {
+  display: flex;
+  width: max-content;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(2.75rem, 8.89vw, 10rem);
+  line-height: 1.15;
+  white-space: nowrap;
+  color: var(--paper);
+  opacity: 0.9;
+}
+
+.territory__hero-cue {
+  position: absolute;
+  bottom: var(--sp-5);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--t-f-mono);
+  font-size: 20px;
+}
+
+/* ---------- zigzag: fragmentos narrativos, el <p> ES la página ----------
+   NUNCA grid-column acá (ver CLAUDE.md error #1: un elemento que es su
+   propia página no es ítem de ninguna grilla ajena) — se resuelve con
+   max-width + margin auto asimétrico, dejando la banda central libre. */
+.territory__zigzag {
+  max-width: 40%;
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.25rem, 2.64vw, 2.75rem);
+  line-height: 1.35;
+}
+.territory__zigzag--l { margin-right: auto; text-align: left; }
+.territory__zigzag--r { margin-left: auto; text-align: right; }
+
+.territory__word { display: inline-block; white-space: nowrap; }
+.territory__letter { display: inline-block; will-change: transform, filter; }
+
+/* ---------- momentos de énfasis: página propia, escala mayor ---------- */
+.territory__emphasis {
+  text-align: center;
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 3.6vw, 3.75rem);
+  line-height: 1.25;
+}
+
+/* ---------- título de tramo / nombre de nivel ---------- */
+.territory__stint-title,
+.territory__level-name {
+  text-align: center;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(2.25rem, 5.9vw, 6.5rem);
+  line-height: 1.05;
+  color: var(--paper);
+}
+.territory__stint-title-us { color: var(--signal-hi); }
+.territory__level-eyebrow {
+  display: block;
+  margin-bottom: var(--sp-2);
+  font-family: var(--t-f-mono);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--signal-hi);
+}
+
+/* ---------- frase de cierre de nivel ---------- */
+.territory__closing-line {
+  text-align: center;
+  max-width: 64%;
+  margin: 0 auto;
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.19vw, 3.25rem);
+  line-height: 1.3;
+  color: var(--paper);
+}
+
+/* ---------- banda central reservada: ascenso, Fase 1 ----------
+   UN SOLO indicador, position:fixed (no vive dentro de ningún tramo) —
+   persiste sin resetearse mientras se sube Suelo→Ladera→Cima, algo que
+   3 indicadores independientes (uno por pin) no podrían dar. Oculto
+   fuera de ese rango vía body.territory-ascent (initTerritory() lo
+   agrega en el onEnter de "suelo" y lo saca en el onLeaveBack de
+   "suelo" / onLeave de "cima"). Las páginas contenedoras (ficha/nota)
+   lo cubren al ser paneles opacos de ancho completo — ver Spec v2 §3.3
+   + correcciones §2: la banda vacía solo aplica al zigzag. */
+.territory__center {
+  position: fixed;
+  top: 0;
+  left: 33vw;
+  width: 34vw;
+  height: 100vh;
+  height: 100svh;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+body.territory-ascent .territory__center { opacity: 1; }
+
+.territory__altitude {
+  position: relative;
+  width: 1px;
+  height: 60%;
+  background: var(--t-hairline-hi);
+}
+.territory__altitude-dot {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 7px;
+  height: 7px;
+  background: var(--signal-hi);
+  box-shadow: 0 0 10px rgba(61, 58, 224, 0.45);
+  transform: translate(-50%, -50%);
+  will-change: top, transform;
+}
+.territory__altitude-tick {
+  position: absolute;
+  left: 50%;
+  width: 14px;
+  height: 1px;
+  background: var(--t-hairline-hi);
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+.territory__altitude-tick.is-reached { opacity: 1; }
+.territory__altitude-tick-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-family: var(--t-f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* ---------- ficha técnica: panel ancho, corchetes tipo HUD ---------- */
+.territory__card {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  align-items: center;
+  align-content: center; /* centra el bloque de filas dentro de la página alta, ver comentario más arriba sobre el bug de display:flex */
+}
+.territory__card-panel {
+  position: relative;
+  grid-column: 1 / -1;
+  background: var(--t-panel);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 2px solid var(--t-hairline);
+}
+.territory__card-panel::before,
+.territory__card-panel::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+.territory__card-panel::before { top: -1px; left: -1px; border-top: 1px solid var(--t-hairline-hi); border-left: 1px solid var(--t-hairline-hi); }
+.territory__card-panel::after { bottom: -1px; right: -1px; border-bottom: 1px solid var(--t-hairline-hi); border-right: 1px solid var(--t-hairline-hi); }
+
+.territory__card-label {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-3);
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--signal-hi);
+}
+.territory__card-stamp {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-3);
+  font-family: var(--t-f-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  opacity: 0.55;
+}
+.territory__card-rows { margin-top: var(--sp-5); }
+.territory__card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--t-hairline);
+}
+.territory__card-row:first-child { border-top: none; }
+.territory__card-row dt {
+  flex: 0 0 auto;
+  max-width: 26%;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  opacity: 0.7;
+}
+.territory__card-row dd {
+  flex: 1 1 auto;
+  min-width: 0; /* si no, un flex item con texto largo no encoge por debajo de su ancho intrínseco y desborda — visto en verificación real en mobile (flex-direction:column) */
+  text-align: right;
+  font-family: var(--t-f-display);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.territory__card-highlight {
+  display: block;
+  margin-top: var(--sp-1);
+  color: var(--signal-hi);
+}
+
+/* ---------- nota de campo + callout ---------- */
+.territory__note {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  align-content: center;
+}
+.territory__note-label {
+  grid-column: 1 / -1;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(1.75rem, 3.9vw, 4rem);
+  margin-bottom: var(--sp-3);
+  color: var(--paper);
+}
+.territory__note-body {
+  grid-column: 1 / -1;
+  max-width: 760px;
+  padding-left: var(--sp-3);
+  border-left: 1px solid var(--t-hairline);
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.125rem, 2.22vw, 2.25rem);
+  line-height: 1.5;
+}
+.territory__callout {
+  grid-column: 1 / -1;
+  max-width: 620px;
+  margin-top: var(--sp-3);
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--t-accent);
+}
+.territory__callout-title {
+  font-family: var(--t-f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--t-accent);
+  margin-bottom: var(--sp-1);
+}
+.territory__callout-body {
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---------- comparativa final ---------- */
+.territory__compare { flex-direction: column; justify-content: center; gap: var(--sp-4); }
+.territory__compare-label {
+  text-align: center;
+  font-family: var(--t-f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+.territory__compare-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+.territory__card--compare { display: block; }
+.territory__card--compare .territory__card-panel { padding-top: var(--sp-5); }
+.territory__card--compare .territory__card-rows { margin-top: var(--sp-4); }
+.territory__card--compare .territory__card-row { flex-direction: column; gap: var(--sp-1); }
+.territory__card--compare .territory__card-row dd { text-align: left; }
+
+.territory__outro {
+  text-align: center;
+  max-width: 60%;
+  margin: 0 auto;
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+  line-height: 1.4;
+}
+
+/* móvil ≤767 */
+@media (max-width: 767px) {
+  .territory__page { padding: var(--sp-3) var(--sp-3); }
+  .territory__zigzag { max-width: 88%; margin: 0 auto; text-align: center; }
+  .territory__zigzag--l, .territory__zigzag--r { margin: 0 auto; text-align: center; }
+  .territory__center { left: 0; width: 100%; }
+  .territory__altitude { height: 40%; }
+  .territory__altitude-tick-label { display: none; }
+  .territory__card, .territory__note { grid-template-columns: 1fr; }
+  .territory__card-row { flex-direction: column; gap: var(--sp-1); }
+  .territory__card-row dt { max-width: 100%; }
+  .territory__card-row dd { text-align: left; }
+  .territory__compare-grid { grid-template-columns: 1fr; }
+  .territory__note-body { padding-left: var(--sp-2); }
+}
+/* tablet 768–1023 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .territory__zigzag { max-width: 56%; }
+  .territory__compare-grid { grid-template-columns: 1fr; gap: var(--sp-3); }
+}
+/* desktop 1440–1919 */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .territory__page { padding: var(--sp-5) var(--sp-5); }
+}
+/* pantallas grandes ≥1920 */
+@media (min-width: 1920px) {
+  .territory__page { padding: var(--sp-6) var(--sp-6); }
+}

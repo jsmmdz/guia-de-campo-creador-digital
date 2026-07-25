@@ -1598,4 +1598,279 @@ void main() {
       }
     }, 250);
   });
+
+  /* ============================================================
+     TERRITORIO — Nodo 2
+     Función propia (no código suelto en el nivel del IIFE, a diferencia
+     del Catálogo) para no chocar nombres con sus const de arriba
+     (hudReg, etc.) — ver Ruta Técnica §Frontend. 5 ScrollTrigger
+     pineados independientes (uno por tramo), nunca un mega-timeline: en
+     Umbral hay una sola "página" por tramo, acá hay hasta 9 compitiendo
+     por estar reveladas o no según dónde esté el scroll, así que cada
+     página necesita su propio estado leíble por progreso, no una
+     secuencia de tweens encadenados. gsap.matchMedia() no aplica —el pin
+     va en TODOS los breakpoints mientras motionOK, igual que ya decidió
+     el Catálogo (catalogSimple depende de motionOK, nunca de mobileMQ).
+     ============================================================ */
+  function initTerritory() {
+    const territory = document.querySelector(".territory");
+    if (!territory) return;
+
+    const PAGE_SCROLL = 650; // px de scroll por página — palanca única del ritmo de lectura
+    const HOLD = 0.8; // 0..HOLD: página activa queda opaca; HOLD..1: crossfade compartido con la siguiente
+
+    const stints = Array.from(territory.querySelectorAll(".territory__stint")).map((el) => ({
+      el,
+      id: el.dataset.stint,
+      isLevel: el.classList.contains("territory__stint--level"),
+      pages: Array.from(el.querySelectorAll(".territory__page")).map((pageEl) => ({ el: pageEl, revealTl: null })),
+      st: null,
+    }));
+    const levelStints = stints.filter((s) => s.isLevel);
+    const LEVEL_LABELS = { suelo: "Suelo", ladera: "Ladera", cima: "Cima" };
+
+    if (!motionOK) return; // ?static=1: CSS ya deja todo en flujo normal, sin pin ni reveal — ver styles.css
+
+    /* ---------- reveal letra/palabra por página, timelines pausadas ----------
+       Se arman UNA sola vez al montar; applyStintProgress() más abajo solo
+       LEE .progress(x) — nunca .play()/.restart() — así el resultado es
+       una función pura de dónde está el scroll, sin importar si el
+       usuario llegó rápido, lento, o volviendo hacia atrás (ver "estados
+       de borde": páginas atrás siempre en su estado final, nunca a medio
+       revelar). */
+    stints.forEach((stint) => {
+      stint.pages.forEach((page) => {
+        const el = page.el;
+        // ficha técnica / comparativa: lectura de instrumento, no prosa —
+        // pedido explícito del usuario, NO comparte el efecto blur del
+        // resto del scrollytelling. Entra/sale por scroll normal (sube
+        // desde abajo, se va hacia arriba), nunca se desenfoca.
+        page.isCard = el.classList.contains("territory__card") || el.classList.contains("territory__compare");
+        if (el.classList.contains("territory__zigzag")) {
+          const letters = splitBlurText(el, { by: "letters", direction: "bottom", distance: 20, blur: 8 });
+          page.revealTl = gsap.timeline({ paused: true }).to(letters, { y: 0, filter: "blur(0px)", duration: 0.32, stagger: 0.022, ease: "power2.out" });
+        } else if (
+          el.classList.contains("territory__emphasis") ||
+          el.classList.contains("territory__closing-line") ||
+          el.classList.contains("territory__outro") ||
+          el.classList.contains("territory__stint-title") ||
+          el.classList.contains("territory__level-name")
+        ) {
+          const letters = splitBlurText(el, { by: "letters", direction: "bottom", distance: 24, blur: 12 });
+          page.revealTl = gsap.timeline({ paused: true }).to(letters, { y: 0, filter: "blur(0px)", duration: 0.38, stagger: 0.028, ease: "power2.out" });
+        } else if (el.classList.contains("territory__note")) {
+          const body = el.querySelector(".territory__note-body");
+          const words = body ? splitBlurText(body, { by: "words", direction: "bottom", distance: 16, blur: 6 }) : [];
+          page.revealTl = gsap.timeline({ paused: true });
+          if (words.length) page.revealTl.to(words, { y: 0, filter: "blur(0px)", duration: 0.26, stagger: 0.045, ease: "power2.out" });
+          const callout = el.querySelector(".territory__callout");
+          if (callout) {
+            gsap.set(callout, { autoAlpha: 0, x: -12 });
+            page.revealTl.to(callout, { autoAlpha: 1, x: 0, duration: 0.28, ease: "back.out(1.4)" }, words.length ? ">0.18" : 0);
+          }
+        } else if (el.classList.contains("territory__card") || el.classList.contains("territory__compare")) {
+          const panels = Array.from(el.querySelectorAll(".territory__card-panel"));
+          gsap.set(panels, { autoAlpha: 0, y: 16, scale: 0.97, transformOrigin: "50% 50%" });
+          page.revealTl = gsap.timeline({ paused: true });
+          panels.forEach((panel, i) => {
+            page.revealTl.to(panel, { autoAlpha: 1, y: 0, scale: 1, duration: 0.24, ease: "power2.out" }, i * 0.06);
+          });
+        }
+      });
+    });
+
+    /* ---------- crossfade + reveal, función pura de (idx, localT) ---------- */
+    function applyStintProgress(stint, activeFloat) {
+      const max = stint.pages.length - 1;
+      const clamped = gsap.utils.clamp(0, max, activeFloat);
+      const idx = Math.min(max, Math.floor(clamped));
+      const nextIdx = Math.min(max, idx + 1);
+      const localT = clamped - idx;
+      const isLast = idx === nextIdx;
+      const fadeT = gsap.utils.clamp(0, 1, (localT - HOLD) / (1 - HOLD));
+      const outEase = gsap.parseEase("power1.in");
+      const inEase = gsap.parseEase("power2.out");
+      const blurAmt = fadeT > 0 && fadeT < 1 ? +(Math.sin(fadeT * Math.PI) * 3).toFixed(2) : 0;
+
+      stint.pages.forEach((page, i) => {
+        const el = page.el;
+        const CARD_TRAVEL = 64; // px — "aparece desde abajo, se va hacia arriba", scroll normal, sin blur
+        if (i === idx) {
+          if (isLast) {
+            gsap.set(el, { autoAlpha: 1, y: 0, filter: "blur(0px)", zIndex: 3 });
+          } else if (page.isCard) {
+            const outT = outEase(fadeT);
+            gsap.set(el, { autoAlpha: 1 - outT, y: -outT * CARD_TRAVEL, filter: "blur(0px)", zIndex: 3 });
+          } else {
+            const outT = outEase(fadeT);
+            gsap.set(el, { autoAlpha: 1 - outT, y: 0, filter: `blur(${blurAmt}px)`, zIndex: 3 });
+          }
+        } else if (i === nextIdx && !isLast) {
+          const inT = inEase(fadeT);
+          if (page.isCard) {
+            gsap.set(el, { autoAlpha: inT, y: (1 - inT) * CARD_TRAVEL, filter: "blur(0px)", zIndex: 2 });
+          } else {
+            gsap.set(el, { autoAlpha: inT, y: (1 - inT) * 12, filter: `blur(${blurAmt}px)`, zIndex: 2 });
+          }
+        } else {
+          gsap.set(el, { autoAlpha: 0 });
+        }
+
+        if (!page.revealTl) return;
+        // El reveal cuelga del MISMO fadeT que la entrada de opacidad —
+        // no de idx en sí. Bug real encontrado en verificación en
+        // navegador: activeFloat nunca supera `max`, así que la ÚLTIMA
+        // página de un tramo solo es "idx" en el instante final exacto
+        // (localT=0 ahí) — con progress(localT/0.5) esa página se
+        // quedaba SIEMPRE sin revelar (permanentemente blureada), porque
+        // pasa toda su vida visual como "nextIdx" entrando, nunca como
+        // "idx" con localT>0. Acá revela DURANTE su propia entrada
+        // (i===nextIdx, con fadeT) y queda fija en 1 apenas se vuelve la
+        // página activa (i===idx) — cubre tanto páginas intermedias como
+        // la última página de cada tramo.
+        if (i < idx) page.revealTl.progress(1);
+        else if (i === idx) page.revealTl.progress(1);
+        else if (i === nextIdx && !isLast) page.revealTl.progress(gsap.utils.clamp(0, 1, fadeT / 0.6));
+        else page.revealTl.progress(0);
+      });
+    }
+
+    /* ---------- HUD: swap de texto tipo "instrumento leyendo dato" ----------
+       Evento discreto (cruce de umbral onEnter/onEnterBack), nunca ligado
+       al progreso continuo del scrub — mismo criterio que ya usa el
+       Catálogo (setInCatalog) para su propio swap de hud__reg, solo que
+       acá con un micro-glitch de 120ms en vez de corte seco, porque hay
+       múltiples niveles consecutivos (el swap solo sirve de referencia
+       si se nota que "cambió el dato"). */
+    const hudReg = document.querySelector(".hud__reg");
+    const defaultRegText = hudReg ? hudReg.textContent : "";
+    let hudGlitchTl = null;
+    function glitchHudText(text) {
+      if (!hudReg) return;
+      if (hudGlitchTl) hudGlitchTl.kill();
+      hudGlitchTl = gsap.timeline()
+        .to(hudReg, { opacity: 0.3, x: -2, duration: 0.02 })
+        .to(hudReg, { x: 2, duration: 0.02 })
+        .to(hudReg, { x: 0, duration: 0.02 })
+        .call(() => { hudReg.textContent = text; })
+        .to(hudReg, { opacity: 1, duration: 0.08, ease: "power2.out" });
+    }
+
+    /* ---------- indicador de altitud (Fase 1) ----------
+       Progreso GLOBAL derivado de los 3 ScrollTrigger de nivel ya
+       creados — no es un ScrollTrigger nuevo, es una lectura compuesta,
+       así que solo se recalcula dentro del onUpdate de esos 3 tramos
+       (nunca durante intro/cierre, que no tienen altitud real). */
+    const dotEl = territory.querySelector(".territory__altitude-dot");
+    const tickEls = Array.from(territory.querySelectorAll(".territory__altitude-tick"));
+
+    function computeAltitudeProgress() {
+      let levelsBelow = 0;
+      levelStints.forEach((lvl, i) => {
+        if (!lvl.st) return;
+        if (lvl.st.progress >= 1) levelsBelow = i + 1;
+        else if (lvl.st.isActive) levelsBelow = i + lvl.st.progress;
+      });
+      return gsap.utils.clamp(0, 1, levelsBelow / levelStints.length);
+    }
+
+    function updateAltitudeUI() {
+      const p = computeAltitudeProgress();
+      if (dotEl) gsap.set(dotEl, { top: (1 - p) * 100 + "%" });
+      tickEls.forEach((tick) => {
+        const t = Number(tick.dataset.tick); // 0/1/2 = Suelo/Ladera/Cima
+        const reached = p >= t / levelStints.length - 0.001;
+        tick.classList.toggle("is-reached", reached);
+      });
+    }
+
+    function pulseDot() {
+      if (!dotEl) return;
+      gsap.fromTo(dotEl, { scale: 1 }, { scale: 1.6, duration: 0.13, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "50% 50%" });
+    }
+
+    /* ---------- marquesina "TERRITORIO." ----------
+       Única pieza del nodo que NO cuelga del scroll — loop infinito por
+       velocidad constante (no duración fija), pausado/reanudado con el
+       onEnter/onLeave del propio tramo Intro (mismo criterio de ahorro
+       de frame budget que setThresholdVisible en el Umbral). */
+    const marqueeTrack = territory.querySelector(".territory__marquee-track");
+    let marqueeTween = null;
+    if (marqueeTrack) {
+      const trackWidth = marqueeTrack.getBoundingClientRect().width;
+      const SPEED = 60; // px/s
+      marqueeTween = gsap.to(marqueeTrack, {
+        xPercent: -50,
+        duration: (trackWidth / 2) / SPEED,
+        ease: "none",
+        repeat: -1,
+        paused: true,
+      });
+    }
+
+    /* ---------- creación de los 5 ScrollTrigger, uno por tramo ----------
+       pin:true en todos + pinSpacing por defecto encadena los tramos sin
+       huecos ni cálculo manual de offsets: cada pin inserta un spacer
+       exacto de su propio rango, así el siguiente arranca justo donde
+       terminó el anterior. TERRITORY_PAGE_SCROLL es una constante en
+       píxeles (no derivada de innerWidth como el rail del Catálogo), así
+       que no hace falta invalidateOnRefresh acá. */
+    stints.forEach((stint) => {
+      const n = stint.pages.length;
+      if (n < 2) { applyStintProgress(stint, 0); return; }
+
+      stint.st = ScrollTrigger.create({
+        trigger: stint.el,
+        start: "top top",
+        end: "+=" + (n - 1) * PAGE_SCROLL,
+        pin: true,
+        scrub: 1,
+        onUpdate: (self) => {
+          applyStintProgress(stint, self.progress * (n - 1));
+          if (stint.isLevel) updateAltitudeUI();
+        },
+        onEnter: () => onStintEnter(stint),
+        onEnterBack: () => onStintEnter(stint),
+        onLeave: () => onStintLeave(stint),
+        onLeaveBack: () => onStintLeave(stint),
+      });
+      applyStintProgress(stint, 0); // default pre-refresh; el primer refresh real de ScrollTrigger corrige con el scroll restaurado
+    });
+
+    function onStintEnter(stint) {
+      if (stint.id === "intro" && marqueeTween) marqueeTween.resume();
+      if (!stint.isLevel) return;
+      document.body.classList.add("territory-ascent");
+      glitchHudText("Nivel " + (levelStints.indexOf(stint) + 1) + "/" + levelStints.length + " — " + LEVEL_LABELS[stint.id]);
+      updateAltitudeUI();
+      pulseDot();
+    }
+    function onStintLeave(stint) {
+      if (stint.id === "intro" && marqueeTween) marqueeTween.pause();
+      if (!stint.isLevel) return;
+      const isFirstLevel = levelStints.indexOf(stint) === 0;
+      const isLastLevel = levelStints.indexOf(stint) === levelStints.length - 1;
+      // solo se sale del rango de ascenso al dejar Suelo hacia atrás (a
+      // Intro) o Cima hacia adelante (a Cierre) — entre niveles queda activo
+      if ((isFirstLevel && stint.st.direction < 0) || (isLastLevel && stint.st.direction > 0)) {
+        document.body.classList.remove("territory-ascent");
+        glitchHudText(defaultRegText);
+      }
+    }
+
+    /* ---------- resize: solo el ancho del track de la marquesina cambia con el viewport ----------
+       ScrollTrigger ya refresca solo con su propio listener de resize —
+       el rango de scroll de cada tramo es px fijo, no depende del ancho. */
+    let territoryResizeTimer = null;
+    window.addEventListener("resize", () => {
+      if (!marqueeTrack) return;
+      clearTimeout(territoryResizeTimer);
+      territoryResizeTimer = setTimeout(() => {
+        const w = marqueeTrack.getBoundingClientRect().width;
+        if (marqueeTween) marqueeTween.duration((w / 2) / 60);
+      }, 250);
+    });
+  }
+
+  initTerritory();
 })();

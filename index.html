@@ -12,7 +12,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
-<link rel="stylesheet" href="styles.css?v=16" />
+<!-- Nodo 2 (Territorio) suma 3 familias nuevas, acotadas a ese nodo (ver
+     CLAUDE.md) — Martian Mono no expone su eje de ancho "Condensed" vía la
+     API pública de Google Fonts (probado: family=Martian+Mono:wdth,wght@...
+     devuelve 400), así que el "corte Condensed" del spec se aproxima con
+     tracking/tamaño en CSS, no con una variante real de la fuente. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..700&family=Gantari:ital,wght@1,700;1,800&family=Martian+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body>
 
@@ -173,9 +179,245 @@
   </div>
 </section>
 
+<!-- ============================================================
+     NODO 2 — Territorio
+     Copy verbatim de "Contenido - Nodo 2 Territorio.md" (vault) — no
+     reescribir/reordenar palabras. La paginación (dónde corta cada
+     <p class="territory__page">) es una decisión de fragmentación, no de
+     contenido: ver "Spec - Nodo 2 Territorio (correcciones de
+     implementacion).md" §1-3. data-pages en cada tramo es la única fuente
+     de verdad para el conteo de páginas que lee initTerritory() al armar
+     TERRITORY_STINTS — no se vuelve a leer del DOM en cada frame.
+     ============================================================ -->
+<section class="territory" id="territory" aria-label="Territorio — los tres niveles del mercado creativo-tecnológico">
+
+  <!-- banda central del ascenso (Fase 1, sin video — ver Ruta Técnica
+       §Advertencia de alcance): UN SOLO indicador, position:fixed,
+       persistente a través de los 3 tramos-nivel (no vive dentro de
+       ninguno) — así el dot sube de forma continua Suelo→Ladera→Cima en
+       vez de resetearse en cada pin. Oculto por CSS/JS fuera de ese
+       rango (intro/cierre). -->
+  <div class="territory__center" aria-hidden="true">
+    <div class="territory__altitude">
+      <span class="territory__altitude-dot"></span>
+      <span class="territory__altitude-tick" data-tick="0" style="top: 100%"><span class="territory__altitude-tick-label">Suelo · 000m</span></span>
+      <span class="territory__altitude-tick" data-tick="1" style="top: 50%"><span class="territory__altitude-tick-label">Ladera · 500m</span></span>
+      <span class="territory__altitude-tick" data-tick="2" style="top: 0%"><span class="territory__altitude-tick-label">Cima · 999m</span></span>
+    </div>
+  </div>
+
+  <!-- ---------- Intro ---------- -->
+  <div class="territory__stint territory__stint--intro" data-stint="intro" data-pages="9">
+
+    <!-- señalética en movimiento: independiente del scroll, nunca colgada
+         del scrub del tramo (ver Ruta Técnica §Frontend) -->
+    <div class="territory__marquee" aria-hidden="true">
+      <div class="territory__marquee-track">
+        <span>TERRITORIO. </span><span>TERRITORIO. </span><span>TERRITORIO. </span><span>TERRITORIO. </span><span>TERRITORIO. </span><span>TERRITORIO. </span>
+      </div>
+    </div>
+
+    <div class="territory__page" data-page="0">
+      <p class="territory__hero-cue" aria-hidden="true">↓</p>
+    </div>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Ya viste los tres niveles del territorio — el suelo, la ladera, la cima. Ninguno es más real que otro: son alturas distintas del mismo lugar.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">El mapa que estás pisando ahora no lo dibujó nadie todavía del todo.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Durante años fueron dos mundos que casi no funcionaban juntos.</p>
+
+    <p class="territory__page territory__emphasis" data-page="4">Lo creativo de un lado.</p>
+
+    <p class="territory__page territory__emphasis" data-page="5">Lo técnico del otro.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="6">Hasta que, hace relativamente poco, el software se adoptó como parte natural de ese mismo territorio creativo. El territorio existe, tiene nombre.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="7">Pero no se entiende parado en un solo punto, hay que recorrerlo de punta a punta,</p>
+
+    <h2 class="territory__page territory__stint-title" data-page="8">Desde el suelo<span class="territory__stint-title-us">_</span>hasta la cima.</h2>
+  </div>
+
+  <!-- ---------- Suelo ---------- -->
+  <div class="territory__stint territory__stint--level" data-stint="suelo" data-pages="7" data-order="0" data-altitude="0" data-stamp="DAT_FRM_01">
+
+    <h2 class="territory__page territory__level-name" data-page="0"><span class="territory__level-eyebrow">Altitud 0</span>Suelo</h2>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Este es el nivel que pisas primero. Aquí conviven freelancers de todo tipo: el que diseña, el que edita, el que programa, el que arma prompts e integra IA para un cliente — cada uno solo, trabajando desde su casa, sin pasar por ninguna empresa.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Para llegar aquí no necesitas casi nada: un portafolio armado, una cuenta en una plataforma freelance y la disposición a cobrar por tu trabajo sin que nadie más lo respalde.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Es la entrada más baja de todo el territorio, cualquiera puede pisarla.</p>
+
+    <p class="territory__page territory__closing-line" data-page="4">El Suelo es el nivel de calle. Aquí aprendes el oficio, pero no es donde se ponen las reglas.</p>
+
+    <div class="territory__page territory__card" data-page="5">
+      <div class="territory__card-panel">
+        <p class="territory__card-label">Ficha técnica</p>
+        <p class="territory__card-stamp">DAT_FRM_01</p>
+        <dl class="territory__card-rows">
+          <div class="territory__card-row"><dt>Quién</dt><dd>Freelancers individuales — diseño, edición, programación, integración de IA</dd></div>
+          <div class="territory__card-row"><dt>Campo de acción</dt><dd>Un libro, una revista, un videoclip, una prenda en 3D — proyectos puntuales, del tamaño que una persona sola puede sostener</dd></div>
+          <div class="territory__card-row"><dt>Qué deciden</dt><dd>No deciden precios ni reglas de plataforma — pero sí pueden originar una estética o técnica que después adopta toda la industria</dd></div>
+          <div class="territory__card-row"><dt>Ejemplos de fricción</dt><dd>En plataformas como Workana, hasta un tercio de la jornada se va en tareas no pagadas. Diseñadores, editores y quienes integran IA comparten el mismo problema: depender de una calificación o un algoritmo que puede cambiar sin aviso</dd></div>
+          <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>De la plataforma — su algoritmo, su sistema de calificación, sus cambios de reglas sin aviso</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="territory__page territory__note" data-page="6">
+      <p class="territory__note-label">Nota de campo</p>
+      <p class="territory__note-body">Llegar al Suelo es fácil; quedarse depende de una regla no escrita. Acá no hay asignación de proyectos — se generan conversación por conversación, tratando a cualquier persona como un cliente en potencia, aunque todavía no lo sepa. El ingreso sigue el mismo ritmo irregular — hay meses de sobra y otros, como enero o diciembre, en que el mercado simplemente se apaga, sin que haya manera de forzarlo desde acá abajo.</p>
+      <aside class="territory__callout">
+        <p class="territory__callout-title">Se multiplican por recomendación:</p>
+        <p class="territory__callout-body">Quien contrata una vez habla de ese trabajo con otras cinco personas, y así se arma, lento, la red que reemplaza al departamento de ventas que este nivel nunca tiene.</p>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ---------- Ladera ---------- -->
+  <div class="territory__stint territory__stint--level" data-stint="ladera" data-pages="7" data-order="1" data-altitude="0.5" data-stamp="DAT_FRM_02">
+
+    <h2 class="territory__page territory__level-name" data-page="0"><span class="territory__level-eyebrow">Altitud 1</span>Ladera</h2>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Subir un nivel significa dejar de trabajar solo.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Aquí viven los estudios, las agencias, las productoras pequeñas y medianas — equipos que agrupan varias personas bajo un mismo nombre y firman contratos más grandes de los que firmarías solo en el Suelo.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Para llegar aquí ya no te alcanza un portafolio: necesitas una estructura formal detrás — un registro, un equipo, la capacidad de responder legalmente por lo que entregas.</p>
+
+    <p class="territory__page territory__closing-line" data-page="4">La Ladera tiene más estructura que el Suelo, pero todavía mira hacia arriba para saber por dónde seguir subiendo.</p>
+
+    <div class="territory__page territory__card" data-page="5">
+      <div class="territory__card-panel">
+        <p class="territory__card-label">Ficha técnica</p>
+        <p class="territory__card-stamp">DAT_FRM_02</p>
+        <dl class="territory__card-rows">
+          <div class="territory__card-row"><dt>Quién</dt><dd>Estudios, agencias, productoras pequeñas y medianas</dd></div>
+          <div class="territory__card-row"><dt>Campo de acción</dt><dd>Producciones y campañas completas — una película, una colección de ropa, una campaña publicitaria entera. Escala que ya no cabe en un solo freelancer</dd></div>
+          <div class="territory__card-row"><dt>Qué deciden</dt><dd>Qué tendencia del Suelo se vuelve campaña real, y la dirección creativa de las marcas que contratan sus servicios</dd></div>
+          <div class="territory__card-row"><dt>Ejemplos de fricción</dt><dd>Una agencia que construye su flujo de trabajo alrededor de una herramienta específica puede perderlo todo si el proveedor cambia el precio, discontinúa una función o lanza una actualización que cambia el estilo de la noche a la mañana</dd></div>
+          <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>Qué herramientas licencian las empresas, qué motor priorizan herramientas como Unity y Blender o qué modelo de IA se vuelve el estándar de la industria este año</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="territory__page territory__note" data-page="6">
+      <p class="territory__note-label">Nota de campo</p>
+      <p class="territory__note-body">En la Ladera cambia también qué tan propio es el flujo de trabajo: en el Suelo cada quien elige sus herramientas; acá el equipo entero queda montado sobre las que decidió el estudio. Esas herramientas caducan más rápido que cualquier contrato.</p>
+      <aside class="territory__callout">
+        <p class="territory__callout-title">No es una posibilidad abstracta:</p>
+        <p class="territory__callout-body">Herramientas de IA que hace apenas cuatro años eran el estándar para generar páginas web, como Black Box, ya quedaron en desuso, y todo el flujo montado sobre ellas tocó rehacerlo desde cero.</p>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ---------- Cima ----------
+       9 páginas, no 7: el spec (3.2.c) pide dos momentos de énfasis con
+       página propia CADA UNA ("no hay un plan," / "ni un ascenso posible
+       desde abajo.") — sumados a los 3 fragmentos de intro que ya piden
+       Suelo/Ladera, no entran en el conteo orientativo de 7 páginas de
+       "Spec - Nodo 2 Territorio (correcciones de implementacion).md" sin
+       apretar el texto más de lo que el propio spec permite ("un texto
+       casi por página"). Ese conteo está marcado ahí como orientativo, no
+       como contrato — se prioriza la regla estructural (énfasis con
+       página propia) sobre el número. -->
+  <div class="territory__stint territory__stint--level" data-stint="cima" data-pages="9" data-order="2" data-altitude="1" data-stamp="DAT_FRM_03">
+
+    <h2 class="territory__page territory__level-name" data-page="0"><span class="territory__level-eyebrow">Altitud 2</span>Cima</h2>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Desde aquí se ve todo lo demás. La Cima la ocupan los gigantes — Anthropic, OpenAI, Google, Microsoft — compañías que no solo participan en el territorio: construyen el terreno mismo sobre el que caminan todos los demás niveles.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Para llegar aquí no te sirve lo que usaste en el Suelo o en la Ladera —</p>
+
+    <p class="territory__page territory__emphasis" data-page="3">no hay un plan,</p>
+
+    <p class="territory__page territory__emphasis" data-page="4">ni un ascenso posible desde abajo.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="5">Lo que hace falta no es más trabajo ni más contratos: es controlar la infraestructura que usan todos los niveles de abajo. La mayoría del territorio no llega nunca, ni falta que hace.</p>
+
+    <p class="territory__page territory__closing-line" data-page="6">Pero entender que este nivel existe, y que las reglas de abajo se escriben arriba, cambia cómo lees todo lo demás.</p>
+
+    <div class="territory__page territory__card" data-page="7">
+      <div class="territory__card-panel">
+        <p class="territory__card-label">Ficha técnica</p>
+        <p class="territory__card-stamp">DAT_FRM_03</p>
+        <dl class="territory__card-rows">
+          <div class="territory__card-row"><dt>Quién</dt><dd>Anthropic, OpenAI, Google, Microsoft y equivalentes</dd></div>
+          <div class="territory__card-row"><dt>Campo de acción</dt><dd>Ningún producto puntual — la infraestructura misma: un modelo de IA, un sistema operativo, un estándar que el Suelo y la Ladera usan después para producir lo suyo</dd></div>
+          <div class="territory__card-row"><dt>Qué deciden</dt><dd>La infraestructura — qué modelo de IA es estándar, qué términos rigen, cuánto cuesta el acceso: las condiciones sobre las que corren los otros dos niveles</dd></div>
+          <div class="territory__card-row"><dt>Dato clave</dt><dd>El poder que en el Suelo parece un algoritmo anónimo tiene, acá, nombre propio y decisiones tomadas por personas concretas</dd></div>
+          <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>De reguladores y gobiernos (leyes antimonopolio, regulación de IA), de los mercados de capital, y de la cadena de chips y energía que sostiene sus modelos.<span class="territory__card-highlight">Depende de otra cosa — pero de nada que esté dentro de este mismo territorio</span></dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="territory__page territory__note" data-page="8">
+      <p class="territory__note-label">Nota de campo</p>
+      <p class="territory__note-body">Ese poder también depende de cuánto decide invertir cada país en investigación — un dato que no se nota caminando por el Suelo o la Ladera, pero que fija cuánto puede llegar a construirse desde acá. Alemania destina el 9% de su PIB a investigación; Colombia, menos del 1%. La distancia entre esos dos números explica, en parte, por qué la infraestructura que domina este nivel casi nunca nace en países como este.</p>
+    </div>
+  </div>
+
+  <!-- ---------- Cierre ---------- -->
+  <div class="territory__stint territory__stint--close" data-stint="close" data-pages="2">
+
+    <div class="territory__page territory__compare" data-page="0">
+      <p class="territory__compare-label">Los tres niveles, de un vistazo</p>
+      <div class="territory__compare-grid">
+
+        <div class="territory__card territory__card--compare">
+          <div class="territory__card-panel">
+            <p class="territory__card-label">Suelo</p>
+            <p class="territory__card-stamp">DAT_FRM_01</p>
+            <dl class="territory__card-rows">
+              <div class="territory__card-row"><dt>Quién</dt><dd>Freelancers individuales — diseño, edición, programación, integración de IA</dd></div>
+              <div class="territory__card-row"><dt>Campo de acción</dt><dd>Un libro, una revista, un videoclip, una prenda en 3D — proyectos puntuales, del tamaño que una persona sola puede sostener</dd></div>
+              <div class="territory__card-row"><dt>Qué deciden</dt><dd>No deciden precios ni reglas de plataforma — pero sí pueden originar una estética o técnica que después adopta toda la industria</dd></div>
+              <div class="territory__card-row"><dt>Ejemplos de fricción</dt><dd>En plataformas como Workana, hasta un tercio de la jornada se va en tareas no pagadas.</dd></div>
+              <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>De la plataforma — su algoritmo, su sistema de calificación, sus cambios de reglas sin aviso</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="territory__card territory__card--compare">
+          <div class="territory__card-panel">
+            <p class="territory__card-label">Ladera</p>
+            <p class="territory__card-stamp">DAT_FRM_02</p>
+            <dl class="territory__card-rows">
+              <div class="territory__card-row"><dt>Quién</dt><dd>Estudios, agencias, productoras pequeñas y medianas</dd></div>
+              <div class="territory__card-row"><dt>Campo de acción</dt><dd>Producciones y campañas completas — una película, una colección de ropa, una campaña publicitaria entera</dd></div>
+              <div class="territory__card-row"><dt>Qué deciden</dt><dd>Qué tendencia del Suelo se vuelve campaña real, y la dirección creativa de las marcas que contratan sus servicios</dd></div>
+              <div class="territory__card-row"><dt>Ejemplos de fricción</dt><dd>Una agencia puede perderlo todo si el proveedor de una herramienta clave cambia el precio o la discontinúa</dd></div>
+              <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>Qué herramientas licencian las empresas, qué motor priorizan Unity y Blender o qué modelo de IA se vuelve el estándar este año</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="territory__card territory__card--compare">
+          <div class="territory__card-panel">
+            <p class="territory__card-label">Cima</p>
+            <p class="territory__card-stamp">DAT_FRM_03</p>
+            <dl class="territory__card-rows">
+              <div class="territory__card-row"><dt>Quién</dt><dd>Anthropic, OpenAI, Google, Microsoft y equivalentes</dd></div>
+              <div class="territory__card-row"><dt>Campo de acción</dt><dd>Ningún producto puntual — la infraestructura misma sobre la que el Suelo y la Ladera producen lo suyo</dd></div>
+              <div class="territory__card-row"><dt>Qué deciden</dt><dd>La infraestructura — qué modelo de IA es estándar, qué términos rigen, cuánto cuesta el acceso</dd></div>
+              <div class="territory__card-row"><dt>Dato clave</dt><dd>El poder que en el Suelo parece un algoritmo anónimo tiene, acá, nombre propio</dd></div>
+              <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>De reguladores, mercados de capital y la cadena de chips y energía — de nada que esté dentro de este mismo territorio</dd></div>
+            </dl>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <p class="territory__page territory__outro" data-page="1">Pero un mapa no explica cómo se trabaja dentro de él. Si vas a habitar este terreno, cruzando lo creativo y lo técnico a la vez, hace falta algo más que ubicación — hace falta un método propio para producir algo ahí. De eso se trata lo que sigue.</p>
+  </div>
+
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=46"></script>
+<script src="script.js?v=47"></script>
 
 </body>
 </html>

@@ -43,6 +43,25 @@ dos primeros de los 5 nodos que define el vault:
   reactivo al color de la activa. **Nombre sin confirmar con el vault** —
   "Catálogo" no aparece en el plan de desarrollo; si se documenta ahí
   también, usar el mismo término en ambos lados.
+- **Nodo 2 — Territorio** (`#territory`): implementa "Nodo 2 · Territorio"
+  del vault — el mercado creativo-tecnológico como tres altitudes reales
+  (Suelo, Ladera, Cima) que se recorren de abajo hacia arriba, cada una con
+  menos gente y más poder de fijar las reglas. 5 tramos con scroll-jacking
+  pineado (Intro · Suelo · Ladera · Cima · Cierre), cada uno paginado en
+  capas que se cruzan en fundido (`initTerritory()` en `script.js`, función
+  propia dentro del IIFE para no chocar con el Catálogo). Cada nivel repite
+  la misma estructura: nombre → intro narrativa en zigzag → frase de cierre
+  → ficha técnica (panel completo, nunca campo por campo) → nota de campo
+  (+ callout en Suelo/Ladera, Cima no tiene). Cierra con una comparativa de
+  las 3 fichas juntas y un remate. **Primera versión construida en una
+  sesión de agentes en paralelo (workflows) siguiendo al pie de la letra
+  los specs del vault y evitando los errores ya documentados de un intento
+  anterior** (`Spec - Nodo 2 Territorio (correcciones de
+  implementacion).md`), y después depurada con verificación real en
+  navegador (no solo medición de DOM/CSS — ver errores #20-23). **Sigue
+  pendiente confirmar la diagramación exacta contra las capturas de Figma**
+  (el conector de Figma no estaba autorizado en esa sesión) — ver
+  Pendiente.
 
 ## Stack
 
@@ -252,6 +271,51 @@ assets/
   float (`2.0`), no int, en esa división — hay que forzar `.toFixed(1)` al
   interpolar o el shader no compila (error real, ya pasó acá).
 
+- **Territorio — mecánica de scroll**: 5 `ScrollTrigger` independientes con
+  `pin:true, scrub:1` (uno por tramo: Intro/Suelo/Ladera/Cima/Cierre),
+  nunca un mega-timeline ni un `IntersectionObserver` para el progreso —
+  mismo criterio que ya falló en el Catálogo (error #5: un observer no da
+  progreso fraccional). `TERRITORY_PAGE_SCROLL = 650` px es la palanca
+  única del ritmo de lectura de todo el nodo. Cada página tiene su propia
+  timeline de reveal (`splitBlurText()`, reutilizada tal cual) que
+  `applyStintProgress()` solo LEE con `.progress(x)` — nunca
+  `.play()`/`.restart()` — para que el resultado sea 100% función pura de
+  dónde está el scroll, sin importar si el usuario llegó rápido, lento, o
+  volviendo hacia atrás.
+- **Territorio — la ficha técnica NO usa el efecto blur del resto del
+  scrollytelling.** Pedido explícito del usuario: los fragmentos
+  narrativos (zigzag, énfasis, notas) cruzan con blur-puente porque son
+  "texto que se lee"; la ficha es una "lectura de instrumento" y entra/sale
+  con scroll normal — sube desde abajo, se va hacia arriba, siempre nítida
+  (`page.isCard` en `initTerritory()`, ver `CARD_TRAVEL` en
+  `applyStintProgress()`). Aplica también a la comparativa final, que
+  reutiliza el mismo marcado de ficha.
+- **Territorio — título de tramo y nombre de nivel van arriba, no en el
+  centro vertical de la pantalla.** El resto del texto narrativo
+  (zigzag/énfasis/cierre/remate) sigue centrado verticalmente; pedido
+  explícito del usuario solo para `.territory__stint-title` y
+  `.territory__level-name` (`top: var(--sp-6)` en vez de `top:50%` +
+  `translateY(-50%)`).
+- **Territorio — indicador de altitud, Fase 1 sin video** (`.territory__center`,
+  ver Ruta Técnica del vault §Advertencia de alcance): banda central
+  reservada con una línea + 3 marcas + un punto que sube con el scroll,
+  CSS/GSAP puro. Es UN SOLO elemento `position:fixed`, no vive dentro de
+  ningún tramo — así el punto sube de forma continua Suelo→Ladera→Cima en
+  vez de resetearse en cada pin. Se muestra/oculta con
+  `body.territory-ascent`. El video real (Fase 2) todavía no existe;
+  reemplazarlo es cuestión de montar la secuencia de frames sobre el mismo
+  espacio y el mismo `ScrollTrigger`, con esto ya como fallback probado.
+- **Territorio — 3 familias tipográficas nuevas, acotadas a este nodo**:
+  Gantari bold-itálica-uppercase (títulos y registro técnico de la ficha),
+  Fraunces itálica (narrativa y notas de campo), Martian Mono (captions y
+  sellos de coordenada). Cargadas por `<link>` de Google Fonts (no
+  autohospedadas — la ruta técnica lo sugería como "ideal", no obligatorio,
+  y no había forma de descargar los `.woff2` sin acción explícita del
+  usuario). Martian Mono **no** expone su eje de ancho "Condensed" en la
+  API pública de Google Fonts (`family=Martian+Mono:wdth,wght@...` devuelve
+  400) — el "corte Condensed" del spec se aproxima con tracking/tamaño en
+  CSS, no es una variante real de la fuente.
+
 ## Errores ya corregidos (no reintroducir)
 
 | # | Bug | Causa | Fix / regla |
@@ -275,6 +339,10 @@ assets/
 | 17 | BlurText (`splitBlurText()`, reveal letra por letra de "reading") partía palabras a la mitad al hacer wrap ("complejos" → "co" / "mplejos"), en todos los breakpoints, no solo móvil | Una lista plana de `<span class="threshold__letter">` (uno por letra, sin agrupar) permite que el navegador inserte un punto de corte de línea entre dos `inline-block` adyacentes aunque no haya espacio en blanco entre ellos — se tratan como cajas atómicas sueltas, no como parte de la misma palabra | Envolver cada palabra en un `<span class="threshold__word">` con `white-space:nowrap` (contenedor atómico); las letras quedan adentro. El navegador solo puede partir línea antes/después de una palabra completa, nunca entre sus letras |
 | 18 | Solo 5 de los 8 íconos de la constelación aparecían en móvil ≤767px (confirmado en dispositivo real) | Clase `is-compact` (leftover de un layout viejo, ver error #1) en 3 `specimen-chip` (`webflow`, `blender`, `figma`) + regla `@media (max-width:767px) { .specimen-chip.is-compact { display:none } }` en `styles.css` — nunca se sacó del todo al pasar a "los 8 orbitan siempre juntos" | Sacada la regla CSS y la clase `is-compact` de los 3 `<div>` en `index.html` — los 8 quedan iguales, ninguno se oculta en ningún breakpoint |
 | 19 | Texto ASCII de "Digital" se veía como bloques de colores sólidos (no como letras) en móvil, en un celular real | El fragment shader de `initAsciiText` separa los canales r/g/b con un offset de UV distinto por canal (aberración cromática/glitch, intencional) — en desktop es un fringe sutil porque el canvas interno de `asciify()` tiene resolución alta (~160×20); en móvil ese canvas es mucho más chico (~80×10) y además se downsamplea con `imageSmoothingEnabled:false` (nearest-neighbor) desde la resolución real del `WebGLRenderer` — el mismo fringe de un par de píxeles pasa a ser una fracción enorme de cada letra | Uniform nuevo `uChroma` que multiplica el offset de los 3 canales — `0` en móvil/tablet (`mobileMQ`, efecto apagado del todo), `1` en laptop+ (sin cambios) |
+| 20 | Territorio: espacios entre palabras desaparecían en los fragmentos narrativos ("Yavistelostresniveles...") | `display:flex` aplicado directo sobre el `<p>` cuyos childNodes son `span.territory__word` + nodos de texto (los espacios que `splitBlurText()` deja entre palabras) — flexbox no les da caja como sí hace el flujo inline normal, los colapsa a ancho cero. Confirmado inspeccionando el DOM: los nodos `" "` existían, pero renderizaban invisibles | Centrado vertical de páginas de texto crudo (zigzag/énfasis/cierre/remate) vía `top:50%` + `transform:translateY(-50%)`, nunca `display:flex` sobre el propio elemento — separado de las páginas contenedoras (ficha/nota/comparativa), que sí pueden ser flex/grid porque sus hijos son elementos reales |
+| 21 | Territorio: la última página de cada tramo (nota de campo, remate) se quedaba permanentemente sin revelar — texto blureado para siempre | `activeFloat` nunca supera `max` (páginas−1), así que la última página solo es "la activa" (`idx`) en el instante final exacto del scroll, con `localT=0` — nunca llegaba a acumular progreso de reveal ahí | El reveal cuelga del mismo `fadeT` que la entrada de opacidad (progresa mientras la página es `nextIdx`, entrando), no de un cálculo aparte atado a cuándo es `idx` — cubre tanto páginas intermedias como la última de cada tramo |
+| 22 | Territorio: nota de campo y su callout aparecían lado a lado en vez de apilados, en todos los breakpoints | Una regla agregada para centrar verticalmente las páginas "contenedoras" (`display:flex` en `.territory__card`/`.territory__note`/`.territory__compare`) pisaba el `display:grid` que esas mismas páginas ya tenían para su layout de 3 columnas — dos hijos con `grid-column:1/-1` pasaron a ser dos flex items lado a lado. Confirmado con `getBoundingClientRect` (125px + 164px de ancho, uno junto al otro) | `.territory__compare` sí es flex (nunca tuvo grid propio); `.territory__card`/`.territory__note` se centran con `align-content:center` sobre su `display:grid` existente, sin tocar `display` |
+| 23 | Territorio: filas de la ficha técnica desbordaban el viewport en mobile (texto cortado, scrollbar horizontal) | `.territory__card-row dd` es un flex item (`flex:1 1 auto`) dentro de una fila que en mobile pasa a `flex-direction:column` — por default un flex item no encoge por debajo del ancho de su propio contenido (`min-width:auto`), así que el texto largo empujaba el ancho en vez de hacer wrap | `min-width:0` en `dd` (permite que el texto haga wrap normal) + `max-width:100%` en `dt` para el breakpoint móvil |
 
 ## Optimización de carga (móviles de gama media / datos móviles)
 
@@ -389,6 +457,31 @@ assets/
   `asciify()` por frame en mobile — costo absoluto sigue siendo chico,
   pero si la investigación de performance en curso muestra que ese loop
   sí pesa, reconsiderar este valor junto con esa mejora.
+
+- **Territorio — varios puntos abiertos, ninguno bloqueante:**
+  - No confirmado contra las capturas reales de Figma (el conector no
+    estaba autorizado en la sesión que lo construyó) — jerarquía, escala
+    exacta y sobre todo el acento secundario `#c9803d` siguen
+    "provisional", tal como ya lo marcaba el spec del vault.
+    Comparar apenas se pueda y ajustar `--t-accent` en `styles.css` si
+    corresponde.
+    - Corrección de layout ya reportada por el usuario y aplicada durante
+      la depuración: la ficha técnica no debía compartir el efecto blur
+      del scrollytelling narrativo (ver Decisiones de diseño), y los
+      títulos debían anclarse arriba en vez de centrarse verticalmente —
+      ambas ya resueltas antes de este commit, pero puede haber más
+      ajustes de diagramación cuando se compare contra el Figma completo.
+  - Animación central del ascenso: solo Fase 1 (línea + punto CSS/GSAP,
+    sin video) — Fase 2 (secuencia de frames WebP) queda para cuando el
+    clip exista, siguiendo el mismo pipeline que ya usa el Catálogo.
+  - Se lanzó una revisión en paralelo (animaciones, accesibilidad/
+    guidelines, mejoras, cumplimiento literal del spec) sobre la primera
+    versión construida; sus hallazgos, si quedan pendientes de aplicar,
+    conviene revisarlos antes de dar el nodo por cerrado.
+  - Bitácora Oculta: igual que en Nodo 0/1, Territorio todavía no expone
+    sus 5 subsecciones (Génesis/Instrucción/Síntesis técnica/Datos/
+    Hallazgos) — depende del componente reutilizable de Fase 0, que sigue
+    sin construirse (ver primer punto de este Pendiente).
 
 ## Correr en local
 
