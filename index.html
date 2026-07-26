@@ -18,7 +18,16 @@
      devuelve 400), así que el "corte Condensed" del spec se aproxima con
      tracking/tamaño en CSS, no con una variante real de la fuente. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..700&family=Gantari:ital,wght@1,700;1,800&family=Martian+Mono:wght@400;500&display=swap" />
-<link rel="stylesheet" href="styles.css?v=18" />
+<!-- Nodo 3 (Método) suma Plus Jakarta Sans — reemplaza a Gantari en casi
+     todo el registro medio/pequeño/bisagra/diagramas de ese nodo (dato de
+     Figma, confirmado por el usuario); Gantari queda igual que antes
+     (700/800 itálica nomás, sin nuevo peso), solo para el marquee y los
+     enunciados grandes de Método, que reusan ese mismo tratamiento. Las 3
+     líneas sueltas y la apertura narrativa de Método sí piden Fraunces en
+     Semibold (600), ya cubierto por el rango 400..700 que ese link ya
+     cargaba. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" />
+<link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body>
 
@@ -406,9 +415,164 @@
 
 </section>
 
+<!-- ============================================================
+     Nodo 3 · Método — a partir de acá, sin GSAP/ScrollTrigger/pin (Spec
+     §4): el último pin de Territorio se libera y el scroll recupera su
+     comportamiento normal sin corte ni transición anunciada. Los únicos
+     3 elementos animados de este nodo son el marquee (CSS puro), el
+     reveal de entrada por bloque (IntersectionObserver binario, una
+     vez) y el scroll suave global (Lenis, ver antes de </body>) — ver
+     CLAUDE.md para el resto de las decisiones de este nodo.
+     ============================================================ -->
+<section class="method" id="method" aria-label="Método — qué es la investigación-creación">
+
+  <div class="method__marquee" aria-hidden="true">
+    <div class="method__marquee-rail">
+      <div class="method__marquee-track">
+        <span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span>
+      </div>
+      <div class="method__marquee-track">
+        <span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span><span>EL MÉTODO.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="method__opening">
+    <p class="method__serif" data-reveal>Seguramente ya hiciste esto sin ponerle nombre nunca — cuando estabas construyendo algo: un diseño, un video, un prototipo, una canción</p>
+
+    <!-- Respiro de scroll: aire, no un contenedor. Sin borde, sin
+         fondo, sin contenido. -->
+    <div class="method__breather" aria-hidden="true"></div>
+
+    <p class="method__serif" data-reveal>y a mitad del camino, resolviendo un problema que ni siquiera habías anticipado, entendiste algo que no sabías antes de empezar.</p>
+
+    <div class="method__lines">
+      <p class="method__line method__line--1" data-reveal>No lo leíste en ningún libro.</p>
+      <p class="method__line method__line--2" data-reveal>Lo entendiste haciendo.</p>
+      <p class="method__line method__line--3" data-reveal>Eso tiene nombre técnico:</p>
+    </div>
+  </div>
+
+  <h2 class="method__term" data-reveal>INVESTIGACIÓN-CREACIÓN.</h2>
+
+  <div class="method__definition" data-reveal>
+    <p>No es una ocurrencia de las universidades de arte</p>
+    <p>es un paradigma completo que le disputa al método científico el monopolio de cómo se produce conocimiento.</p>
+  </div>
+
+  <!-- Diagrama 01: contraste metodológico. Lleva flechas: son procesos.
+       Sin contenedor compartido — dos rieles sueltos, cada chip con su
+       propio filete y relleno. -->
+  <div class="method__diagram method__diagram--sequence">
+    <p class="method__diagram-label" data-reveal>DIAGRAMA 01: CONTRASTE METODOLÓGICO</p>
+
+    <div class="method__seq-row">
+      <span class="method__seq-label" data-reveal>SECUENCIA A: CIENCIA TRADICIONAL</span>
+      <div class="method__chips">
+        <span class="method__chip" data-reveal style="--i:0">OBSERVACIÓN</span>
+        <span class="method__arrow" aria-hidden="true">→</span>
+        <span class="method__chip" data-reveal style="--i:1">HIPÓTESIS</span>
+        <span class="method__arrow" aria-hidden="true">→</span>
+        <span class="method__chip" data-reveal style="--i:2">EXPERIMENTO</span>
+        <span class="method__arrow" aria-hidden="true">→</span>
+        <span class="method__chip method__chip--fill" data-reveal style="--i:3">CONOCIMIENTO</span>
+      </div>
+    </div>
+
+    <div class="method__seq-row">
+      <span class="method__seq-label" data-reveal>SECUENCIA B: INVESTIGACIÓN-CREACIÓN</span>
+      <div class="method__chips">
+        <span class="method__chip" data-reveal style="--i:4">CREAR</span>
+        <span class="method__arrow" aria-hidden="true">→</span>
+        <span class="method__chip" data-reveal style="--i:5">FALLAR</span>
+        <span class="method__arrow" aria-hidden="true">→</span>
+        <span class="method__chip" data-reveal style="--i:6">CORREGIR</span>
+        <span class="method__arrow" aria-hidden="true">→</span>
+        <span class="method__chip method__chip--fill" data-reveal style="--i:7">CONOCIMIENTO</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="method__inversion">
+    <p class="method__medium" data-reveal>La investigación-creación es igual de rigurosa,</p>
+    <p class="method__medium" data-reveal>pero recorre el camino al revés:</p>
+    <p class="method__medium" data-reveal>el conocimiento no antecede al proceso.</p>
+    <h2 class="method__term" data-reveal>EMERGE DE ÉL</h2>
+  </div>
+
+  <div class="method__landing">
+    <p class="method__small" data-reveal>Para el Creador Digital esto no es una curiosidad metodológica.</p>
+    <p class="method__small" data-reveal>Es, literalmente, cómo trabaja. Alguien que cruza lo creativo y lo técnico en un mismo proceso no puede separar limpiamente ‘primero investigo, después creo’</p>
+    <p class="method__small" data-reveal>investiga creando, porque las dos cosas ocurren en el mismo gesto.</p>
+    <p class="method__small" data-reveal>Pero ‘investigar creando’ es fácil de decir y difícil de verificar.</p>
+  </div>
+
+  <p class="method__hinge" data-reveal>¿Cómo se sabe si algo realmente cruzó la línea, o si fue solo trabajo bien hecho?</p>
+
+  <p class="method__small method__landing--frascati" data-reveal>El Manual de Frascati, el documento de la OCDE que define qué cuenta como investigación, exige que un proceso cumpla, <strong>a la vez</strong>, cuatro condiciones.</p>
+
+  <!-- Diagrama 02: las cuatro condiciones. Sin flechas, sin conectores,
+       sin numeración grande: describe condiciones concurrentes, no un
+       proceso. Un único contenedor con filete compartido por las 4
+       celdas — si se ve igual al Diagrama 01, está mal. -->
+  <div class="method__diagram method__diagram--criteria">
+    <div class="method__cells">
+      <div class="method__cell" data-reveal style="--i:0">
+        <span class="method__cell-eyebrow">CRITERIO 1</span>
+        <span class="method__cell-term">ORIGINAL</span>
+      </div>
+      <div class="method__cell" data-reveal style="--i:1">
+        <span class="method__cell-eyebrow">CRITERIO 2</span>
+        <span class="method__cell-term">NOVEDOSO</span>
+      </div>
+      <div class="method__cell" data-reveal style="--i:2">
+        <span class="method__cell-eyebrow">CRITERIO 3</span>
+        <span class="method__cell-term">SISTEMÁTICO</span>
+      </div>
+      <div class="method__cell" data-reveal style="--i:3">
+        <span class="method__cell-eyebrow">CRITERIO 4</span>
+        <span class="method__cell-term">TRANSFERIBLE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjeta Makro. Fase actual: PRÓXIMAMENTE. No interactiva: sin
+       click, sin ícono +/−, sin hover. El contenido real del caso
+       queda fuera del DOM, no oculto con CSS (ver CLAUDE.md §Pendiente). -->
+  <div class="method__card" data-reveal>
+    <p class="method__card-teaser">Un caso real que cumple las cuatro condiciones a la vez — los stickers de fruta de Makro.</p>
+    <div class="method__card-plate">
+      <span>PRÓXIMAMENTE</span>
+    </div>
+  </div>
+
+  <blockquote class="method__quote" data-reveal>
+    <p class="method__quote-text">“La investigación es más pasión que conocimiento; el conocimiento se produce en ese proceso pasional que tenemos con lo que nos interesa.”</p>
+    <cite class="method__quote-attr">— Melisa Ballesteros Mejía</cite>
+  </blockquote>
+
+  <p class="method__outro" data-reveal>Es la misma idea detrás de esa línea de Ratatouille: no es que cualquiera pueda ser un gran cocinero — es que un gran cocinero puede estar en cualquier parte.</p>
+
+</section>
+
+<!-- Lenis — scroll suave global, alcance TODO el documento (ver Ruta
+     Técnica de Método en el vault). Versión exacta fijada (nunca
+     @latest), con integrity para que un CDN comprometido rompa la carga
+     en vez de ejecutar código no verificado. Si el CDN cae, window.Lenis
+     queda undefined y script.js lo detecta: scroll nativo, sin estado de
+     error visible. Sincronizado con ScrollTrigger en script.js
+     (initLenis) — ver esa función para las 3 verificaciones obligatorias
+     que hay que confirmar en navegador real (pin del Catálogo, los 5
+     pines de Territorio, scrub de los frames WebP) antes de dar esto por
+     cerrado. -->
+<script
+  src="https://cdn.jsdelivr.net/npm/lenis@1.3.25/dist/lenis.min.js"
+  integrity="sha384-ClD7pCgIUz5M81HT8aZmMxCsWmfsycmBiwL5gy1pUbdWHvICIbea22N9sTtAFotA"
+  crossorigin="anonymous"
+></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=48"></script>
+<script src="script.js?v=49"></script>
 
 </body>
 </html>

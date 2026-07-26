@@ -1861,5 +1861,132 @@ void main() {
     });
   }
 
+  /* ============================================================
+     NODO 3 · MÉTODO
+     Sin GSAP/ScrollTrigger/pin (Spec §4) — el marquee es CSS puro, el
+     reveal de entrada por bloque va con un único IntersectionObserver
+     binario (una sola vez por bloque, sin progreso fraccional: no hace
+     falta acá porque el reveal es entró/no entró, no un porcentaje —
+     ver CLAUDE.md error #5), y motionOK/mobileMQ son los mismos que ya
+     usa el resto del sitio, no variables propias.
+     ============================================================ */
+  function initMethod() {
+    const method = document.querySelector(".method");
+    if (!method) return;
+
+    if (motionOK) {
+      // confirma que el script corrió antes de ocultar nada para animar
+      // — mismo patrón que body.enhanced (error #8 del CLAUDE.md)
+      document.body.classList.add("method-js");
+      initMethodMarquee(method);
+      initMethodReveal(method);
+    }
+
+    /* Marquee — repeticiones calculadas por ancho real, no un número
+       fijo (Spec §4: "se calcula por ancho real, no con un número fijo
+       de repeticiones"). El HTML trae 8 <span> fijos por riel como
+       respaldo estático (?static=1 / JS caído); acá, con motion activo,
+       se mide el ancho real de un ítem ya con la fuente cargada (mismo
+       cuidado que error #9: medir antes de que cargue la fuente da un
+       ancho falso) y se reconstruyen los rieles con la cantidad exacta
+       que hace falta para cubrir el viewport. Recalcula en resize
+       (debounced). */
+    function initMethodMarquee(root) {
+      const tracks = Array.from(root.querySelectorAll(".method__marquee-track"));
+      if (!tracks.length) return;
+
+      const firstSpan = tracks[0].querySelector("span");
+      const TEXT = firstSpan ? firstSpan.textContent : "EL MÉTODO.";
+      let resizeTimer = null;
+
+      function measureItemWidth() {
+        const probe = document.createElement("span");
+        probe.textContent = TEXT;
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        tracks[0].appendChild(probe);
+        const w = probe.offsetWidth;
+        tracks[0].removeChild(probe);
+        return w || 1;
+      }
+
+      function build() {
+        const itemWidth = measureItemWidth();
+        // +2 de margen: un riel que apenas cubre el viewport en el frame
+        // inicial deja de cubrirlo a mitad del loop (traslada -50%).
+        const count = Math.max(8, Math.ceil(window.innerWidth / itemWidth) + 2);
+        const html = ("<span>" + TEXT + "</span>").repeat(count);
+        tracks.forEach((track) => { track.innerHTML = html; });
+      }
+
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+      else build();
+
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(build, 200);
+      });
+    }
+
+    /* Reveal de entrada: opacidad 0→1 + traslado vertical corto, una
+       sola vez por bloque, vía un único IntersectionObserver que hace
+       unobserve() tras revelar. threshold:0.15 + rootMargin negativo
+       abajo: el bloque tiene que entrar un poco más que "rozar" el
+       borde inferior antes de dispararse.
+
+       Estado de borde — recarga con scroll restaurado a mitad del nodo:
+       un bloque que ya quedó por encima del viewport cuenta como
+       revelado sin animar (se detecta antes de observar). */
+    function initMethodReveal(root) {
+      const els = Array.from(root.querySelectorAll("[data-reveal]"));
+      if (!els.length) return;
+
+      const io = new IntersectionObserver(onIntersect, {
+        threshold: 0.15,
+        rootMargin: "0px 0px -10% 0px",
+      });
+
+      els.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom <= 0) el.classList.add("is-in", "no-anim");
+        else io.observe(el);
+      });
+
+      function onIntersect(entries) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        });
+      }
+    }
+  }
+
+  /* ============================================================
+     LENIS — scroll suave global
+     Única pieza de Método que no es de un nodo puntual: sincroniza TODO
+     el sitio con ScrollTrigger, que ya gobierna el pin del Catálogo y
+     los 5 pines de Territorio (ver Ruta Técnica de Método en el vault).
+     Antes de dar esto por cerrado, verificar en navegador real que
+     ninguno de los dos perdió sincronía, y que el scrub de los frames
+     WebP de los blobs del Catálogo no se desincroniza. Si algo se
+     desincroniza, la salida documentada NO es pelearse con la
+     sincronización — es bajar Lenis a alcance parcial (montarlo solo
+     desde #method hacia abajo con `new Lenis({ wrapper, content })`) y
+     aceptar el cambio de tacto a mitad del sitio.
+     ============================================================ */
+  function initLenis() {
+    if (!motionOK) return; // ?static=1: scroll nativo, sin inercia
+    if (typeof window.Lenis === "undefined") return; // CDN caído: scroll nativo, sin estado de error visible
+
+    const lenis = new Lenis({ smoothWheel: true, syncTouch: false });
+    lenis.on("scroll", ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
   initTerritory();
+  initMethod();
+  initLenis();
 })();
