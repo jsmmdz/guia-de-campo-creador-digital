@@ -1187,7 +1187,19 @@ void main() {
       });
     });
 
-    gsap.from("[data-reveal]", { opacity: 0, y: 24, duration: 0.9, ease: "power2.out", stagger: 0.12 });
+    // Selector acotado a #threshold A PROPÓSITO (ver error #26 en
+    // CLAUDE.md): `data-reveal` no es exclusivo del Nodo 0 — el Nodo 3
+    // (Método) lo usa en sus 35 bloques, con su propia armadura CSS y su
+    // propio IntersectionObserver. Con el selector global, este `from`
+    // agarraba los 39 del sitio y los mataba: GSAP fija el valor FINAL de
+    // un `from` en su primer tick, no al crearlo, y para ese tick
+    // initMethod() ya puso body.method-js — o sea que la armadura ya
+    // reportaba opacity:0. El tween terminaba animando 0→0 y dejando
+    // style="opacity:0" inline y permanente. Un estilo inline le gana a
+    // la clase .is-in, así que ni el observer ni ningún respaldo podían
+    // revelar nada. Cualquier nodo nuevo que use data-reveal necesita su
+    // propio selector acotado, nunca uno global.
+    gsap.from("#threshold [data-reveal]", { opacity: 0, y: 24, duration: 0.9, ease: "power2.out", stagger: 0.12 });
     gsap.from(".specimen-chip", { opacity: 0, duration: 1.4, ease: "power1.out", stagger: 0.1, delay: 0.3 });
 
     gsap.set([".threshold__reading", ".threshold__seal"], { autoAlpha: 0 });
@@ -1954,12 +1966,52 @@ void main() {
 
       function onIntersect(entries) {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-in");
-            io.unobserve(entry.target);
-          }
+          if (entry.isIntersecting) reveal(entry.target);
         });
       }
+
+      function reveal(el) {
+        el.classList.add("is-in");
+        io.unobserve(el);
+      }
+
+      /* Red de seguridad, NO la causa del bug de "Método no se ve nada"
+         — esa fue el `gsap.from("[data-reveal]")` global del Nodo 0
+         dejando opacity:0 inline (error #26 en CLAUDE.md), y contra un
+         estilo inline este respaldo tampoco habría servido. Se queda
+         igual porque cuesta un listener pasivo y cubre el caso de que
+         el callback del observer se demore o se suprima.
+
+         Criterio idéntico al del observer a propósito (mismo 0.15 de
+         threshold, mismo rootMargin de -10% abajo): si revelara antes o
+         después que él, el nodo tendría dos reveals con timing distinto
+         según cuál se adelante. Ojo — en una pestaña oculta NINGUNO de
+         los dos dispara: el navegador no corre el ciclo de render, así
+         que IntersectionObserver no emite y no hay scroll que escuchar.
+         Eso no es un bug, y medir el reveal en una pestaña en segundo
+         plano da un falso negativo (ese falso negativo fue justo lo que
+         mandó la primera investigación por el camino equivocado). */
+      let fallbackTimer = null;
+      function yaVisible(el) {
+        const rect = el.getBoundingClientRect();
+        if (!rect.height) return false;
+        const limite = window.innerHeight * 0.9; // rootMargin "0px 0px -10% 0px"
+        const visible = Math.min(rect.bottom, limite) - Math.max(rect.top, 0);
+        return visible / rect.height >= 0.15; // threshold: 0.15
+      }
+      function fallbackCheck() {
+        els.forEach((el) => {
+          if (!el.classList.contains("is-in") && yaVisible(el)) reveal(el);
+        });
+      }
+      window.addEventListener(
+        "scroll",
+        () => {
+          clearTimeout(fallbackTimer);
+          fallbackTimer = setTimeout(fallbackCheck, 150);
+        },
+        { passive: true }
+      );
     }
   }
 

@@ -1151,22 +1151,29 @@ body.method-js .method__marquee-rail {
    sin transform. La clase que oculta para animar (body.method-js)
    la agrega script.js SOLO después de confirmar que corrió — mismo
    patrón que body.enhanced.
-   ============================================================ */
-[data-reveal] {
+
+   Los 4 selectores van acotados con `.method` A PROPÓSITO (ver error
+   #26 en CLAUDE.md): `data-reveal` también lo usa el Nodo 0, con un
+   `gsap.from()` propio. Sin el `.method`, esta armadura le bajaba la
+   opacidad a 0 a los 4 bloques del Umbral y — peor — envenenaba ese
+   `from`: GSAP lee el valor final del tween en su primer tick, ya con
+   body.method-js puesto, así que leía 0 y dejaba opacity:0 inline y
+   permanente en los 39 elementos del sitio. Nunca desacotar. */
+.method [data-reveal] {
   opacity: 1;
   transform: none;
 }
-body.method-js [data-reveal] {
+body.method-js .method [data-reveal] {
   opacity: 0;
   transform: translateY(22px);
   transition: opacity 600ms var(--m-ease-out), transform 600ms var(--m-ease-out);
   transition-delay: calc(var(--i, 0) * 60ms);
 }
-body.method-js [data-reveal].is-in {
+body.method-js .method [data-reveal].is-in {
   opacity: 1;
   transform: translateY(0);
 }
-body.method-js [data-reveal].no-anim {
+body.method-js .method [data-reveal].no-anim {
   transition: none;
 }
 

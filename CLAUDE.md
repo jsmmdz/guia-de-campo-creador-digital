@@ -440,6 +440,31 @@ assets/
 | 23 | Territorio: filas de la ficha técnica desbordaban el viewport en mobile (texto cortado, scrollbar horizontal) | `.territory__card-row dd` es un flex item (`flex:1 1 auto`) dentro de una fila que en mobile pasa a `flex-direction:column` — por default un flex item no encoge por debajo del ancho de su propio contenido (`min-width:auto`), así que el texto largo empujaba el ancho en vez de hacer wrap | `min-width:0` en `dd` (permite que el texto haga wrap normal) + `max-width:100%` en `dt` para el breakpoint móvil |
 | 24 | Método: el wrap móvil del Diagrama 01 ocultaba la flecha equivocada y reordenaba los chips (`:nth-of-type()`) | Chips y flechas son todos `<span>` — `:nth-of-type()` cuenta posición por *tag*, no por clase, así que agarra el N-ésimo `<span>` de la fila entera, no el N-ésimo elemento de esa clase | Usar `:nth-child()` (cuenta la posición real entre TODOS los hermanos) cuando varios tipos de elemento comparten tag dentro del mismo contenedor |
 | 25 | Método: "PRÓXIMAMENTE" (contenido real, no decorativo) tenía contraste ~2.7:1 contra `--t-panel`, por debajo del mínimo 3:1 (WCAG AA, texto grande) | `opacity:0.35` sobre `--t-ink` para dar aspecto "apagado" — la opacidad reduce contraste real, no solo brillo percibido, y nadie había hecho la cuenta contra el fondo real | Antes de usar opacidad reducida en texto que es contenido (no decoración), calcular el contraste resultante contra el fondo real, no solo "que se vea sutil" |
+| 26 | **Después del marquee "EL MÉTODO." no se veía NADA** (reportado en el sitio publicado, con video) — y, sin que nadie lo reportara, el hero del Umbral también estaba invisible: faltaban el `<h1>` "Creador Digital", el eyebrow y la pregunta. Solo se veían galaxy, íconos y HUD | **Colisión entre dos sistemas de reveal que compartían el atributo `data-reveal` con selectores globales.** El Nodo 0 tenía `gsap.from("[data-reveal]", …)` — escrito cuando solo el Umbral usaba ese atributo, 4 elementos. El Nodo 3 sumó 35 elementos más **y** una armadura CSS igual de global (`body.method-js [data-reveal] {opacity:0}`). Con eso, el `from` pasó a agarrar los 39 del sitio. Clave: **GSAP fija el valor FINAL de un `from` en su primer tick, no al crearlo** — y para ese tick `initMethod()` ya había puesto `body.method-js`, así que la armadura ya reportaba `opacity:0`. El tween terminaba animando 0→0 y dejando `style="opacity:0"` **inline y permanente** en los 39. Un estilo inline le gana a `.is-in`, así que el reveal quedaba muerto pase lo que pase | Acotar CADA sistema de reveal a su propio nodo: `gsap.from("#threshold [data-reveal]", …)` en `script.js` y `.method [data-reveal]` en los 4 selectores de la armadura en `styles.css`. Regla general: **`data-reveal` no es de nadie — ningún nodo puede seleccionarlo sin acotar el selector a su propia sección.** Dos falsos culpables que costaron una investigación entera: (a) **no era Lenis** — los elementos ya estaban en `opacity:0` antes de cualquier scroll, y el commit base `e5b9b2d` (sin Lenis, sin Método) deja el mismo tween en `opacity:1`; (b) **no era el `IntersectionObserver`** — sí dispara y sí agrega `.is-in`. Se creyó que no porque se midió en una pestaña en segundo plano: **con la pestaña oculta el navegador no corre el ciclo de render, así que IntersectionObserver no emite nada.** Medir reveals ahí da falso negativo garantizado — verificar siempre con la pestaña realmente renderizando (ver "Cómo verificar" abajo) |
+
+## Cómo verificar un cambio visual (no repetir el error de la investigación de #26)
+
+El navegador embebido del panel de preview **no compositea frames cuando el
+panel no está desplegado**: ahí `IntersectionObserver` no dispara, las
+transiciones CSS no avanzan y las capturas fallan por timeout. Un reveal que
+"no funciona" medido así es un falso negativo, no un bug.
+
+Lo que sí funcionó para depurar #26 — **el Chrome real del usuario** vía las
+herramientas `claude-in-chrome`, sirviendo el sitio con
+`python -m http.server` y comparando contra un `git worktree` del último
+commit estable:
+```
+git worktree add /tmp/baseline <commit-estable>
+python -m http.server 4180   # baseline
+python -m http.server 4181   # trabajo
+```
+Ojo: incluso ahí la pestaña puede reportar `document.visibilityState ===
+"hidden"` si la ventana está en segundo plano — en ese estado `rAF` no corre
+y los tweens de GSAP quedan congelados en `progress: 0`. Dos salidas:
+tomar un screenshot (fuerza un frame real y destraba el observer) o avanzar
+el tiempo a mano con `gsap.globalTimeline.time(N)` para ver de forma
+determinista **en qué valor deja un tween a sus elementos** — que es
+exactamente como se encontró el `opacity:0` inline de #26.
 
 ## Optimización de carga (móviles de gama media / datos móviles)
 
