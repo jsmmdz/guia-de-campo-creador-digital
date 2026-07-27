@@ -25,8 +25,22 @@
 
 ## Decisiones de diseño (no reabrir sin razón)
 
-- **Método — sin GSAP/ScrollTrigger/pin, a propósito.** Es el único nodo
-  del sitio donde eso es una regla explícita del spec (§4), no una omisión.
+- **Método — sin scroll-jacking, a propósito.** Es el único nodo del sitio
+  donde eso es una regla explícita del spec (§4), no una omisión.
+
+  > **Aclaración del usuario (2026-07-27) — leer antes de aplicar la regla.**
+  > Lo prohibido es la **mecánica**: pin, scrub, progreso fraccional atado al
+  > scroll, animación frame por frame y `position:fixed` dentro del nodo.
+  > **GSAP como librería no está vetado**: puede usarse para animación
+  > autónoma en loop, que corre sola sin depender del scroll. El spec §4 lo
+  > respalda — al enumerar lo que sí se anima incluye "el fondo que se
+  > importará más adelante", además del marquee y la entrada de cada bloque.
+  > La letra del spec dice "no usar GSAP" (§4 y §6), pero su intención es
+  > impedir que este nodo vuelva al scroll-jacking de Territorio, no elegir
+  > motor de animación. El párrafo que sigue describe cómo quedó construido
+  > el nodo en su primera versión, cuando la regla se aplicó en sentido
+  > estricto.
+
   Los únicos 3 elementos animados: marquee en loop autónomo 100% CSS
   (`@keyframes method-marquee-scroll`, nunca `gsap.to` como el de
   Territorio), reveal de entrada por bloque con un único

@@ -42,9 +42,16 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 - **Verificar de verdad**: el navegador embebido del panel de preview no
   compositea frames si el panel no está desplegado — ahí un reveal que
   "no funciona" es un falso negativo. Ver `docs/flujo-de-trabajo.md` §5.
-- **Sin GSAP/ScrollTrigger/pin desde el Nodo 3 en adelante**: regla explícita
-  del spec, no una omisión. Método y Voces usan `IntersectionObserver`
-  binario + CSS.
+- **Sin scroll-jacking desde el Nodo 3 en adelante**: nada de pin, scrub,
+  progreso fraccional atado al scroll, secuencias frame por frame, ni
+  `position:fixed` dentro del nodo. El contenido pasa una sola vez, hacia
+  arriba, a la velocidad que decida quien navega (Spec Método §4).
+  **Es una regla sobre la mecánica de scroll, no sobre la librería**: GSAP
+  sí puede usarse como motor de animación autónoma —un loop que corre solo,
+  independiente del scroll—; lo que no puede es manejar el scroll. El propio
+  spec §4 ya prevé "el fondo que se importará más adelante" como uno de los
+  elementos animados del nodo. Los reveals de entrada son
+  `IntersectionObserver` binario + CSS.
 
 ## Dónde está cada cosa
 
