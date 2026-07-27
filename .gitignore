@@ -9,3 +9,7 @@ Thumbs.db
 # lee assets/disciplinas/frames/ (ya extraído con croma); estos .mp4 son
 # material de trabajo, no hace falta versionarlos (24MB, regenerables)
 assets/disciplinas/VIDEOS/
+
+# config local de Claude Code — launch.json SÍ se versiona (define el server
+# de preview del repo, puerto 4174); los settings locales no
+.claude/settings.local.json
