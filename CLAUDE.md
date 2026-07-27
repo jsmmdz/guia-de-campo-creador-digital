@@ -8,15 +8,13 @@ por CDN, sin bundler ni framework.
 Este archivo es **el índice y las reglas duras**. El detalle vive en `docs/`,
 y se lee por demanda — no lo leas todo. La fuente de verdad de contenido,
 narrativa y mecánica es el vault de Obsidian, fuera de este repo:
-`DOCUMENTOS/Vault - Guía de Campo/`:
+`DOCUMENTOS/Vault - Guía de Campo/`.
 
-- `Plan de Desarrollo y Especificacion Tecnica.md` — los 5 nodos, la Bitácora
-  Oculta, el banco de fragmentos. La especificación de fondo.
-- `Plan de Produccion - Sprint Final (2026-07-22).md` — **el documento
-  operativo**: qué falta y en qué orden. No reemplaza al Orden de Trabajo
-  (2026-07-12), lo comprime a la ventana final. Empieza por acá.
-- Por nodo hay hasta tres archivos: `Spec - Nodo N`, `Ruta Tecnica - Nodo N`
-  y `Contenido - Nodo N`. El Nodo 5 (Rutas) hoy solo tiene el de Contenido.
+**Entra siempre por `00 - Indice.md`**, nunca directo a un documento suelto:
+dice qué leer según la tarea y resuelve las precedencias cuando dos
+documentos se contradicen (el caso de los tres specs de Territorio, entre
+otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
+`Contenido -`—; el Nodo 5 (Rutas) hoy solo tiene el de Contenido.
 
 ## Reglas duras (aplican siempre, en cualquier nodo)
 
