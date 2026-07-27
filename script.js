@@ -29,6 +29,13 @@
   const mobileMQ = window.matchMedia("(max-width: 1023px)");
   let catalogSimple = !motionOK;
 
+  // Referencia a la instancia de Lenis, si se monta (ver initLenis) — el
+  // acordeón de Voces la necesita para compensar el salto de scroll al
+  // cerrar una fila por su propia API (lenis.scrollTo), no con
+  // window.scrollBy, o el ajuste pelea con el suavizado y se ve como un
+  // tirón (Ruta Técnica - Nodo 4 Voces.md, §Acordeón).
+  let lenisInstance = null;
+
   // conexión de datos realmente limitada (ahorro de datos activado por el
   // usuario, o red 2G): se usa más abajo para saltar initGalaxy/
   // initAsciiText (WebGL puro decorativo, sin efecto en el contenido) y
@@ -2033,12 +2040,233 @@ void main() {
     if (typeof window.Lenis === "undefined") return; // CDN caído: scroll nativo, sin estado de error visible
 
     const lenis = new Lenis({ smoothWheel: true, syncTouch: false });
+    lenisInstance = lenis; // expuesta para que el acordeón de Voces compense scroll al cerrar
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((time) => lenis.raf(time * 1000));
     gsap.ticker.lagSmoothing(0);
   }
 
+  /* ============================================================
+     NODO 4 · VOCES
+     Sin GSAP, sin ScrollTrigger, sin pin, sin scroll-jacking (Spec §6,
+     regla dura de este nodo, no por omisión) — el segundo nodo del
+     sitio, junto con Método, que no pinea nada. Los únicos mecanismos:
+     el marquee (CSS @keyframes puro, igual que initMethod), el reveal
+     de entrada por bloque (IntersectionObserver binario, una sola vez,
+     mismo patrón que initMethod) y el acordeón (altura medida por
+     scrollHeight + transición CSS interrumpible) — primer <button>
+     interactivo real del sitio. Lenis (initLenis, más arriba) solo
+     aporta scroll suave heredado; este nodo no lo monta aparte.
+
+     Merge desde el prototipo aislado en PRUEBAS/Prototipo - Nodo 4
+     Voces (alta fidelidad)/, ya construido, auditado y comparado
+     contra el frame real de Figma antes de integrar acá.
+     ============================================================ */
+  function initVoices() {
+    const root = document.querySelector(".voices");
+    if (!root) return;
+
+    function initMarquee(scopeRoot) {
+      const tracks = Array.prototype.slice.call(scopeRoot.querySelectorAll(".voices__marquee-track"));
+      if (!tracks.length) return;
+
+      const firstSpan = tracks[0].querySelector("span");
+      const TEXT = firstSpan ? firstSpan.textContent : "VOCES.";
+      let resizeTimer = null;
+
+      function measureItemWidth() {
+        const probe = document.createElement("span");
+        probe.textContent = TEXT;
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        tracks[0].appendChild(probe);
+        const w = probe.offsetWidth;
+        tracks[0].removeChild(probe);
+        return w || 1;
+      }
+
+      function build() {
+        const itemWidth = measureItemWidth();
+        const count = Math.max(8, Math.ceil(window.innerWidth / itemWidth) + 2);
+        let html = "";
+        for (let i = 0; i < count; i++) html += "<span>" + TEXT + "</span>";
+        tracks.forEach((track) => { track.innerHTML = html; });
+      }
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(build);
+      } else {
+        build();
+      }
+
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(build, 200);
+      });
+    }
+
+    function initReveal(scopeRoot) {
+      const els = Array.prototype.slice.call(scopeRoot.querySelectorAll("[data-reveal]"));
+      if (!els.length) return;
+
+      const io = new IntersectionObserver(onIntersect, {
+        threshold: 0.15,
+        rootMargin: "0px 0px -10% 0px",
+      });
+
+      els.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom <= 0) {
+          el.classList.add("is-in", "no-anim");
+        } else {
+          io.observe(el);
+        }
+      });
+
+      function onIntersect(entries) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        });
+      }
+    }
+
+    function syncRowHiddenState(container) {
+      if (!container) return;
+      const rows = Array.prototype.slice.call(container.querySelectorAll(".voices__row"));
+      rows.forEach((row) => {
+        const toggle = row.querySelector(".voices__row-toggle");
+        const body = toggle && document.getElementById(toggle.getAttribute("aria-controls"));
+        if (body) body.hidden = !row.classList.contains("is-open");
+      });
+    }
+
+    function clearPendingTransition(body) {
+      if (body._voicesEndHandler) {
+        body.removeEventListener("transitionend", body._voicesEndHandler);
+        body._voicesEndHandler = null;
+      }
+    }
+
+    function expandRow(row, toggle, body) {
+      // Revertir `hidden` ANTES de medir/animar — con `hidden` puesto el
+      // elemento es display:none (sin layout), scrollHeight daría 0.
+      body.hidden = false;
+
+      // Altura REAL actual en pantalla (0 si venía colapsada, o un valor
+      // intermedio si se interrumpió un cierre en curso) — nunca el
+      // valor lógico, para que un doble click rápido arranque en la
+      // dirección nueva desde donde está (Spec §4.4).
+      const current = body.getBoundingClientRect().height;
+      clearPendingTransition(body);
+      body.style.height = current + "px";
+      void body.offsetHeight; // fuerza reflow antes de cambiar el destino
+
+      row.classList.add("is-open");
+      toggle.setAttribute("aria-expanded", "true");
+
+      const target = body.scrollHeight;
+      requestAnimationFrame(() => { body.style.height = target + "px"; });
+
+      const onEnd = (e) => {
+        if (e.target !== body || e.propertyName !== "height") return;
+        body.removeEventListener("transitionend", onEnd);
+        body._voicesEndHandler = null;
+        if (row.classList.contains("is-open")) body.style.height = "auto";
+      };
+      body.addEventListener("transitionend", onEnd);
+      body._voicesEndHandler = onEnd;
+    }
+
+    function collapseRow(row, toggle, body) {
+      // Spec §4.3: si la fila arranca por encima del viewport, colapsarla
+      // empuja todo el contenido de abajo hacia arriba y el lector pierde
+      // su punto de lectura — se compensa el scroll por el mismo delta
+      // que se recoge, vía lenisInstance.scrollTo si Lenis está montado.
+      const rectBefore = row.getBoundingClientRect();
+      const current = body.getBoundingClientRect().height;
+
+      clearPendingTransition(body);
+      body.style.height = current + "px";
+      void body.offsetHeight;
+
+      row.classList.remove("is-open");
+      toggle.setAttribute("aria-expanded", "false");
+      body.style.height = "0px";
+
+      const onEnd = (e) => {
+        if (e.target !== body || e.propertyName !== "height") return;
+        body.removeEventListener("transitionend", onEnd);
+        body._voicesEndHandler = null;
+        // Recién ahora, con la transición ya terminada, se saca del árbol
+        // de accesibilidad — nunca antes (cortaría la transición visual).
+        body.hidden = true;
+      };
+      body.addEventListener("transitionend", onEnd);
+      body._voicesEndHandler = onEnd;
+
+      if (rectBefore.top < 0) {
+        const delta = current; // el destino siempre es 0: el delta es la altura completa que tenía
+        if (lenisInstance) {
+          const currentScroll = window.scrollY || window.pageYOffset;
+          lenisInstance.scrollTo(currentScroll - delta, { immediate: true });
+        } else {
+          window.scrollBy(0, -delta);
+        }
+      }
+    }
+
+    function initAccordion(container) {
+      if (!container) return;
+      // Un solo listener de click DELEGADO por perfil (no uno por fila).
+      container.addEventListener("click", (event) => {
+        const toggle = event.target.closest(".voices__row-toggle");
+        if (!toggle || !container.contains(toggle)) return;
+
+        const body = document.getElementById(toggle.getAttribute("aria-controls"));
+        const row = toggle.closest(".voices__row");
+        if (!body || !row) return;
+
+        const expanded = toggle.getAttribute("aria-expanded") === "true";
+        if (expanded) collapseRow(row, toggle, body);
+        else expandRow(row, toggle, body);
+      });
+    }
+
+    if (motionOK) {
+      // Confirma que el script corrió antes de ocultar nada para animar —
+      // mismo patrón que body.method-js / body.enhanced.
+      document.body.classList.add("voices-js");
+      initMarquee(root);
+      initReveal(root);
+
+      initAccordion(root.querySelector("[data-melisa-accordion]"));
+      initAccordion(root.querySelector("[data-juandavid-accordion]"));
+      initAccordion(root.querySelector("[data-junior-accordion]"));
+
+      // Estado inicial: las 11 filas arrancan colapsadas, hay que
+      // sacarlas del árbol de accesibilidad desde el primer render.
+      syncRowHiddenState(root.querySelector("[data-melisa-accordion]"));
+      syncRowHiddenState(root.querySelector("[data-juandavid-accordion]"));
+      syncRowHiddenState(root.querySelector("[data-junior-accordion]"));
+    } else {
+      // ?static=1 con JS disponible: la armadura CSS no aplica, las 11
+      // filas quedan expandidas en flujo normal sin necesidad de click —
+      // pero el HTML trae aria-expanded="false" fijo, se corrige a
+      // "true" para que el botón no anuncie "colapsado" sobre contenido
+      // ya visible.
+      const staticToggles = Array.prototype.slice.call(root.querySelectorAll(".voices__row-toggle"));
+      staticToggles.forEach((toggle) => toggle.setAttribute("aria-expanded", "true"));
+    }
+    // Sin JS o con ?static=1: sin body.voices-js, la armadura CSS no
+    // aplica y las 11 filas quedan abiertas y visibles en flujo normal
+    // (Spec §4.4).
+  }
+
   initTerritory();
   initMethod();
+  initVoices();
   initLenis();
 })();

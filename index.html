@@ -27,7 +27,7 @@
      Semibold (600), ya cubierto por el rango 400..700 que ese link ya
      cargaba. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" />
-<link rel="stylesheet" href="styles.css?v=20" />
+<link rel="stylesheet" href="styles.css?v=21" />
 </head>
 <body>
 
@@ -555,6 +555,496 @@
 
 </section>
 
+<section class="voices" id="voices">
+
+  <!-- ============================================================
+       3.1 — Marquesina de título "VOCES."
+       Decorativo: no ancla, no aparece en ninguna navegación.
+       ============================================================ -->
+  <div class="voices__marquee" aria-hidden="true">
+    <div class="voices__marquee-rail">
+      <div class="voices__marquee-track">
+        <span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span>
+      </div>
+      <div class="voices__marquee-track">
+        <span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span><span>VOCES.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       3.2 — Apertura narrativa: la bisagra desde Método
+       ============================================================ -->
+  <section class="voices__opening">
+    <p class="voices__serif" data-reveal>Un método no se sostiene solo con quien lo teoriza. Hasta acá, la Guía tuvo una sola voz explicando qué es</p>
+    <h2 class="voices__term" data-reveal>INVESTIGACIÓN-CREACIÓN.</h2>
+    <p class="voices__serif" data-reveal>Ahora entran dos personas reales, que nunca se conocieron entre sí — cada una desde su lugar.</p>
+  </section>
+
+  <!-- ============================================================
+       3.3 — Diagrama 01: presentación de perfiles
+       No está descrito en el vault: su forma sale de la captura del
+       prototipo de Figma. Full-width, fuera de la columna de lectura.
+       Sello de referencia: no dado literal por el spec, inventado
+       siguiendo el registro mono de sellos ya usado en el sitio.
+       ============================================================ -->
+  <div class="voices__diagram-intro">
+    <div class="voices__id-unit voices__id-unit--melisa" data-reveal>
+      <div class="voices__id-block"><span class="voices__id-initial">M</span></div>
+      <p class="voices__id-name">MELISA BALLESTEROS</p>
+      <p class="voices__id-caption">
+        <span>Profesora e investigadora</span>
+        <span>Reg. 04.01 — Entrevista completa</span>
+      </p>
+    </div>
+    <div class="voices__id-unit voices__id-unit--juandavid" data-reveal>
+      <!-- Discrepancia #2: inicial única "J" (no "JD") en TODOS los
+           usos de Juan David, incluido este diagrama — spec exige la
+           misma inicial que el avatar chico, y la captura de Figma
+           muestra un solo bloque "J". -->
+      <div class="voices__id-block"><span class="voices__id-initial">J</span></div>
+      <p class="voices__id-name">JUAN DAVID ARISTIZÁBAL</p>
+      <p class="voices__id-caption">
+        <span>Animador 3D y director creativo</span>
+        <span>Reg. 04.02 — Entrevista completa</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       3.4 — Perfil: Melisa Ballesteros
+       Acordeón de 5 filas, colapsadas por defecto (con JS).
+       ============================================================ -->
+  <section class="voices__profile voices__profile--melisa">
+    <header class="voices__profile-header" data-reveal>
+      <div class="voices__avatar-small"><span>M</span></div>
+      <div>
+        <span class="voices__header-reg">Entrevista N.01</span>
+        <p class="voices__header-name">Melisa Ballesteros</p>
+        <span class="voices__header-role">Profesora e investigadora, Universidad El Bosque</span>
+      </div>
+    </header>
+
+    <div class="voices__accordion" data-melisa-accordion>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-m1-body" id="v-m1-toggle">
+            <span class="voices__row-title">Investigar sin querer</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-m1-body" role="region" aria-labelledby="v-m1-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“También hay una cosa que se llama investigación retroactiva — te das cuenta de que apareció algo nuevo, y lo sistematizás después.”</p>
+                <cite class="voices__quote-attr">— Melisa Ballesteros Mejía</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Si ya te pasó esto sin saberlo, ya diste el primer paso — solo falta registrar cómo pasó, para poder repetirlo o enseñarlo. No hace falta haberlo planeado desde el día uno.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-m2-body" id="v-m2-toggle">
+            <span class="voices__row-title">La línea borrosa</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-m2-body" role="region" aria-labelledby="v-m2-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“La investigación, de hecho, sucede mucho más a veces en la parte comercial. Pero nunca se sistematiza, ni nunca se hace visible.”</p>
+                <cite class="voices__quote-attr">— Melisa Ballesteros Mejía</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Un encargo comercial también puede ser investigación, si le hacés seguimiento y dejás registro. La diferencia no está en si te pagan, está en si aprendés algo transferible.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-m3-body" id="v-m3-toggle">
+            <span class="voices__row-title">La mezcla no estorba, ayuda</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-m3-body" role="region" aria-labelledby="v-m3-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“La combinación de cosas siempre va a dar algo distinto a lo que existe. Es como tener un hijo.”</p>
+                <cite class="voices__quote-attr">— Melisa Ballesteros Mejía</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Cruzar disciplinas no te resta foco — es, muchas veces, de donde sale lo nuevo. Si venís de varias formaciones, esa mezcla ya es un punto a favor.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-m4-body" id="v-m4-toggle">
+            <span class="voices__row-title">No hace falta ser Da Vinci</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-m4-body" role="region" aria-labelledby="v-m4-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“De aquí a que yo tenga el cerebro de Da Vinci, pues seguramente que no. Pero eso también es aportar granitos de arena para que una comunidad viva mejor.”</p>
+                <cite class="voices__quote-attr">— Melisa Ballesteros Mejía</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">No hace falta un currículum impresionante para empezar — hace falta profundizar en algo que te importe. Los ejemplos gigantes asustan más de lo que enseñan.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-m5-body" id="v-m5-toggle">
+            <span class="voices__row-title">No hay que endiosar la IA</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-m5-body" role="region" aria-labelledby="v-m5-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“Tienden a borrar esa capacidad crítica de las personas. Eso es lo que me da miedo de la inteligencia artificial, más que como herramienta.”</p>
+                <cite class="voices__quote-attr">— Melisa Ballesteros Mejía</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Usar IA no te exime de revisar con criterio propio lo que sale — al contrario, lo exige más. Tratarla como si supiera todo es justo lo que te hace perder ese criterio.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3.5 — Perfil: Juan David Aristizábal
+       Acordeón de 4 filas — la 4ta ("Consejos de oficio") es la fila
+       compuesta con 3 áreas (Discrepancia #6, ver Spec §3.5).
+       ============================================================ -->
+  <section class="voices__profile voices__profile--juandavid">
+    <header class="voices__profile-header" data-reveal>
+      <div class="voices__avatar-small"><span>J</span></div>
+      <div>
+        <span class="voices__header-reg">Entrevista N.02</span>
+        <p class="voices__header-name">Juan David Aristizábal</p>
+        <span class="voices__header-role">Animador 3D y director creativo, +10 años en la industria</span>
+      </div>
+    </header>
+
+    <div class="voices__accordion" data-juandavid-accordion>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jd1-body" id="v-jd1-toggle">
+            <span class="voices__row-title">Aprender resolviendo</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jd1-body" role="region" aria-labelledby="v-jd1-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“Ahí aprendí, fue en la marcha. Si algo no funciona, hay que buscar alternativas que den el mismo resultado.”</p>
+                <cite class="voices__quote-attr">— Juan David Aristizábal Gómez</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Cuando la herramienta que planeabas usar no funciona, el problema no es tuyo — es encontrar otro camino al mismo resultado. Eso, repetido, es lo que después se llama experiencia.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jd2-body" id="v-jd2-toggle">
+            <span class="voices__row-title">Cuando manda el cliente</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jd2-body" role="region" aria-labelledby="v-jd2-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“El cliente no impone la metodología — impone las pautas. La creatividad se condiciona por el factor monetario y el factor tiempo.”</p>
+                <cite class="voices__quote-attr">— Juan David Aristizábal Gómez</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Perder margen creativo por el cliente no es fracaso tuyo — es la norma del oficio. Lo que sí depende de vos es dónde poner el límite antes de que el resultado se resienta.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jd3-body" id="v-jd3-toggle">
+            <span class="voices__row-title">La IA no firma por él</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jd3-body" role="region" aria-labelledby="v-jd3-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__row-grid">
+              <blockquote class="voices__quote">
+                <p class="voices__quote-text">“Lo que me genere la IA no va a ser el resultado final — porque no he tenido el proceso creativo previo y posterior de hacer ese refinamiento.”</p>
+                <cite class="voices__quote-attr">— Juan David Aristizábal Gómez</cite>
+              </blockquote>
+              <div class="voices__panel">
+                <span class="voices__panel-label">Por qué importa</span>
+                <p class="voices__panel-text">Entregar lo que la IA generó sin curarlo es lo que te va a delatar frente a un cliente o al público. El refinamiento es tu trabajo, no el de la herramienta.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fila compuesta — Discrepancia #6: UNA sola fila, 3 áreas
+           (EQUIPO/FINANZAS/PITCH), no tres filas hermanas. Nota de
+           trazabilidad confirmada con el usuario 2026-07-26 (Spec
+           §3.5). Mapeo: armar equipo→EQUIPO, piso y techo→FINANZAS,
+           pitch→PITCH. -->
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jd4-body" id="v-jd4-toggle">
+            <span class="voices__row-title">Consejos de oficio</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jd4-body" role="region" aria-labelledby="v-jd4-toggle">
+          <div class="voices__row-body-inner">
+            <div class="voices__areas">
+              <div class="voices__area">
+                <span class="voices__area-label">Equipo</span>
+                <blockquote class="voices__quote">
+                  <p class="voices__quote-text">“Un buen equipo parte de la objetividad de qué hace cada persona, independiente de si es tu mejor amigo. Máximo cuatro personas — el número ideal, tres.”</p>
+                  <cite class="voices__quote-attr">— Juan David Aristizábal Gómez</cite>
+                </blockquote>
+                <div class="voices__panel">
+                  <span class="voices__panel-label">Por qué importa</span>
+                  <p class="voices__panel-text">Elegir con quién trabajás pesa tanto como qué proyecto elegís — la amistad no es el criterio, la objetividad sí. Un equipo grande no rinde más; uno chico y claro, sí.</p>
+                </div>
+              </div>
+              <div class="voices__area">
+                <span class="voices__area-label">Finanzas</span>
+                <blockquote class="voices__quote">
+                  <p class="voices__quote-text">“Eso a nivel de finanzas es poner un piso y un techo [...] debés poner el techo más alto para llegar a ese piso que es el que te va a mantener sólido a nivel financiero. Si no, te vas al subsuelo y quedás endeudado. No hay que dejarse cuentear por los 500.”</p>
+                  <cite class="voices__quote-attr">— Juan David Aristizábal Gómez</cite>
+                </blockquote>
+                <div class="voices__panel">
+                  <span class="voices__panel-label">Por qué importa</span>
+                  <p class="voices__panel-text">Negociar no es debilidad — es matemática. Si no sabés dónde está tu piso, cualquier cliente te puede arrastrar por debajo de él sin que te des cuenta.</p>
+                </div>
+              </div>
+              <div class="voices__area">
+                <span class="voices__area-label">Pitch</span>
+                <blockquote class="voices__quote">
+                  <p class="voices__quote-text">“Es una cuestión de práctica — practicar frente a un espejo, un ejercicio con un lápiz que hacen los raperos, manejo de pausas.”</p>
+                  <cite class="voices__quote-attr">— Juan David Aristizábal Gómez</cite>
+                </blockquote>
+                <div class="voices__panel">
+                  <span class="voices__panel-label">Por qué importa</span>
+                  <p class="voices__panel-text">Tener capacidad técnica y no saber venderla es tener la idea guardada en un cajón. El pitch se entrena igual que cualquier otra habilidad, con repetición.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3.6 — Bisagra hacia la primera persona
+       Discrepancia #1: "Falta la mía" (no "Falta la tuya" — el spec
+       es el documento técnico más reciente, coherente con que a
+       partir de acá habla el autor en primera persona).
+       ============================================================ -->
+  <p class="voices__hinge" data-reveal>Ya escuchaste a las dos voces completas, cada una en lo suyo. Falta la mía.</p>
+
+  <!-- ============================================================
+       3.7 — Conclusión personal: Junior Smith Mejía Méndez
+       Presentado con el bloque GRANDE (mismo tamaño que Diagrama 01),
+       no el avatar chico — es la única persona en tamaño de
+       presentación dos veces. Acento: ver comentario PROVISIONAL en
+       styles.css (.voices__profile--junior).
+       ============================================================ -->
+  <section class="voices__profile voices__profile--junior">
+    <div class="voices__conclusion-header" data-reveal>
+      <!-- Sin modificador --junior propio: el acento ya lo aporta el
+           scope de .voices__profile--junior (ver styles.css), que
+           cascada --v-accent-fill/--v-accent-ink hasta este bloque. -->
+      <div class="voices__id-block"><span class="voices__id-initial">J</span></div>
+      <p class="voices__id-name">JUNIOR SMITH MEJÍA MÉNDEZ</p>
+      <p class="voices__id-caption">
+        <span>Autor de esta guía de campo</span>
+        <span>Reg. 04.03 — Conclusión personal</span>
+      </p>
+    </div>
+
+    <p class="voices__conclusion-intro" data-reveal>Melisa y Juan David hablan del Creador Digital desde afuera, cada uno desde su lugar. Hay una tercera persona parada exactamente en el cruce que las dos entrevistas describen — no como entrevistada, sino como quien construye este sitio mientras lo recorre. Acá, y solo acá, se cruzan las dos voces: no antes, no en un bloque analítico aparte. Es la voz de Junior Mejía, en primera persona, sin mediación de una síntesis escrita por otro.</p>
+
+    <!-- Acordeón de 5 filas SIN cita/atribución/"Por qué importa"
+         (Spec §3.7: acá no hay fuente externa que citar). -->
+    <div class="voices__accordion" data-junior-accordion>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jr1-body" id="v-jr1-toggle">
+            <span class="voices__row-title">El roce real</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jr1-body" role="region" aria-labelledby="v-jr1-toggle">
+          <div class="voices__row-body-inner">
+            <p class="voices__row-text">Al principio pensé que las dos visiones coincidían calcadas. Sí lo hacen en mucho, pero también se complementaban desde puntos de vista distintos. Melisa dice que la investigación puede pasar en lo comercial, si se le hace seguimiento. Juan David matiza eso: el cliente no impone la metodología, impone las pautas, y el presupuesto y los tiempos condicionan la creatividad —un límite práctico fuerte a algo que Melisa plantea casi como una posibilidad abierta.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jr2-body" id="v-jr2-toggle">
+            <span class="voices__row-title">Hasta dónde dejo entrar a la IA</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jr2-body" role="region" aria-labelledby="v-jr2-toggle">
+          <div class="voices__row-body-inner">
+            <p class="voices__row-text">Ayuda muchísimo a sentar ideas y desarrollarlas rápido —a probar en minutos una interacción o una forma de navegar la web y decidir si vale la pena seguir por ahí—. Pero siempre tuve que filtrar, corregir, y hasta cambiar de chat para no perder la idea que me imaginaba. Cuando empieza a desviar el concepto original, o lo alimenta de una forma que ya no siento mía —por calidad o por principios— ahí decido si la dejo seguir o la corto.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jr3-body" id="v-jr3-toggle">
+            <span class="voices__row-title">Investigar sin darme cuenta</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jr3-body" role="region" aria-labelledby="v-jr3-toggle">
+          <div class="voices__row-body-inner">
+            <p class="voices__row-text">Al principio tenía más interés en experimentar con funciones web que en investigación-creación —el sitio era casi una excusa para eso—. Pero al ponerme a construirlo conscientemente, terminé adoptando el concepto de verdad, y lo empecé a aplicar a propósito en todo el sitio. Hasta las entrevistas a los profesores cambiaron: de un cuestionario cerrado a una charla abierta, llena de material suelto para alimentar la investigación.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jr4-body" id="v-jr4-toggle">
+            <span class="voices__row-title">Aprender en la marcha, con conectores nuevos</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jr4-body" role="region" aria-labelledby="v-jr4-toggle">
+          <div class="voices__row-body-inner">
+            <p class="voices__row-text">Implementar conectores y herramientas externas, como MCP (Model Context Protocol), fue pura experimentación: nunca había armado un flujo de trabajo con este tipo de herramientas, y conectarlas bien fue, sobre todo, a punta de prueba y error.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="voices__row">
+        <h3 class="voices__row-heading">
+          <button class="voices__row-toggle" aria-expanded="false" aria-controls="v-jr5-body" id="v-jr5-toggle">
+            <span class="voices__row-title">No era tan complicado como creía</span>
+            <span class="voices__row-indicator" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="voices__row-body" id="v-jr5-body" role="region" aria-labelledby="v-jr5-toggle">
+          <div class="voices__row-body-inner">
+            <p class="voices__row-text">Explorar un tema como la investigación-creación —que suena muy tradicional— me predispuso desde el principio: la imaginaba como métodos extensos y complicados, y me cerré un poco. En la conversación con Melisa entré en razón, gracias a sus explicaciones y ejemplos de qué se trata realmente.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3.8 — Qué técnica o método rescato de cada entrevista
+       Contenido SIEMPRE visible, nunca en acordeón.
+       ============================================================ -->
+  <section class="voices__method-recap">
+    <h2 class="voices__method-recap-title" data-reveal>Qué técnica o método rescato de cada entrevista</h2>
+
+    <div class="voices__method-block" data-reveal>
+      <p class="voices__method-subtitle">Juan David — un flujo fijo, paso a paso</p>
+      <span class="voices__flow-label">Protocolo de ejecución técnica</span>
+      <!-- Discrepancia #3: etiquetas exactas del spec (no las del
+           archivo de Contenido) — son etiquetas de UI/diagrama. -->
+      <div class="voices__flow">
+        <span class="voices__flow-chip">PLANEACIÓN</span>
+        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
+        <span class="voices__flow-chip">ALGORITMO</span>
+        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
+        <span class="voices__flow-chip">PSEUDOCÓDIGO</span>
+        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
+        <span class="voices__flow-chip">DIAGRAMA DE FLUJO</span>
+        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
+        <span class="voices__flow-chip voices__flow-chip--fill">RESULTADO FINAL</span>
+      </div>
+      <p class="voices__method-body">Planeación → Algoritmo → Pseudocódigo → Flowchart → Código final. Un método cerrado y repetible: la misma secuencia, proyecto tras proyecto, para traducir una idea en algo que funciona.</p>
+    </div>
+
+    <div class="voices__method-block" data-reveal>
+      <p class="voices__method-subtitle">Melisa — desconfiar del método fijo, y estructurar el pensamiento propio</p>
+      <!-- voices__accent--melisa: esta cita vive fuera de
+           .voices__profile--melisa (esa sección ya cerró más arriba),
+           así que necesita su propio scope de acento explícito. -->
+      <blockquote class="voices__quote voices__accent--melisa">
+        <p class="voices__quote-text">“Los métodos hay 850.000 [...] lo que sí me parecía muy importante es enseñarle a los estudiantes a estructurar su pensamiento, a entender cómo ellos se acercan al mundo.”</p>
+        <cite class="voices__quote-attr">— Melisa Ballesteros Mejía</cite>
+      </blockquote>
+      <p class="voices__method-body">Lo opuesto a Juan David: no hay una secuencia correcta que aplicar de memoria. Lo que hay que entrenar es la manera propia de acercarse al mundo, y dejar que el método salga de ahí.</p>
+    </div>
+
+    <div class="voices__method-block" data-reveal>
+      <p class="voices__method-subtitle">Cómo pienso usar los dos de ahora en adelante</p>
+      <p class="voices__method-body">De ahora en adelante voy a preparar flujos de trabajo base, como los que propone Juan David, para cada tipo de producto que haga —una web, un diseño, un libro—. Pero al configurar esos flujos según las características de cada proyecto, voy a tener que estructurar el pensamiento propio, como plantea Melisa.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3.9 — Cierre
+       ============================================================ -->
+  <p class="voices__outro" data-reveal>Quiero que este sitio, al cerrarlo, deje claro que hubo alguien pensando en serio los temas que expone —cuestionándose con ellos, no solo repitiéndolos—. Ojalá esto resuelva, aunque sea un poco, lo que plantea Melisa cuando dice que “no hemos sabido decirle al mundo qué es lo diferente que hacemos”: si alguien termina de recorrer esta guía y entiende mejor qué hace distinto un Creador Digital, ya cumplió su propósito.</p>
+
+</section>
+
 <!-- Lenis — scroll suave global, alcance TODO el documento (ver Ruta
      Técnica de Método en el vault). Versión exacta fijada (nunca
      @latest), con integrity para que un CDN comprometido rompa la carga
@@ -572,7 +1062,7 @@
 ></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=51"></script>
+<script src="script.js?v=52"></script>
 
 </body>
 </html>

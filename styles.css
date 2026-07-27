@@ -1631,3 +1631,671 @@ body.method-js .method [data-reveal].no-anim {
   .method { padding-left: var(--sp-6); padding-right: var(--sp-6); max-width: 1600px; margin: 0 auto; }
   .method__marquee { margin: 0 calc(-1 * var(--sp-6)); padding-left: var(--sp-6); padding-right: var(--sp-6); }
 }
+
+/* ============================================================
+   NODO 4 · VOCES
+   Instrumento de campo en modo oscuro, mismo lenguaje visual que
+   Território/Método: texto y filetes sobre un fondo plano, sin
+   sombras, sin degradados, sin bordes redondeados (Spec §5.1/§6).
+   Como Método, este nodo tampoco pinea ni traduce scroll vertical en
+   desplazamiento horizontal — sin GSAP/ScrollTrigger para nada
+   propio. Los únicos elementos animados: el marquee (CSS @keyframes
+   puro, igual mecánica que .method__marquee), el reveal de entrada
+   por bloque (IntersectionObserver binario, una vez, ver
+   initVoices() en script.js) y el acordeón (altura medida por
+   scrollHeight + transición CSS interrumpible) — primer <button>
+   interactivo real del sitio, por eso .voices__row-toggle trae su
+   propio reset de botón en vez de depender de uno global.
+
+   Merge desde el prototipo aislado en PRUEBAS/Prototipo - Nodo 4
+   Voces (alta fidelidad)/, ya construido, auditado (responsive,
+   accesibilidad, cumplimiento de spec/contenido) y comparado contra
+   el frame real de Figma antes de integrar acá.
+
+   Tokens nuevos acá porque son exclusivos de este nodo (--spec-1..6
+   del Catálogo NO se usan como acento de persona, Spec §5.3/§6).
+   ============================================================ */
+:root {
+  --v-melisa-fill: #211f6b;
+  --v-melisa-ink: #b9bce8;
+  --v-juandavid-fill: #5e2f14;
+  --v-juandavid-ink: #f2a878;
+
+  /* tamaño compartido de los bloques "grandes" (Diagrama 01 y la
+     presentación de Junior en 3.7) — mismo lado, cuadrados exactos */
+  --v-block: clamp(120px, 16vw, 200px);
+  --v-avatar-small: 64px;
+}
+
+.voices {
+  position: relative;
+  /* 3.10 — fondo reservado: plano #050507 del sitio, sin placeholder
+     visible en esta fase (Spec §3.10/§4.4). */
+  background: var(--depth);
+  padding: 0 var(--sp-4) var(--sp-6);
+}
+
+/* ---------- 3.1 marquesina "VOCES." ----------
+   Mismo mecanismo EXACTO que .method__marquee: @keyframes CSS puro
+   sobre translateX, loop autónomo, sin gsap.to. */
+.voices__marquee {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+  padding: var(--sp-3) 0 var(--sp-2);
+  margin: 0 calc(-1 * var(--sp-4));
+  padding-left: var(--sp-4);
+  padding-right: var(--sp-4);
+}
+.voices__marquee-rail {
+  display: flex;
+  width: max-content;
+}
+body.voices-js .voices__marquee-rail {
+  animation: voices-marquee-scroll 30s linear infinite;
+}
+@keyframes voices-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.voices__marquee-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.voices__marquee-track span {
+  display: inline-block;
+  padding-right: var(--sp-5);
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(2.5rem, 8.89vw, 8rem);
+  line-height: 1.1;
+  color: var(--paper);
+  opacity: 0.92;
+}
+
+/* ============================================================
+   ARMADURA DE REVEAL — acotada a .voices (error #26 del CLAUDE.md:
+   data-reveal no es de nadie, cada nodo acota su selector al propio
+   contenedor). Estado por defecto (JS no ejecutó / ?static=1): todo
+   visible, sin transform.
+   ============================================================ */
+.voices [data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+body.voices-js .voices [data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 600ms var(--m-ease-out), transform 600ms var(--m-ease-out);
+}
+body.voices-js .voices [data-reveal].is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+body.voices-js .voices [data-reveal].no-anim {
+  transition: none;
+}
+
+/* ============================================================
+   3.2 — Apertura narrativa (bisagra desde Método)
+   ============================================================ */
+.voices__opening {
+  padding-top: var(--sp-6);
+  max-width: 42rem; /* columna de lectura ~68ch, Spec §5.2 */
+  margin: 0 auto;
+  text-align: center;
+}
+.voices__serif {
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 3.34vw, 3rem); /* tier 48px, mismo que Método */
+  line-height: 1.4;
+}
+.voices__serif + .voices__serif { margin-top: var(--sp-4); }
+
+/* enunciado grande "INVESTIGACIÓN-CREACIÓN." — mismo rol y escala
+   que .method__term (segundo pico del nodo). */
+.voices__term {
+  text-align: center;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(2.25rem, 6.67vw, 6rem);
+  line-height: 1.05;
+  color: var(--paper);
+  margin: var(--sp-4) 0;
+}
+
+/* ============================================================
+   3.3 — Diagrama 01: presentación de perfiles
+   Full-width, fuera de la columna de lectura (Spec §3.3/§3.8) — sin
+   max-width propio, igual que los diagramas de Método.
+   ============================================================ */
+.voices__diagram-intro {
+  margin-top: var(--sp-6);
+  margin-bottom: var(--sp-6);
+  display: flex;
+  gap: var(--sp-4);
+  justify-content: center;
+}
+.voices__id-unit {
+  flex: 1 1 0;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+/* scope de acento por unidad — variables genéricas consumidas por
+   los hijos, para no repetir modificadores en cada elemento */
+.voices__id-unit--melisa { --v-accent-fill: var(--v-melisa-fill); --v-accent-ink: var(--v-melisa-ink); }
+.voices__id-unit--juandavid { --v-accent-fill: var(--v-juandavid-fill); --v-accent-ink: var(--v-juandavid-ink); }
+
+.voices__id-block {
+  width: var(--v-block);
+  height: var(--v-block);
+  background: var(--v-accent-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.voices__id-initial {
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  color: var(--v-accent-ink);
+  line-height: 1;
+}
+.voices__id-name {
+  margin-top: var(--sp-3);
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  /* PROVISIONAL — sin datos exactos de Figma aún, ver Spec §5.4 */
+  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+  color: var(--paper);
+}
+.voices__id-caption {
+  margin-top: var(--sp-2);
+  font-family: var(--t-f-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  line-height: 1.7;
+}
+.voices__id-caption span { display: block; }
+
+/* ============================================================
+   PERFILES (3.4 Melisa / 3.5 Juan David) — cabecera + acordeón.
+   .voices__profile es el scope de acento consumido por avatar,
+   filete de cita y label de área (misma técnica que Diagrama 01).
+   ============================================================ */
+.voices__profile { margin-top: var(--sp-6); }
+.voices__profile--melisa { --v-accent-fill: var(--v-melisa-fill); --v-accent-ink: var(--v-melisa-ink); }
+.voices__profile--juandavid { --v-accent-fill: var(--v-juandavid-fill); --v-accent-ink: var(--v-juandavid-ink); }
+/* Junior (3.7): PROVISIONAL — comparte el mismo par terracota que
+   Juan David (Spec §5.3, "punto a confirmar contra Figma"). */
+.voices__profile--junior { --v-accent-fill: var(--v-juandavid-fill); --v-accent-ink: var(--v-juandavid-ink); }
+
+/* Utilidad de scope de acento para elementos que citan a una persona
+   FUERA de su propio .voices__profile (caso único: la cita de Melisa
+   dentro de 3.8, que vive en su propia sección). */
+.voices__accent--melisa { --v-accent-fill: var(--v-melisa-fill); --v-accent-ink: var(--v-melisa-ink); }
+.voices__accent--juandavid { --v-accent-fill: var(--v-juandavid-fill); --v-accent-ink: var(--v-juandavid-ink); }
+
+.voices__profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.voices__avatar-small {
+  flex: 0 0 auto;
+  width: var(--v-avatar-small);
+  height: var(--v-avatar-small);
+  background: var(--v-accent-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.voices__avatar-small span {
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--v-accent-ink);
+}
+.voices__header-reg {
+  display: block;
+  font-family: var(--t-f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--signal-hi); /* reservado a registro/foco, no a acento de persona */
+  opacity: 0.85;
+  margin-bottom: var(--sp-1);
+}
+.voices__header-name {
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+  color: var(--paper);
+  line-height: 1.1;
+}
+.voices__header-role {
+  display: block;
+  margin-top: var(--sp-1);
+  font-family: var(--t-f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   ACORDEÓN — genérico, reusado por los 3 perfiles (Melisa, Juan
+   David, Junior). Ver initVoices() en script.js.
+   ============================================================ */
+.voices__accordion {
+  margin-top: var(--sp-4);
+  max-width: 60rem;
+}
+.voices__row {
+  border-top: 1px solid var(--t-hairline);
+}
+.voices__row:last-child {
+  border-bottom: 1px solid var(--t-hairline);
+}
+.voices__row-heading {
+  margin: 0;
+}
+.voices__row-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--v-avatar-small); /* 64px de área tocable, Spec §5.2 */
+  padding: var(--sp-2) 0;
+  background-color: transparent;
+  /* primer <button> interactivo real del sitio: reset propio en vez
+     de un `button {}` global, ya que ningún otro nodo lo necesita hoy */
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .voices__row-toggle:hover {
+    background-color: rgba(242, 241, 236, 0.03);
+  }
+  .voices__row-toggle:hover .voices__row-title {
+    color: var(--paper);
+  }
+}
+.voices__row-toggle:focus-visible {
+  outline: 2px solid var(--signal-hi);
+  outline-offset: 4px;
+}
+.voices__row-toggle:focus:not(:focus-visible) {
+  outline: none;
+}
+.voices__row-title {
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  /* PROVISIONAL — sin datos exactos de Figma aún, ver Spec §5.4 */
+  font-size: clamp(1.125rem, 1.67vw, 1.5rem);
+  color: var(--t-ink);
+  transition: color 150ms ease;
+}
+
+.voices__row-indicator {
+  flex: 0 0 auto;
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+.voices__row-indicator::before,
+.voices__row-indicator::after {
+  content: "";
+  position: absolute;
+  background: var(--t-ink);
+}
+.voices__row-indicator::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+.voices__row-indicator::after {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%) scaleY(1);
+  transition: transform 200ms var(--m-ease-out), opacity 200ms var(--m-ease-out);
+  opacity: 0.9;
+}
+.voices__row.is-open .voices__row-indicator::after {
+  transform: translateX(-50%) scaleY(0);
+  opacity: 0;
+}
+
+/* cuerpo expandido — NUNCA height:auto directo en la transición (no
+   anima) ni una altura fija hardcodeada. script.js mide scrollHeight,
+   anima a ese valor exacto, y al terminar pasa a height:auto. */
+.voices__row-body {
+  overflow: hidden;
+}
+body.voices-js .voices__row-body {
+  height: 0;
+  transition: height 350ms var(--m-ease-out);
+}
+.voices__row-body-inner {
+  padding: var(--sp-3) 0 var(--sp-4); /* 24px arriba, 40px abajo, Spec §5.2 */
+}
+
+/* grid de la fila expandida: cita ~60% / panel ~40% en laptop+,
+   apilado en mobile/tablet (Spec §3.4) */
+.voices__row-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.voices__quote {
+  padding-left: var(--sp-3);
+  border-left: 1px solid var(--v-accent-ink, var(--t-hairline-hi));
+}
+.voices__quote-text {
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.75rem, 3.34vw, 3rem); /* tier 48px, mismo que .voices__serif */
+  font-variation-settings: "opsz" 48;
+  line-height: 1.35;
+  color: var(--t-ink);
+}
+.voices__quote-attr {
+  display: block;
+  margin-top: var(--sp-2);
+  font-family: var(--t-f-mono);
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* panel "Por qué importa" — corchetes de esquina tipo HUD, patrón
+   EXACTO de .territory__card-panel (líneas ~887-903 de este mismo
+   archivo), namespaced acá como .voices__panel. */
+.voices__panel {
+  position: relative;
+  background: var(--t-panel);
+  padding: var(--sp-3);
+  border-top: 2px solid var(--t-hairline);
+}
+.voices__panel::before,
+.voices__panel::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+.voices__panel::before { top: -1px; left: -1px; border-top: 1px solid var(--t-hairline-hi); border-left: 1px solid var(--t-hairline-hi); }
+.voices__panel::after { bottom: -1px; right: -1px; border-bottom: 1px solid var(--t-hairline-hi); border-right: 1px solid var(--t-hairline-hi); }
+.voices__panel-label {
+  display: block;
+  font-family: var(--t-f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: var(--sp-2);
+}
+.voices__panel-text {
+  font-family: var(--m-f-sans);
+  font-weight: 500;
+  font-size: clamp(1.125rem, 2.23vw, 2rem); /* registro de lectura, rango de .method__small */
+  line-height: 1.5;
+  color: var(--t-ink);
+}
+
+/* ---------- fila compuesta "Consejos de oficio" (JD, 4ta fila) ----------
+   Spec §3.5: una sola fila, tres áreas rotuladas EQUIPO / FINANZAS /
+   PITCH, cada una con su propia cita+atribución+panel. */
+.voices__areas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+.voices__area-label {
+  display: block;
+  font-family: var(--t-f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--v-accent-ink);
+  margin-bottom: var(--sp-2);
+}
+.voices__area .voices__quote { margin-bottom: var(--sp-3); }
+.voices__area .voices__quote-text { font-size: clamp(1.25rem, 2.23vw, 1.75rem); }
+
+/* filas SIN cita/atribución/panel (conclusión de Junior, Spec §3.7):
+   solo un párrafo de cuerpo en columna de lectura */
+.voices__row-text {
+  max-width: 42rem;
+  font-family: var(--m-f-sans);
+  font-weight: 500;
+  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  line-height: 1.5;
+  color: var(--t-ink);
+}
+
+/* ============================================================
+   3.6 — Bisagra hacia la primera persona
+   Corte más fuerte del nodo: 128px arriba y abajo (excepción
+   explícita del spec a la escala 8/16/24/40/64/96, Spec §5.2).
+   ============================================================ */
+.voices__hinge {
+  margin: 128px auto;
+  max-width: 38rem;
+  text-align: center;
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 3.34vw, 3rem);
+  line-height: 1.4;
+  color: var(--paper);
+}
+
+/* ============================================================
+   3.7 — Conclusión personal (Junior, la tercera voz)
+   Presentada con el bloque GRANDE (mismo tamaño que Diagrama 01),
+   nunca el avatar chico.
+   ============================================================ */
+.voices__conclusion-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+/* reusa .voices__id-block / .voices__id-initial / .voices__id-name /
+   .voices__id-caption tal cual — mismo bloque grande del Diagrama 01 */
+
+.voices__conclusion-intro {
+  margin-top: var(--sp-4);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  font-family: var(--m-f-sans);
+  font-weight: 500;
+  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  line-height: 1.5;
+  color: var(--t-ink);
+}
+
+/* ============================================================
+   3.8 — Qué técnica o método rescato de cada entrevista
+   Contenido SIEMPRE visible, nunca en acordeón (Spec §3.8).
+   ============================================================ */
+.voices__method-recap {
+  margin-top: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+.voices__method-recap-title {
+  max-width: 42rem;
+  font-family: var(--t-f-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  /* PROVISIONAL — sin datos exactos de Figma aún, ver Spec §5.4 */
+  font-size: clamp(1.75rem, 3.9vw, 3.5rem);
+  line-height: 1.15;
+  color: var(--paper);
+}
+.voices__method-block {
+  max-width: 42rem; /* Spec §3.8: Diagrama 02 "dentro de la columna de lectura" */
+  margin-top: var(--sp-5);
+}
+.voices__method-subtitle {
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 3.34vw, 3rem); /* tier 48px */
+  line-height: 1.4;
+  color: var(--t-ink);
+  margin-bottom: var(--sp-3);
+}
+.voices__method-body {
+  font-family: var(--m-f-sans);
+  font-weight: 500;
+  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  line-height: 1.5;
+  color: var(--t-ink);
+  margin-top: var(--sp-3);
+}
+
+/* ---------- Diagrama 02: secuencia de ejecución técnica ----------
+   Confinado a la columna de lectura (a diferencia del Diagrama 01,
+   que es full-width) — por eso es SIEMPRE vertical, con flechas hacia
+   abajo, en todos los breakpoints. Última caja en fill sólido.
+   PENDIENTE (ver comparación contra Figma 2026-07-26): el frame real
+   muestra las 5 cajas horizontales — mantenerlo vertical fue decisión
+   de una sesión anterior por el ancho de columna (~42rem no alcanza
+   para 5 cajas horizontales sin romper). Decidir si vale la pena
+   rediseñar a full-width horizontal como el Diagrama 01. */
+.voices__flow-label {
+  display: block;
+  font-family: var(--t-f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: var(--sp-3);
+}
+.voices__flow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.voices__flow-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--t-hairline);
+  background: var(--t-panel);
+  font-family: var(--m-f-sans);
+  font-weight: 600;
+  font-size: clamp(0.8125rem, 1.25vw, 1.125rem);
+  color: var(--t-ink);
+}
+.voices__flow-chip--fill {
+  background: var(--signal-hi);
+  border-color: var(--signal-hi);
+  color: var(--paper);
+}
+.voices__flow-arrow {
+  display: block;
+  padding: var(--sp-1) 0;
+  margin-left: var(--sp-3);
+  font-family: var(--t-f-mono);
+  font-size: 13px;
+  color: var(--t-hairline-hi);
+  opacity: 0.65;
+}
+
+/* ============================================================
+   3.9 — Cierre
+   ============================================================ */
+.voices__outro {
+  margin-top: var(--sp-6);
+  padding-bottom: var(--sp-3);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  font-family: var(--m-f-sans);
+  font-weight: 500;
+  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  line-height: 1.5;
+  color: var(--t-ink);
+}
+
+/* ============================================================
+   VOCES — RESPONSIVE
+   ============================================================ */
+
+/* móvil ≤767 */
+@media (max-width: 767px) {
+  .voices { padding-left: var(--sp-3); padding-right: var(--sp-3); }
+  .voices__marquee { margin: 0 calc(-1 * var(--sp-3)); padding-left: var(--sp-3); padding-right: var(--sp-3); }
+
+  .voices__diagram-intro { flex-direction: column; align-items: center; }
+  .voices__id-unit { max-width: 100%; }
+
+  .voices__row-grid { grid-template-columns: 1fr; }
+  .voices__areas { grid-template-columns: 1fr; }
+
+  /* 128px es demasiado en pantallas chicas: se reduce a 96px.
+     PENDIENTE: el spec no autoriza esta excepción por breakpoint,
+     confirmar con el usuario antes de dar el nodo por cerrado. */
+  .voices__hinge { margin: var(--sp-6) auto; }
+}
+
+/* tablet 768–1023: mismo criterio de apilado que mobile para
+   grid/areas (columna angosta todavía no alcanza para 2-3 columnas
+   cómodas con cita+panel) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .voices__row-grid { grid-template-columns: 1fr; }
+  .voices__areas { grid-template-columns: 1fr; }
+}
+
+/* desktop 1440–1919 */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .voices { padding-left: var(--sp-5); padding-right: var(--sp-5); }
+  .voices__marquee { margin: 0 calc(-1 * var(--sp-5)); padding-left: var(--sp-5); padding-right: var(--sp-5); }
+}
+
+/* pantallas grandes ≥1920 */
+@media (min-width: 1920px) {
+  .voices { padding-left: var(--sp-5); padding-right: var(--sp-5); max-width: 1600px; margin: 0 auto; }
+  .voices__marquee { margin: 0 calc(-1 * var(--sp-5)); padding-left: var(--sp-5); padding-right: var(--sp-5); }
+}
