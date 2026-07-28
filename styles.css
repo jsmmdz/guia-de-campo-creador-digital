@@ -1089,8 +1089,68 @@ body.territory-ascent .territory__center { opacity: 1; }
 
 .method {
   position: relative;
+  /* Crea su propio contexto de apilamiento — necesario para que
+     .method__bg (z-index:-1, ver abajo) pinte detrás de los 12 bloques
+     PERO delante del propio fondo de .method, no detrás de TODO el body.
+     position:relative sin esto no alcanza: sin z-index (o esta propiedad)
+     no crea contexto de apilamiento propio, así que un hijo con z-index
+     negativo escapa al contexto raíz y queda tapado por el
+     background:black opaco de <body> — confirmado en navegador real:
+     con las líneas forzadas a opacidad 1 no se veía nada hasta agregar
+     esta línea. */
+  isolation: isolate;
   background: var(--depth); /* fallback si algún día se importa un fondo: nunca condición de legibilidad */
   padding: 0 var(--sp-4) var(--sp-6);
+}
+
+/* ---------- fondo animado "Background Lines" ----------
+   Puerto de Aceternity UI, ver PRUEBAS/Prototipo - Aceternity Background
+   Lines/. z-index:-1 (no z-index:0 ni omitido): un descendiente
+   position:absolute/sticky con z-index:auto/0 pinta DESPUÉS del contenido
+   normal no posicionado (los 12 bloques de texto son cajas de flujo
+   normal), no antes — con z-index:0 el fondo taparía el texto. Con -1
+   pinta en el paso "descendientes con z-index negativo", que va antes que
+   el flujo normal y después del propio background de .method (var(--depth)):
+   exactamente detrás de todo, delante de nada.
+
+   position:sticky (no absolute) a propósito — pedido explícito del
+   usuario: "efecto sticky durante toda la sección". Se queda clavado al
+   tope del viewport mientras se hace scroll por los 12 bloques y se
+   libera solo, sin JS, en el borde inferior real de .method (el punto en
+   el que su caja de sticky ya no cabe dentro del contenedor) — no es
+   scroll-jacking del contenido: los 12 bloques nunca se pinean, siguen
+   pasando una sola vez a la velocidad que decida quien navega (Spec
+   Método §4); lo único que se queda fijo es esta capa decorativa, con
+   pointer-events:none. `margin-bottom: calc(-100vh)` cancela el hueco de
+   100vh que el propio elemento sticky reservaría en el flujo (si no,
+   empujaría los 12 bloques 100vh hacia abajo) — mismo truco que cualquier
+   "fondo sticky detrás de contenido largo": el navegador calcula cuándo
+   soltar el sticky usando la caja original (100vh), el margen negativo
+   solo evita que los hermanos vean ese hueco.
+   Confirmado antes de implementar: Lenis corre acá en modo nativo
+   (`new Lenis({smoothWheel:true, syncTouch:false})`, sin wrapper/content
+   — ver initLenis), no aplica transform a un wrapper, así que
+   position:sticky funciona contra el scroll real de la página, no uno
+   simulado (los wrappers con transform rompen sticky). */
+.method__bg {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh; /* progressive enhancement: evita el salto del toolbar dinámico en mobile Safari */
+  margin: 0 calc(-1 * var(--sp-4)) calc(-100vh);
+  z-index: -1;
+  pointer-events: none;
+}
+.method__bg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* stroke-dasharray se compone a partir de --dash-head (GSAP anima ese
+   custom property numéricamente, 50 -> 20); el hueco (800) queda fijo,
+   igual que en el prototipo aislado. */
+.method__bg path {
+  stroke-dasharray: var(--dash-head, 50) 800;
 }
 
 /* ---------- marquee de entrada ----------
@@ -1575,6 +1635,7 @@ body.method-js .method [data-reveal].no-anim {
 @media (max-width: 767px) {
   .method { padding-left: var(--sp-3); padding-right: var(--sp-3); }
   .method__marquee { margin: 0 calc(-1 * var(--sp-3)); padding-left: var(--sp-3); padding-right: var(--sp-3); }
+  .method__bg { margin: 0 calc(-1 * var(--sp-3)) calc(-100vh); }
   .method__definition,
   .method__medium,
   .method__small,
@@ -1624,12 +1685,14 @@ body.method-js .method [data-reveal].no-anim {
 @media (min-width: 1440px) and (max-width: 1919px) {
   .method { padding-left: var(--sp-5); padding-right: var(--sp-5); }
   .method__marquee { margin: 0 calc(-1 * var(--sp-5)); padding-left: var(--sp-5); padding-right: var(--sp-5); }
+  .method__bg { margin: 0 calc(-1 * var(--sp-5)) calc(-100vh); }
 }
 
 /* pantallas grandes ≥1920 */
 @media (min-width: 1920px) {
   .method { padding-left: var(--sp-6); padding-right: var(--sp-6); max-width: 1600px; margin: 0 auto; }
   .method__marquee { margin: 0 calc(-1 * var(--sp-6)); padding-left: var(--sp-6); padding-right: var(--sp-6); }
+  .method__bg { margin: 0 calc(-1 * var(--sp-6)) calc(-100vh); }
 }
 
 /* ============================================================

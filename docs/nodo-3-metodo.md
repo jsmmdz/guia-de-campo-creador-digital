@@ -93,6 +93,65 @@
   sincronizado con `ScrollTrigger.update()` de más arriba, porque acá sí
   hay pines de por medio que sincronizar. No reintroducir la versión rAF
   simple si se vuelve a tocar `initLenis()`.
+- **Método — fondo "Background Lines" (puerto de Aceternity UI), detrás de
+  los 12 bloques.** Portado primero aislado en
+  `PRUEBAS/Prototipo - Aceternity Background Lines/` (21 paths SVG × copias,
+  paths/colores copiados verbatim de la pestaña "Manual" del componente),
+  integrado a `.method__bg` (primer hijo de `.method`, `pointer-events:none`,
+  `aria-hidden`). `initMethodBackground()` en `script.js` construye el SVG
+  siempre (motionOK o no); anima con GSAP solo si `motionOK`.
+  - **`position:sticky`, no `absolute`.** Pedido explícito del usuario tras
+    ver dos intentos previos: primero tileado en "bandas" verticales para
+    cubrir la columna larga (se leía como "un efecto por pantalla", no un
+    bucle continuo); después un solo paso estirado con
+    `preserveAspectRatio="none"` a la altura real de `.method` (se veía
+    "desproporcionado y alargado"). La versión final usa un contenedor del
+    tamaño real del viewport (`height:100svh`) con `position:sticky;top:0` —
+    se clava al tope mientras se hace scroll por los 12 bloques y se libera
+    solo, en CSS puro, en el borde inferior real de `.method`
+    (`margin-bottom:calc(-100vh)` cancela el hueco que el propio sticky
+    reservaría en el flujo, para no empujar el contenido 100vh hacia abajo).
+    **Toca el límite de la regla dura "ni `position:fixed` dentro del
+    nodo"** sin violarla en la letra (sticky ≠ fixed, se libera solo) ni en
+    el espíritu (los 12 bloques nunca se pinean, pasan una sola vez a la
+    velocidad que decida quien navega — lo único clavado es esta capa
+    decorativa). Confirmado antes de implementar que Lenis corre en modo
+    nativo (`new Lenis({smoothWheel:true, syncTouch:false})`, sin
+    `wrapper`/`content`) — un wrapper con `transform` rompe `sticky`, acá no
+    hay ninguno.
+  - **`preserveAspectRatio="xMidYMid slice"`, no `"none"`.** Escala
+    uniforme + recorte, nunca deforma — directamente la causa de la queja
+    "alargado" del intento anterior.
+  - **Paleta alineada al sitio** (`--signal`/`--signal-hi`/`--t-accent` en
+    vez del arcoíris original de Aceternity) — decisión tomada mostrando
+    ambas paletas aplicadas al nodo real (capturas en Chrome, no en el panel
+    embebido) y confirmada por el usuario. El último color del arcoíris
+    original quedaba en `--t-ink` (#f2f1ec, casi el mismo tono del texto);
+    sustituido por `--signal-hi` para no poner una línea casi del color del
+    texto detrás del texto.
+  - **Contraste calculado, no a ojo** (ver CLAUDE.md error #25 para el
+    precedente). El color más claro de la paleta (#8f8dc4) mezclado a
+    opacidad 1 sobre `--depth` (#050507) deja ~2.7:1 contra `--t-ink` si un
+    trazo cae justo detrás de texto — por debajo del mínimo AA. Pico de
+    opacidad de la animación capado en `METHOD_BG_PEAK_OPACITY = 0.55` (el
+    prototipo usaba 1): con eso el peor caso sube a ≥4.5:1, verificado a
+    mano con la fórmula de luminancia relativa de WCAG.
+  - **3 copias superpuestas por path** (21 en laptop+, 11 en móvil/tablet
+    vía `mobileMQ`) **y `duration` al azar por trazo** (7-15s, antes fija en
+    10 para todos) además del `delay`/`repeatDelay` que ya traía el
+    prototipo — pedido explícito del usuario tras ver la primera pasada
+    ("aumenta la cantidad de líneas... desfasa cada una... la velocidad
+    entre ellas").
+  - **Contención de rendimiento** (mismo patrón que Galaxy en el Nodo 0):
+    móvil/tablet usa la mitad de los paths; el loop arranca en pausa
+    (`paused:true`) y un `ScrollTrigger.create()` con solo
+    `onEnter`/`onEnterBack`/`onLeave`/`onLeaveBack` (sin `pin` ni `scrub`)
+    lo pausa/reanuda según si `.method` está realmente en pantalla — mismo
+    mecanismo que `setThresholdVisible` del Nodo 0.
+  - Bug real encontrado en el camino, ver CLAUDE.md error #27: `.method`
+    necesitó `isolation:isolate` — sin contexto de apilamiento propio, el
+    `z-index:-1` de `.method__bg` escapaba al contexto raíz y quedaba
+    pintado detrás del `background:black` opaco de `<body>`.
 
 
 ## Pendiente
