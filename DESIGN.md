@@ -481,9 +481,11 @@ Alcance elegido por el usuario: responsive primero.
 ## 11 · Rutas (Nodo 5), confirmado por MCP
 
 Frame `Desktop - 17`, node-id **`270:563`**, fileKey **`ml7agEUFaiqNyknGicfH5B`**.
-Medido el 2026-07-28 con `get_design_context`. El nodo todavía no está
-construido: esto es la fuente de la que sale su CSS. Detalle completo en
-`Spec - Nodo 5 Rutas.md` §5 del vault.
+Medido el 2026-07-28 con `get_design_context`. **Construido e integrado
+2026-07-28** — primer nodo del sitio bajo la cascada invertida (§1/§3):
+`--page-margin`/`--page-col` viven ahora en el `:root` de sitio en
+`styles.css`, no solo acá. Detalle completo en `Spec - Nodo 5 Rutas.md`
+§5 del vault.
 
 ### Escala
 

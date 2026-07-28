@@ -86,7 +86,7 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 | 2 — Territorio | `#territory` | Integrado · sin confirmar contra Figma |
 | 3 — Método | `#method` | Integrado |
 | 4 — Voces | `#voices` | Integrado · un bug visual abierto (cita de Melisa) |
-| 5 | — | Sin construir |
+| 5 — Rutas | `#routes` | Integrado · Footer real pendiente (hoy termina en `</section>` de Rutas), sintonía fina de responsive en móvil/tablet pendiente de la sesión dedicada |
 | Bitácora Oculta | — | Sin construir. Tarea Fase 0, se repite en los 5 nodos |
 
 ## Correr en local

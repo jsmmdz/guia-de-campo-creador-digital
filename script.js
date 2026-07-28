@@ -2437,8 +2437,263 @@ void main() {
     // (Spec §4.4).
   }
 
+  /* ============================================================
+     NODO 5 · RUTAS
+     Sin GSAP, sin ScrollTrigger, sin pin, sin scroll-jacking (Spec §6,
+     regla dura de este nodo). Los únicos mecanismos: el marquee (CSS
+     @keyframes puro, igual que Método/Voces), el reveal de entrada
+     por bloque (IntersectionObserver binario, una sola vez) y el
+     combinador (radiogroup con roving tabindex + fundido corto de la
+     tarjeta).
+
+     Distinción clave frente a Voces (Spec §4.5): acá "JS corrió" y
+     "el movimiento está activo" son dos señales separadas.
+       body.routes-js      → el combinador quedó armado (arma la ficha
+                              técnica de respaldo fuera de pantalla).
+                              Se pone SIEMPRE que el script corre, con
+                              o sin ?static=1 — el combinador es
+                              interacción, no animación, y sigue
+                              funcionando en los dos casos.
+       body.routes-motion  → controla marquee, reveals de entrada y
+                              el fundido de la tarjeta. Solo si NO hay
+                              ?static=1.
+
+     Merge desde el prototipo aislado en PRUEBAS/Prototipo - Nodo 5
+     Rutas (alta fidelidad)/, ya construido, auditado (responsive,
+     accesibilidad/contraste, guardrails de motion) y comparado contra
+     el frame real de Figma antes de integrar acá.
+     ============================================================ */
+  function initRoutes() {
+    const root = document.querySelector(".routes");
+    if (!root) return;
+
+    function initMarquee(scopeRoot) {
+      const tracks = Array.prototype.slice.call(scopeRoot.querySelectorAll(".routes__marquee-track"));
+      if (!tracks.length) return;
+
+      const firstSpan = tracks[0].querySelector("span");
+      const TEXT = firstSpan ? firstSpan.textContent : "RUTAS.";
+      let resizeTimer = null;
+
+      function measureItemWidth() {
+        const probe = document.createElement("span");
+        probe.textContent = TEXT;
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        tracks[0].appendChild(probe);
+        const w = probe.offsetWidth;
+        tracks[0].removeChild(probe);
+        return w || 1;
+      }
+
+      function build() {
+        const itemWidth = measureItemWidth();
+        const count = Math.max(8, Math.ceil(window.innerWidth / itemWidth) + 2);
+        let html = "";
+        for (let i = 0; i < count; i++) html += "<span>" + TEXT + "</span>";
+        tracks.forEach((track) => { track.innerHTML = html; });
+      }
+
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+      else build();
+
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(build, 200);
+      });
+    }
+
+    function initReveal(scopeRoot) {
+      const els = Array.prototype.slice.call(scopeRoot.querySelectorAll("[data-reveal]"));
+      if (!els.length) return;
+
+      const io = new IntersectionObserver(onIntersect, {
+        threshold: 0.15,
+        rootMargin: "0px 0px -10% 0px",
+      });
+
+      els.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom <= 0) el.classList.add("is-in", "no-anim");
+        else io.observe(el);
+      });
+
+      function onIntersect(entries) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        });
+      }
+    }
+
+    function initCombinator(scopeRoot) {
+      const combinator = scopeRoot.querySelector("[data-combinator]");
+      const matrix = scopeRoot.querySelector("[data-routes-matrix]");
+      if (!combinator || !matrix) return;
+
+      const cardEl = combinator.querySelector("[data-card]");
+      const eyebrowEl = combinator.querySelector("[data-card-eyebrow]");
+      const horizonEl = combinator.querySelector("[data-card-horizon]");
+      const roleEl = combinator.querySelector("[data-card-role]");
+      const descEl = combinator.querySelector("[data-card-desc]");
+      const futureBtn = combinator.querySelector("[data-future-btn]");
+      const lineaGroup = combinator.querySelector('[data-chip-row="linea"]');
+      const discGroup = combinator.querySelector('[data-chip-row="disciplina"]');
+
+      // 3.11: la ficha técnica es la fuente de datos — un objeto
+      // { linea: { disciplina: { hoy:{role,desc}, futuro:{role,desc} } } },
+      // leído una sola vez del DOM, nunca duplicado a mano acá.
+      function buildDataMap() {
+        const map = {};
+        const tables = Array.prototype.slice.call(matrix.querySelectorAll(".routes__matrix-table"));
+        tables.forEach((table) => {
+          const linea = table.dataset.linea;
+          map[linea] = {};
+          const rows = Array.prototype.slice.call(table.querySelectorAll("tbody tr"));
+          rows.forEach((row) => {
+            const disciplina = row.dataset.disciplina;
+            const cells = row.querySelectorAll("td");
+            map[linea][disciplina] = {
+              hoy: { role: cells[0].dataset.role, desc: cells[0].dataset.desc },
+              futuro: { role: cells[1].dataset.role, desc: cells[1].dataset.desc },
+            };
+          });
+        });
+        return map;
+      }
+      const dataMap = buildDataMap();
+
+      function buildLabelMap(groupEl, dataAttr) {
+        const map = {};
+        Array.prototype.slice.call(groupEl.querySelectorAll('[role="radio"]')).forEach((chip) => {
+          map[chip.dataset[dataAttr]] = chip.textContent.trim();
+        });
+        return map;
+      }
+      const lineaLabels = buildLabelMap(lineaGroup, "linea");
+      const discLabels = buildLabelMap(discGroup, "disciplina");
+
+      // Arranca resuelto con el default del HTML (LENGUAJE × SOFTWARE
+      // DEV, estado HOY) — Spec §4.1.
+      let currentLinea = lineaGroup.querySelector('[aria-checked="true"]').dataset.linea;
+      let currentDisciplina = discGroup.querySelector('[aria-checked="true"]').dataset.disciplina;
+      let currentState = cardEl.dataset.state || "hoy";
+      let renderToken = 0;
+
+      function render(animate) {
+        const token = ++renderToken;
+        const combo = dataMap[currentLinea][currentDisciplina];
+        const stateData = combo ? combo[currentState] : null;
+        const lineaLabel = lineaLabels[currentLinea];
+        const discLabel = discLabels[currentDisciplina];
+        const horizonText = currentState === "hoy" ? "A DIA DE HOY" : "EN 2031";
+
+        function apply() {
+          eyebrowEl.textContent = lineaLabel + " × " + discLabel;
+          horizonEl.textContent = horizonText;
+          if (stateData) {
+            roleEl.textContent = stateData.role;
+            descEl.textContent = stateData.desc;
+          } else {
+            roleEl.textContent = "Todavía no hay una lectura para esta combinación";
+            descEl.textContent = "Elegí otra línea o disciplina — esta cruza no tiene destino curado por ahora.";
+          }
+          cardEl.dataset.state = currentState;
+          futureBtn.setAttribute("aria-pressed", currentState === "futuro" ? "true" : "false");
+        }
+
+        if (!animate || !motionOK) { apply(); return; }
+
+        cardEl.classList.add("is-swapping");
+        window.setTimeout(() => {
+          // Un cambio más nuevo ya superó a este — se descarta en vez
+          // de pisar el resultado más reciente (Spec §4.5: doble
+          // presión rápida / cambio de chip a mitad de fundido).
+          if (token !== renderToken) return;
+          apply();
+          cardEl.classList.remove("is-swapping");
+        }, 190);
+      }
+
+      function selectChip(groupEl, chip) {
+        Array.prototype.slice.call(groupEl.querySelectorAll('[role="radio"]')).forEach((c) => {
+          const checked = c === chip;
+          c.setAttribute("aria-checked", checked ? "true" : "false");
+          c.tabIndex = checked ? 0 : -1;
+        });
+      }
+
+      function onChipChosen(kind, chip) {
+        if (kind === "linea") currentLinea = chip.dataset.linea;
+        else currentDisciplina = chip.dataset.disciplina;
+        // Cambiar de línea o disciplina siempre vuelve la tarjeta a
+        // HOY (Spec §4.2/§3.10).
+        currentState = "hoy";
+        render(true);
+      }
+
+      function wireChipGroup(groupEl, kind) {
+        groupEl.addEventListener("click", (event) => {
+          const chip = event.target.closest('[role="radio"]');
+          if (!chip || !groupEl.contains(chip)) return;
+          if (chip.getAttribute("aria-checked") === "true") return;
+          selectChip(groupEl, chip);
+          onChipChosen(kind, chip);
+        });
+
+        groupEl.addEventListener("keydown", (event) => {
+          const chips = Array.prototype.slice.call(groupEl.querySelectorAll('[role="radio"]'));
+          const currentIndex = chips.findIndex((c) => c.getAttribute("aria-checked") === "true");
+          let nextIndex = null;
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (currentIndex + 1) % chips.length;
+          else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (currentIndex - 1 + chips.length) % chips.length;
+          else return;
+          event.preventDefault();
+          const chip = chips[nextIndex];
+          chip.focus();
+          selectChip(groupEl, chip);
+          onChipChosen(kind, chip);
+        });
+      }
+
+      wireChipGroup(lineaGroup, "linea");
+      wireChipGroup(discGroup, "disciplina");
+
+      futureBtn.addEventListener("click", () => {
+        currentState = currentState === "hoy" ? "futuro" : "hoy";
+        render(true);
+      });
+
+      // Primer render: sincroniza el DOM con la misma fuente de datos
+      // que usará cada cambio posterior.
+      render(false);
+
+      // Combinador armado: la ficha técnica de respaldo sale de
+      // pantalla (CSS, ver body.routes-js [data-combinator].is-ready).
+      combinator.classList.add("is-ready");
+    }
+
+    // El combinador se arma SIEMPRE que el script corre — es
+    // interacción, no animación, y sigue funcionando con ?static=1
+    // (Spec §4.5, a diferencia del acordeón de Voces).
+    document.body.classList.add("routes-js");
+    initCombinator(root);
+
+    if (motionOK) {
+      document.body.classList.add("routes-motion");
+      initMarquee(root);
+      initReveal(root);
+    }
+    // Sin JS: sin body.routes-js, la armadura CSS no aplica y la
+    // ficha técnica de las 30 combinaciones queda visible de corrido,
+    // con el combinador (sin listeners) simplemente inerte (Spec §4.5).
+  }
+
   initTerritory();
   initMethod();
   initVoices();
+  initRoutes();
   initLenis();
 })();

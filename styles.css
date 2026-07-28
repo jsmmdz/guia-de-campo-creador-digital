@@ -43,6 +43,14 @@
   --sp-5: 64px;
   --sp-6: 96px;
 
+  /* Sistema responsive de DESIGN.md §4 — 1440 es la fuente de las
+     medidas, móvil decide (DESIGN.md §1). Introducido por Rutas (Nodo
+     5), el primer nodo construido bajo la cascada invertida; queda acá,
+     en el :root de sitio, para que los próximos nodos lo hereden en vez
+     de reinventar su propio margen. */
+  --page-margin: clamp(24px, 7.3vw, 140px);   /* 105px a 1440 */
+  --page-col: min(100% - 2 * var(--page-margin), 1645px);  /* 1234px a 1440 */
+
   --f-display: "Archivo", sans-serif;
   /* Registro técnico de todo el sitio: etiquetas, eyebrows, sellos,
      coordenadas del HUD, atribuciones. Reemplaza a la monoespaciada
@@ -2374,4 +2382,575 @@ body.voices-js .voices__row-body {
 @media (min-width: 1920px) {
   .voices { padding-left: var(--sp-5); padding-right: var(--sp-5); max-width: 1600px; margin: 0 auto; }
   .voices__marquee { margin: 0 calc(-1 * var(--sp-5)); padding-left: var(--sp-5); padding-right: var(--sp-5); }
+}
+
+/* ============================================================
+   NODO 5 · RUTAS
+   El cierre del sitio: el único combinador, junto al acordeón de
+   Voces el segundo control real. Radio 0, sin sombras, sin
+   degradados (Spec §5.1). Sin GSAP/ScrollTrigger/pin — sin
+   scroll-jacking desde el Nodo 3 en adelante (CLAUDE.md). Los únicos
+   mecanismos: el marquee (CSS @keyframes puro, igual que
+   Método/Voces), el reveal de entrada (IntersectionObserver binario)
+   y el estado del combinador (fundido corto, la tarjeta no se mueve).
+
+   Primer nodo construido bajo la cascada invertida de DESIGN.md
+   (1440 sin @media es la base; --page-margin/--page-col ya están en
+   el :root de sitio, más arriba). El ritmo vertical narrativo propio
+   de este nodo (los saltos de 281–451px) queda literal a 1440 — no
+   hay frame de móvil del que derivar sus pisos; la sintonía fina para
+   los demás breakpoints es tarea de la sesión de responsive dedicada.
+
+   Merge desde el prototipo aislado en PRUEBAS/Prototipo - Nodo 5
+   Rutas (alta fidelidad)/, construido, auditado (responsive,
+   contraste, guardrails de motion) y comparado contra el frame real
+   de Figma antes de integrar acá.
+   ============================================================ */
+:root {
+  --m-ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* ya usado por Voces (§2340s); repetido acá por si el orden de carga cambia, mismo valor exacto */
+
+  /* paleta de Rutas, confirmada por MCP (DESIGN.md §11 / Spec §5.3) —
+     tokens nuevos acá porque son exclusivos de este nodo, igual que
+     --t-* lo es de Territorio (--spec-1..6 del Catálogo se REUSAN tal
+     cual, sin variación de hex — Spec §3.7). */
+  --r-ink-marquee: #e1dfff;   /* marquesina y enunciado */
+  --r-ink-heading: #ffffff;   /* bisagra y las tres líneas */
+  --r-ink-prose: #e4e1ee;     /* aterrizaje, cierre */
+  --r-ink-card: #e3e3de;      /* rol y descripción de la tarjeta */
+  --r-ink-muted: #908fa1;     /* etiquetas de selector, horizonte */
+  --r-ink-chip: #c6c4d8;      /* chip sin seleccionar */
+  --r-line: #464555;          /* filete de sección y de chip */
+  --r-rule: #e4e1ee;          /* filete horizontal de separación */
+  --r-accent: #c1c1ff;        /* filete de acento de la bisagra (4px) y chip de línea seleccionado */
+
+  /* Estado HOY / FUTURO de la tarjeta — codifica tiempo, no disciplina
+     (Spec §3.9). Corchetes de FUTURO en salmón, no en el lavanda que
+     mide el frame — decisión explícita del usuario 2026-07-28, sigue
+     la lectura coherente del sistema (Spec §5.3). */
+  --r-card-bg-hoy: rgba(18, 20, 17, 0.5);
+  --r-card-line-hoy: rgba(70, 69, 84, 0.3);
+  --r-card-accent-hoy: #c0c1ff;
+  --r-card-bracket-hoy: rgba(227, 227, 222, 0.2);
+
+  --r-card-bg-futuro: rgba(111, 17, 0, 0.1);
+  --r-card-line-futuro: rgba(255, 180, 164, 0.3);
+  --r-card-accent-futuro: #ffb4a4;
+  --r-card-bracket-futuro: #ffb4a4;
+
+  /* alto fijo de la tarjeta (Spec §4.2) — verificado contra las 30
+     combinaciones × 2 estados en 7 anchos (375 a 2560px), 0 desbordes */
+  --r-card-height: 347px;
+}
+
+.routes {
+  position: relative;
+  background: var(--void);
+  padding: var(--sp-6) 0 0;
+  overflow: hidden; /* el riel del marquee no debe empujar scroll horizontal */
+}
+/* Full-bleed a propósito: --page-col ya resta 2×--page-margin de "100%"
+   (DESIGN.md §4). Si .routes también tuviera padding lateral, cada
+   bloque que usa --page-col restaría el margen DOS VECES — a 1920 la
+   columna quedaba en ~1345px en vez de ~1640px (bug real, encontrado
+   revisando pantallas grandes antes de mergear). Cada bloque de
+   contenido inserta su propio margen: los que centran con --page-col
+   vía margin:auto, y la marquesina/el enunciado con su propio padding
+   lateral. */
+
+/* ---------- 3.1 marquesina "RUTAS." ----------
+   Mismo mecanismo EXACTO que .method__marquee/.voices__marquee:
+   @keyframes CSS puro sobre translateX, loop autónomo. */
+.routes__marquee {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+  padding: var(--sp-3) var(--page-margin) var(--sp-2);
+}
+.routes__marquee-rail {
+  display: flex;
+  width: max-content;
+}
+body.routes-motion .routes__marquee-rail {
+  animation: routes-marquee-scroll 32s linear infinite;
+}
+@keyframes routes-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.routes__marquee-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.routes__marquee-track span {
+  display: inline-block;
+  padding-right: var(--sp-5);
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(43px, 8.89vw, 170.67px); /* 128px a 1440, DESIGN.md §11 */
+  line-height: 1.1;
+  color: var(--r-ink-marquee);
+  opacity: 0.92;
+}
+
+/* ============================================================
+   ARMADURA DE REVEAL — acotada a .routes (CLAUDE.md, error #26).
+   Estado por defecto (JS no ejecutó / ?static=1): todo visible.
+   ============================================================ */
+.routes [data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+body.routes-motion .routes [data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 650ms var(--m-ease-out), transform 650ms var(--m-ease-out);
+}
+body.routes-motion .routes [data-reveal].is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+body.routes-motion .routes [data-reveal].no-anim {
+  transition: none;
+}
+/* reveal escalonado propio de las tres líneas (Spec §3.3) */
+body.routes-motion .routes__hero-line:nth-child(1) { transition-delay: 0ms; }
+body.routes-motion .routes__hero-line:nth-child(2) { transition-delay: 160ms; }
+body.routes-motion .routes__hero-line:nth-child(3) { transition-delay: 320ms; }
+
+/* ============================================================
+   3.2 — Bisagra. Filete de acento de 4px — grosor confirmado como
+   intencional (decisión del usuario 2026-07-28): el acento más
+   pesado del sitio, se justifica porque cierra el hilo de los tres
+   nodos anteriores (Spec §5.1/D-19 de DESIGN.md).
+   ============================================================ */
+.routes__hinge {
+  position: relative;
+  max-width: var(--page-col);
+  margin: var(--sp-6) auto 0;
+  padding-left: var(--sp-4);
+}
+.routes__hinge-rule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--r-accent);
+}
+.routes__hinge-text {
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-variation-settings: "SOFT" 0, "WONK" 1;
+  font-size: clamp(25px, 3.34vw, 64px); /* 48px a 1440 */
+  line-height: normal;
+  color: var(--r-ink-heading);
+}
+
+/* ============================================================
+   3.3 — Las tres líneas: centradas, aire más grande del nodo.
+   ============================================================ */
+.routes__hero {
+  max-width: var(--page-col);
+  margin: 350px auto 0;
+  text-align: center;
+}
+.routes__hero-line {
+  font-family: var(--t-f-serif);
+  font-style: italic;
+  font-weight: 600;
+  font-variation-settings: "SOFT" 0, "WONK" 1;
+  font-size: clamp(33px, 5.56vw, 106.67px); /* 80px a 1440 — tier nuevo, DESIGN.md §11 */
+  line-height: normal;
+  color: var(--r-ink-heading);
+}
+.routes__hero-line + .routes__hero-line { margin-top: 200px; }
+.routes__hero-line:nth-child(2) { margin-top: 281px; }
+.routes__hero-line:nth-child(3) { margin-top: 289px; }
+
+/* ============================================================
+   3.4 — Enunciado "EXPLORACIÓN DE RUTAS". Mismo escalón que
+   .method__term / INVESTIGACIÓN-CREACIÓN.: 85px Gantari Bold Italic
+   uppercase (Spec §3.4, confirmado por MCP).
+   ============================================================ */
+.routes__term {
+  margin-top: 342px;
+  padding: 0 var(--page-margin);
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(33px, 5.91vw, 113.33px); /* 85px a 1440 */
+  line-height: normal;
+  color: var(--r-ink-marquee);
+}
+
+/* ============================================================
+   3.5 — Aterrizaje: columna de lectura de 1159px, mismo valor que
+   Método (DESIGN.md §7/D-08). Cuatro bloques de aire.
+   ============================================================ */
+.routes__landing {
+  max-width: 1159px;
+  margin: 451px auto 0;
+}
+.routes__landing-p {
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(19px, 2.23vw, 42.67px); /* 32px a 1440 */
+  line-height: 1.65; /* 52.8px absoluto a 1440, DESIGN.md §11 */
+  color: var(--r-ink-prose);
+}
+.routes__landing-p + .routes__landing-p { margin-top: var(--sp-3); }
+
+/* ============================================================
+   3.6/3.7/3.8/3.9/3.10 — El combinador
+   ============================================================ */
+.routes__combinator {
+  max-width: var(--page-col);
+  margin: 384px auto 0;
+}
+.routes__selector + .routes__selector { margin-top: var(--sp-4); } /* 48px entre secciones */
+
+.routes__rule {
+  width: 100%;
+  height: 1px;
+  background: var(--r-rule);
+}
+.routes__selector-label {
+  margin-top: 10px;
+  font-family: var(--f-sans);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px a 1440 */
+  letter-spacing: 0.1em;
+  color: var(--r-ink-muted);
+}
+.routes__chips {
+  display: flex;
+  flex-wrap: wrap; /* viewport angosto: wrap de 2-3 renglones, nunca <select> (Spec §4.5) */
+  gap: 30px;
+  margin-top: var(--sp-3);
+}
+
+/* Chip — rectángulo, radio 0, un solo filete de 2px que solo cambia
+   de color (Spec §5.1). */
+.routes__chip {
+  appearance: none;
+  background: transparent;
+  border: 2px solid var(--r-line);
+  color: var(--r-ink-chip);
+  font: inherit;
+  font-family: var(--f-sans);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: clamp(11px, 0.84vw, 16px); /* 12px a 1440 */
+  line-height: 1.1;
+  letter-spacing: 0.165em;
+  padding: 7px 24px 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.routes__chip[aria-checked="true"] {
+  background: var(--r-accent);
+  border-color: var(--r-accent);
+  color: var(--depth);
+}
+/* --r-spec-ink por defecto es la tinta oscura del sitio (var(--depth)),
+   pero dos disciplinas (3D Production / Software Dev) la overridean a
+   blanco por inline style — auditoría de contraste confirmó que
+   var(--depth) sobre esos dos rellenos falla WCAG AA (3.45:1 y 4.41:1
+   contra el mínimo 4.5:1); blanco da 5.90:1 y 4.62:1. Las otras cuatro
+   disciplinas ya cumplen con la tinta oscura del spec y no se tocan. */
+.routes__chip--spec { --r-spec-ink: var(--depth); }
+.routes__chip--spec[aria-checked="false"] { color: var(--r-spec); border-color: var(--r-line); }
+.routes__chip--spec[aria-checked="true"] { background: var(--r-spec); border-color: var(--r-spec); color: var(--r-spec-ink); }
+@media (hover: hover) and (pointer: fine) {
+  .routes__chip[aria-checked="false"]:hover { border-color: var(--r-ink-chip); }
+}
+.routes__chip:focus-visible {
+  outline: 2px solid var(--r-accent);
+  outline-offset: 3px;
+}
+.routes__chip:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- 3.8/3.9 la tarjeta ---------- */
+.routes__card {
+  position: relative;
+  margin-top: 32px;
+  height: var(--r-card-height);
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--r-card-bg-hoy);
+  border: 1px solid var(--r-card-line-hoy);
+  backdrop-filter: blur(2px); /* Spec §5.1: solo tiene sentido con el fondo de 3.14; hoy es negro puro detrás, no se nota — se deja preparado, no se retira */
+}
+body.routes-motion .routes__card {
+  transition: background-color 180ms var(--m-ease-out), border-color 180ms var(--m-ease-out);
+}
+.routes__card::before,
+.routes__card::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  border-color: var(--r-card-bracket-hoy);
+}
+.routes__card::before { bottom: -1px; left: -1px; border-bottom: 1px solid; border-left: 1px solid; }
+.routes__card::after { top: -1px; right: -1px; border-top: 1px solid; border-right: 1px solid; }
+
+.routes__card[data-state="futuro"] {
+  background: var(--r-card-bg-futuro);
+  border-color: var(--r-card-line-futuro);
+}
+.routes__card[data-state="futuro"]::before,
+.routes__card[data-state="futuro"]::after {
+  border-color: var(--r-card-bracket-futuro);
+}
+
+.routes__card-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-sans);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px a 1440 */
+  letter-spacing: 0.22em;
+  line-height: 1.45;
+  color: var(--r-card-accent-hoy);
+}
+.routes__card[data-state="futuro"] .routes__card-eyebrow { color: var(--r-card-accent-futuro); }
+.routes__card-square {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+}
+.routes__card-horizon {
+  padding: 15px 0 0;
+  font-family: var(--f-sans);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px a 1440, Spec §5.4 D-17 */
+  letter-spacing: 0.18em;
+  color: var(--r-ink-muted);
+}
+.routes__card-role {
+  font-family: var(--f-sans);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(25px, 3.34vw, 64px); /* 48px a 1440 */
+  line-height: 0.667; /* 32px absoluto a 1440 — deliberadamente apretado, Spec §5.4 */
+  color: var(--r-ink-card);
+}
+.routes__card-desc {
+  font-family: var(--f-sans);
+  font-weight: 400;
+  font-size: clamp(19px, 2.23vw, 42.67px); /* 32px a 1440 */
+  line-height: 1;
+  color: var(--r-ink-card);
+}
+
+/* fundido corto entre combinaciones — la tarjeta no se mueve ni gira
+   (Spec §4.2/§4.3, Guardrails §6). Atado a routes-motion, no a
+   routes-js: con ?static=1 el combinador sigue funcionando pero sin
+   fundido (Spec §4.5 — a diferencia de Voces). */
+body.routes-motion .routes__card-eyebrow,
+body.routes-motion .routes__card-horizon,
+body.routes-motion .routes__card-role,
+body.routes-motion .routes__card-desc {
+  transition: opacity 180ms var(--m-ease-out);
+}
+.routes__card.is-swapping .routes__card-eyebrow,
+.routes__card.is-swapping .routes__card-horizon,
+.routes__card.is-swapping .routes__card-role,
+.routes__card.is-swapping .routes__card-desc {
+  opacity: 0;
+}
+
+/* ---------- 3.10 botón ---------- */
+.routes__future-btn {
+  display: block;
+  margin: 424px auto 0;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--r-rule);
+  color: var(--r-ink-prose);
+  font: inherit;
+  font-family: var(--f-sans);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: clamp(11px, 0.84vw, 16px); /* 12px a 1440, Spec §5.4 D-17 */
+  letter-spacing: 0.12em;
+  padding: 25px 49px;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .routes__future-btn:hover { background: rgba(225, 223, 255, 0.08); }
+}
+.routes__future-btn[aria-pressed="true"] {
+  background: var(--r-card-accent-futuro);
+  border-color: var(--r-card-accent-futuro);
+  color: var(--depth);
+}
+.routes__future-btn:focus-visible {
+  outline: 2px solid var(--r-accent);
+  outline-offset: 3px;
+}
+.routes__future-btn:focus:not(:focus-visible) { outline: none; }
+
+/* ============================================================
+   3.11 — Ficha técnica: 30 combinaciones. Fuente de datos del
+   combinador Y contenido íntegro sin JS (Spec §3.11/§4.5).
+   ============================================================ */
+.routes__matrix {
+  max-width: 1159px;
+  margin: var(--sp-6) auto 0;
+}
+body.routes-js [data-combinator].is-ready + .routes__matrix {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  margin: 0;
+}
+.routes__matrix-note {
+  font-family: var(--f-sans);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--r-ink-muted);
+  margin-bottom: var(--sp-3);
+}
+.routes__matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--sp-4);
+  font-family: var(--f-sans);
+  font-size: 14px;
+  color: var(--r-ink-prose);
+}
+.routes__matrix-table caption {
+  text-align: left;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 20px;
+  color: var(--r-ink-marquee);
+  margin-bottom: var(--sp-2);
+}
+.routes__matrix-table th,
+.routes__matrix-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--sp-2);
+  border-top: 1px solid var(--r-line);
+}
+
+/* ============================================================
+   3.12 — Ruta transversal · Emprendimiento. Tres filas de ficha
+   técnica sin panel — mismo patrón que Territorio, sin fondo ni
+   corchetes (Spec §3.12, propuesta a confirmar en su propia revisión
+   visual).
+   ============================================================ */
+.routes__venture {
+  max-width: 1159px;
+  margin: var(--sp-6) auto 0;
+}
+.routes__venture-p {
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(19px, 2.23vw, 42.67px);
+  line-height: 1.65;
+  color: var(--r-ink-prose);
+}
+.routes__venture-rows { margin-top: var(--sp-4); }
+.routes__venture-row {
+  display: flex;
+  gap: var(--sp-4);
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--r-line);
+}
+.routes__venture-row:last-child { border-bottom: 1px solid var(--r-line); }
+.routes__venture-row dt {
+  flex: 0 0 auto;
+  width: 180px;
+  font-family: var(--t-f-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--r-ink-marquee);
+}
+.routes__venture-row dd {
+  flex: 1 1 auto;
+  font-family: var(--f-sans);
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--r-ink-prose);
+}
+
+/* ============================================================
+   3.13 — Cierre del sitio. El aire más largo del nodo (Spec §3.13).
+   ============================================================ */
+.routes__outro {
+  max-width: 1159px;
+  margin: 480px auto 480px;
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(19px, 2.23vw, 42.67px);
+  line-height: 1.65;
+  color: var(--r-ink-prose);
+}
+
+/* 3.14 — fondo reservado, vacío en esta fase */
+.routes__field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   RESPONSIVE — únicos ajustes ya exigidos por el spec sin frame de
+   móvil que medir: touch target de 40px en el chip (§5.2). El resto
+   del ritmo narrativo queda para la sesión de responsive dedicada.
+   ============================================================ */
+@media (max-width: 767px) {
+  .routes__chip { min-height: 40px; }
+  .routes__hero,
+  .routes__term,
+  .routes__landing,
+  .routes__combinator,
+  .routes__venture,
+  .routes__future-btn,
+  .routes__outro {
+    margin-top: var(--sp-6);
+  }
+  .routes__hero-line + .routes__hero-line { margin-top: var(--sp-5); }
+  .routes__venture-row { flex-direction: column; gap: var(--sp-1); }
+  .routes__venture-row dt { width: auto; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .routes__hero,
+  .routes__term,
+  .routes__landing,
+  .routes__combinator,
+  .routes__venture,
+  .routes__future-btn,
+  .routes__outro {
+    margin-top: var(--sp-6);
+  }
+  .routes__hero-line + .routes__hero-line { margin-top: 140px; }
 }

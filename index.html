@@ -32,8 +32,11 @@
      — etiquetas, eyebrows, sellos, coordenadas del HUD y atribuciones, en
      los 5 nodos. Los pesos 400..700 ya cubrían esos usos, así que el link
      no cambió al migrar. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" />
-<link rel="stylesheet" href="styles.css?v=24" />
+<!-- Rutas (Nodo 5) suma ital,wght@1,700 — el rol de la tarjeta del
+     combinador es Plus Jakarta Bold Italic (Spec §5.4), peso que
+     ningún nodo anterior necesitaba. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500;1,700&display=swap" />
+<link rel="stylesheet" href="styles.css?v=25" />
 </head>
 <body>
 
@@ -1060,6 +1063,353 @@
 
 </section>
 
+<section class="routes" id="routes">
+
+  <!-- ============================================================
+       3.1 — Marquesina "RUTAS."
+       Decorativo: no ancla, no aparece en ninguna navegación. Hereda
+       la función de rótulo de capítulo que en Territorio cumple el
+       título del nodo (Spec §3.1).
+       ============================================================ -->
+  <div class="routes__marquee" aria-hidden="true">
+    <div class="routes__marquee-rail">
+      <div class="routes__marquee-track">
+        <span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span>
+      </div>
+      <div class="routes__marquee-track">
+        <span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span><span>RUTAS.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       3.2 — Bisagra desde Voces. Texto literal, cortado en tres
+       renglones por tratamiento tipográfico del frame (Spec §3.2) —
+       en el contenido es un solo párrafo. Filete de acento de 4px,
+       motivo de la cita destacada de Método.
+       ============================================================ -->
+  <section class="routes__hinge">
+    <div class="routes__hinge-rule" aria-hidden="true"></div>
+    <p class="routes__hinge-text" data-reveal>Perfil respondió qué sabés hacer hoy.<br />Territorio respondió dónde se vende eso hoy.<br />Voces mostró a dos personas que ya lo viven, cada una desde su lugar.</p>
+  </section>
+
+  <!-- ============================================================
+       3.3 — Las tres líneas: segunda mitad del mismo párrafo,
+       centradas, con el aire más grande del nodo entre ellas y
+       reveal escalonado propio (Spec §3.3).
+       ============================================================ -->
+  <section class="routes__hero">
+    <p class="routes__hero-line" data-reveal>Queda una sola pregunta,</p>
+    <p class="routes__hero-line" data-reveal>y es la única que mira hacia adelante:</p>
+    <p class="routes__hero-line" data-reveal>desde acá, ¿hacia dónde puedés ir tu?</p>
+  </section>
+
+  <!-- ============================================================
+       3.4 — Enunciado "EXPLORACIÓN DE RUTAS". No está en el vault
+       (viene solo del frame); el spec recomienda llevar tilde por
+       consistencia con el resto del sitio (§3.4) — se implementa así.
+       ============================================================ -->
+  <h2 class="routes__term" data-reveal>EXPLORACIÓN DE<br />RUTAS</h2>
+
+  <!-- ============================================================
+       3.5 — Aterrizaje: registro técnico, cuatro bloques de aire
+       como en el frame. Gana el contenido en las dos discrepancias
+       de copy contra el Figma (Spec §3.5): "Catálogo" en vez de
+       "nodo 1", raya en vez de coma.
+       ============================================================ -->
+  <section class="routes__landing">
+    <p class="routes__landing-p" data-reveal>Esta Guía no te va a entregar una sola ruta correcta — te da los ingredientes.</p>
+    <p class="routes__landing-p" data-reveal>Por un lado, las cinco líneas temáticas del programa:</p>
+    <p class="routes__landing-p routes__landing-p--list" data-reveal>Estudio, Lenguaje, Contexto, Estética, Usuarios.</p>
+    <p class="routes__landing-p" data-reveal>Por el otro, las seis disciplinas que ya viste en el Catálogo.<br />Elije una de cada una y mirá qué destino profesional aparece.<br />Después, si quierés, preguntale al futuro.</p>
+  </section>
+
+  <!-- ============================================================
+       3.6/3.7/3.8/3.9/3.10 — El combinador. Único control real del
+       sitio junto al acordeón de Voces. Arranca resuelto (LENGUAJE ×
+       SOFTWARE DEV, estado HOY) — Spec §4.1: el nodo se lee entero y
+       con sentido sin una sola interacción.
+       ============================================================ -->
+  <section class="routes__combinator" data-combinator>
+
+    <!-- 3.6 — selector de línea temática -->
+    <div class="routes__selector">
+      <div class="routes__rule" aria-hidden="true"></div>
+      <p class="routes__selector-label" id="routes-linea-label">ELIJE UNA LÍNEA TEMÁTICA // EJE X</p>
+      <div class="routes__chips" role="radiogroup" aria-labelledby="routes-linea-label" data-chip-row="linea">
+        <button type="button" class="routes__chip" role="radio" aria-checked="false" tabindex="-1" data-linea="estudio">ESTUDIO</button>
+        <button type="button" class="routes__chip" role="radio" aria-checked="true" tabindex="0" data-linea="lenguaje">LENGUAJE</button>
+        <button type="button" class="routes__chip" role="radio" aria-checked="false" tabindex="-1" data-linea="contexto">CONTEXTO</button>
+        <button type="button" class="routes__chip" role="radio" aria-checked="false" tabindex="-1" data-linea="estetica">ESTÉTICA</button>
+        <button type="button" class="routes__chip" role="radio" aria-checked="false" tabindex="-1" data-linea="usuarios">USUARIOS</button>
+      </div>
+    </div>
+
+    <!-- 3.7 — selector de disciplina: cada chip lleva el color de su
+         --spec-N (Spec §3.7 — literalmente los del Catálogo, sin
+         reconciliar hex). -->
+    <div class="routes__selector">
+      <div class="routes__rule" aria-hidden="true"></div>
+      <p class="routes__selector-label" id="routes-disciplina-label">ELIJE UNA DISCIPLINA // EJE Y</p>
+      <div class="routes__chips" role="radiogroup" aria-labelledby="routes-disciplina-label" data-chip-row="disciplina">
+        <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-1)" role="radio" aria-checked="false" tabindex="-1" data-disciplina="uxui">UX/UI</button>
+        <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-2); --r-spec-ink: #ffffff" role="radio" aria-checked="false" tabindex="-1" data-disciplina="3d">3D PRODUCTION</button>
+        <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-3); --r-spec-ink: #ffffff" role="radio" aria-checked="true" tabindex="0" data-disciplina="swdev">SOFTWARE DEV</button>
+        <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-4)" role="radio" aria-checked="false" tabindex="-1" data-disciplina="gameeng">GAME ENGINEERING</button>
+        <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-5)" role="radio" aria-checked="false" tabindex="-1" data-disciplina="multimedia">MULTIMEDIA ARTIST</button>
+        <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-6)" role="radio" aria-checked="false" tabindex="-1" data-disciplina="aitech">AI TECHNOLOGIST</button>
+      </div>
+    </div>
+
+    <!-- 3.8/3.9 — la tarjeta: una sola, dos estados, nunca las dos a
+         la vez (Spec §3.8). Alto fijo 347px para que nada salte al
+         cambiar de combinación (Spec §4.2). -->
+    <div class="routes__card" data-card data-state="hoy" aria-live="polite" aria-atomic="true">
+      <p class="routes__card-eyebrow">
+        <span class="routes__card-square" aria-hidden="true"></span>
+        <span data-card-eyebrow>LENGUAJE × SOFTWARE DEV</span>
+      </p>
+      <p class="routes__card-horizon" data-card-horizon>A DIA DE HOY</p>
+      <p class="routes__card-role" data-card-role>Frontend developer</p>
+      <p class="routes__card-desc" data-card-desc>escribe componentes en TypeScript y React, corrige bugs reportados en producción y revisa pull requests del equipo cada mañana.</p>
+    </div>
+
+    <!-- 3.10 — botón, copy exacto y no negociable. El texto queda en
+         registro título; el uppercase es tratamiento CSS (Spec §3.10). -->
+    <button type="button" class="routes__future-btn" data-future-btn aria-pressed="false">¿Y cómo se ve el futuro?</button>
+  </section>
+
+  <!-- ============================================================
+       3.11 — Ficha técnica: las 30 combinaciones completas, hoy y en
+       2031. Es la fuente de la que el combinador lee (script.js) Y lo
+       que el lector ve entero si el JavaScript no corre (Spec §3.11,
+       §4.5) — por eso vive en el flujo del documento con datos y
+       texto legible a la vez, y solo se oculta por CSS cuando
+       body.routes-js confirma que el combinador quedó armado.
+       ============================================================ -->
+  <section class="routes__matrix" data-routes-matrix aria-label="Las treinta combinaciones de línea temática y disciplina">
+    <p class="routes__matrix-note">Nota: estas treinta lecturas son simulación, no evidencia — no vienen de una cita real, son proyecciones plausibles generadas a partir de la descripción de cada línea temática y cada disciplina.</p>
+
+    <table class="routes__matrix-table" data-linea="estudio">
+      <caption>Estudio</caption>
+      <thead><tr><th scope="col">Disciplina</th><th scope="col">Hoy (2026)</th><th scope="col">En 2031</th></tr></thead>
+      <tbody>
+        <tr data-disciplina="uxui">
+          <th scope="row">UX/UI Design</th>
+          <td data-role="Product Designer de estudio digital" data-desc="integra investigación, wireframes y pruebas de usabilidad en sprints de dos semanas para lanzar features listas a producción."><strong>Product Designer de estudio digital</strong> — integra investigación, wireframes y pruebas de usabilidad en sprints de dos semanas para lanzar features listas a producción.</td>
+          <td data-role="Líder de Proyecto UX Integrador" data-desc="orquesta prototipos generados por IA para un cliente real, valida flujos con usuarios y defiende decisiones ante un jurado semanal."><strong>Líder de Proyecto UX Integrador</strong> — orquesta prototipos generados por IA para un cliente real, valida flujos con usuarios y defiende decisiones ante un jurado semanal.</td>
+        </tr>
+        <tr data-disciplina="3d">
+          <th scope="row">3D Production</th>
+          <td data-role="Generalista 3D en estudio creativo" data-desc="modela, texturiza e ilumina assets para un cliente de e-commerce y entrega el render final dentro del cronograma del sprint."><strong>Generalista 3D en estudio creativo</strong> — modela, texturiza e ilumina assets para un cliente de e-commerce y entrega el render final dentro del cronograma del sprint.</td>
+          <td data-role="Director de Producción 3D Capstone" data-desc="dirige un equipo que genera y cura assets 3D con IA para un proyecto real, ajustando dirección de arte y plazos de entrega."><strong>Director de Producción 3D Capstone</strong> — dirige un equipo que genera y cura assets 3D con IA para un proyecto real, ajustando dirección de arte y plazos de entrega.</td>
+        </tr>
+        <tr data-disciplina="swdev">
+          <th scope="row">Software Dev</th>
+          <td data-role="Full-stack developer de estudio" data-desc="conecta el frontend con la API del backend y despliega el ambiente de staging antes de cada demo de cliente."><strong>Full-stack developer de estudio</strong> — conecta el frontend con la API del backend y despliega el ambiente de staging antes de cada demo de cliente.</td>
+          <td data-role="Arquitecto de Producto Full-Stack" data-desc="ensambla y despliega una plataforma real integrando módulos generados por IA, revisando arquitectura, seguridad y deuda técnica del equipo."><strong>Arquitecto de Producto Full-Stack</strong> — ensambla y despliega una plataforma real integrando módulos generados por IA, revisando arquitectura, seguridad y deuda técnica del equipo.</td>
+        </tr>
+        <tr data-disciplina="gameeng">
+          <th scope="row">Game Engineering</th>
+          <td data-role="Game developer de estudio indie" data-desc="programa la mecánica de combate en Unity y ajusta el balance de dificultad según feedback de playtesters cada semana."><strong>Game developer de estudio indie</strong> — programa la mecánica de combate en Unity y ajusta el balance de dificultad según feedback de playtesters cada semana.</td>
+          <td data-role="Productor de Prototipo Jugable" data-desc="lidera un equipo capstone que diseña reglas de juego y afina sistemas generados por IA hasta un prototipo jugable final."><strong>Productor de Prototipo Jugable</strong> — lidera un equipo capstone que diseña reglas de juego y afina sistemas generados por IA hasta un prototipo jugable final.</td>
+        </tr>
+        <tr data-disciplina="multimedia">
+          <th scope="row">Multimedia Artist</th>
+          <td data-role="Artista multimedia de estudio" data-desc="edita video, motion graphics y sonido para la campaña de lanzamiento y entrega el paquete final al equipo de marketing."><strong>Artista multimedia de estudio</strong> — edita video, motion graphics y sonido para la campaña de lanzamiento y entrega el paquete final al equipo de marketing.</td>
+          <td data-role="Director Creativo de Proyecto Final" data-desc="coordina piezas visuales y sonoras generadas con IA para una campaña real, cuidando coherencia de marca entre formatos y plataformas."><strong>Director Creativo de Proyecto Final</strong> — coordina piezas visuales y sonoras generadas con IA para una campaña real, cuidando coherencia de marca entre formatos y plataformas.</td>
+        </tr>
+        <tr data-disciplina="aitech">
+          <th scope="row">AI Technologist</th>
+          <td data-role="AI product engineer de estudio" data-desc="integra un modelo de lenguaje al producto del cliente y ajusta los prompts según los resultados de las pruebas piloto."><strong>AI product engineer de estudio</strong> — integra un modelo de lenguaje al producto del cliente y ajusta los prompts según los resultados de las pruebas piloto.</td>
+          <td data-role="Líder de Implementación de IA" data-desc="diseña e integra un agente de IA dentro de un proyecto real, midiendo su impacto ético y funcional ante usuarios finales."><strong>Líder de Implementación de IA</strong> — diseña e integra un agente de IA dentro de un proyecto real, midiendo su impacto ético y funcional ante usuarios finales.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="routes__matrix-table" data-linea="lenguaje">
+      <caption>Lenguaje</caption>
+      <thead><tr><th scope="col">Disciplina</th><th scope="col">Hoy (2026)</th><th scope="col">En 2031</th></tr></thead>
+      <tbody>
+        <tr data-disciplina="uxui">
+          <th scope="row">UX/UI Design</th>
+          <td data-role="Design engineer frontend" data-desc="traduce componentes de Figma a código en React y ajusta el design system para que cada pantalla sea consistente."><strong>Design engineer frontend</strong> — traduce componentes de Figma a código en React y ajusta el design system para que cada pantalla sea consistente.</td>
+          <td data-role="Diseñador de Interfaces Generativas" data-desc="escribe prompts y componentes frontend que la IA ensambla en tiempo real, ajustando cada interacción hasta que se sienta intuitiva."><strong>Diseñador de Interfaces Generativas</strong> — escribe prompts y componentes frontend que la IA ensambla en tiempo real, ajustando cada interacción hasta que se sienta intuitiva.</td>
+        </tr>
+        <tr data-disciplina="3d">
+          <th scope="row">3D Production</th>
+          <td data-role="Desarrollador WebGL Three.js" data-desc="programa escenas 3D interactivas en Three.js para el sitio web de una marca y optimiza el rendimiento en móvil."><strong>Desarrollador WebGL Three.js</strong> — programa escenas 3D interactivas en Three.js para el sitio web de una marca y optimiza el rendimiento en móvil.</td>
+          <td data-role="Desarrollador de Motores Visuales Web" data-desc="programa shaders y lógica frontend ligera para renderizar mundos 3D generados por IA directamente en el navegador."><strong>Desarrollador de Motores Visuales Web</strong> — programa shaders y lógica frontend ligera para renderizar mundos 3D generados por IA directamente en el navegador.</td>
+        </tr>
+        <tr data-disciplina="swdev">
+          <th scope="row">Software Dev</th>
+          <td data-role="Frontend developer" data-desc="escribe componentes en TypeScript y React, corrige bugs reportados en producción y revisa pull requests del equipo cada mañana."><strong>Frontend developer</strong> — escribe componentes en TypeScript y React, corrige bugs reportados en producción y revisa pull requests del equipo cada mañana.</td>
+          <td data-role="Ingeniero de Lógica de Plataformas" data-desc="escribe y depura la lógica base que orquesta módulos generados por IA, garantizando que cada plataforma funcione sin fallas."><strong>Ingeniero de Lógica de Plataformas</strong> — escribe y depura la lógica base que orquesta módulos generados por IA, garantizando que cada plataforma funcione sin fallas.</td>
+        </tr>
+        <tr data-disciplina="gameeng">
+          <th scope="row">Game Engineering</th>
+          <td data-role="Gameplay programmer web" data-desc="programa la lógica de un juego casual en JavaScript para navegador y depura el rendimiento en dispositivos de gama baja."><strong>Gameplay programmer web</strong> — programa la lógica de un juego casual en JavaScript para navegador y depura el rendimiento en dispositivos de gama baja.</td>
+          <td data-role="Programador de Sistemas de Juego" data-desc="codifica las reglas centrales de mecánicas jugables, integrando comportamientos generados por IA sin romper el balance del juego."><strong>Programador de Sistemas de Juego</strong> — codifica las reglas centrales de mecánicas jugables, integrando comportamientos generados por IA sin romper el balance del juego.</td>
+        </tr>
+        <tr data-disciplina="multimedia">
+          <th scope="row">Multimedia Artist</th>
+          <td data-role="Creative developer" data-desc="programa animaciones interactivas con JavaScript para una pieza multimedia del museo y sincroniza el código con el diseño sonoro."><strong>Creative developer</strong> — programa animaciones interactivas con JavaScript para una pieza multimedia del museo y sincroniza el código con el diseño sonoro.</td>
+          <td data-role="Programador Creativo Multiformato" data-desc="escribe scripts que conectan piezas visuales y sonoras generadas por IA, adaptando cada una a pantallas y formatos distintos."><strong>Programador Creativo Multiformato</strong> — escribe scripts que conectan piezas visuales y sonoras generadas por IA, adaptando cada una a pantallas y formatos distintos.</td>
+        </tr>
+        <tr data-disciplina="aitech">
+          <th scope="row">AI Technologist</th>
+          <td data-role="Frontend engineer de IA" data-desc="conecta la interfaz web con una API de modelos de lenguaje y maneja los estados de carga y error del chat."><strong>Frontend engineer de IA</strong> — conecta la interfaz web con una API de modelos de lenguaje y maneja los estados de carga y error del chat.</td>
+          <td data-role="Ingeniero de Prompts y Frontend" data-desc="traduce lógica algorítmica en instrucciones que guían modelos de IA generativa dentro de interfaces web y móviles funcionales."><strong>Ingeniero de Prompts y Frontend</strong> — traduce lógica algorítmica en instrucciones que guían modelos de IA generativa dentro de interfaces web y móviles funcionales.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="routes__matrix-table" data-linea="contexto">
+      <caption>Contexto</caption>
+      <thead><tr><th scope="col">Disciplina</th><th scope="col">Hoy (2026)</th><th scope="col">En 2031</th></tr></thead>
+      <tbody>
+        <tr data-disciplina="uxui">
+          <th scope="row">UX/UI Design</th>
+          <td data-role="UX researcher estratégico" data-desc="analiza el impacto social de una app de salud y ajusta el flujo de onboarding para usuarios con baja alfabetización digital."><strong>UX researcher estratégico</strong> — analiza el impacto social de una app de salud y ajusta el flujo de onboarding para usuarios con baja alfabetización digital.</td>
+          <td data-role="Estratega de Viabilidad UX" data-desc="evalúa si una interfaz diseñada con IA es viable social y culturalmente antes de presentarla ante inversionistas o comunidades."><strong>Estratega de Viabilidad UX</strong> — evalúa si una interfaz diseñada con IA es viable social y culturalmente antes de presentarla ante inversionistas o comunidades.</td>
+        </tr>
+        <tr data-disciplina="3d">
+          <th scope="row">3D Production</th>
+          <td data-role="Productor 3D para XR responsable" data-desc="evalúa el costo de cómputo de un entorno virtual y decide qué activos 3D simplificar para que el proyecto sea viable."><strong>Productor 3D para XR responsable</strong> — evalúa el costo de cómputo de un entorno virtual y decide qué activos 3D simplificar para que el proyecto sea viable.</td>
+          <td data-role="Analista de Impacto Virtual" data-desc="investiga las implicaciones culturales de entornos 3D generados por IA antes de aprobar su producción y lanzamiento público."><strong>Analista de Impacto Virtual</strong> — investiga las implicaciones culturales de entornos 3D generados por IA antes de aprobar su producción y lanzamiento público.</td>
+        </tr>
+        <tr data-disciplina="swdev">
+          <th scope="row">Software Dev</th>
+          <td data-role="Arquitecto de software consultor" data-desc="audita la viabilidad técnica de un proyecto digital y presenta al cliente los riesgos de escalar la plataforma actual."><strong>Arquitecto de software consultor</strong> — audita la viabilidad técnica de un proyecto digital y presenta al cliente los riesgos de escalar la plataforma actual.</td>
+          <td data-role="Consultor de Viabilidad Digital" data-desc="audita plataformas construidas con código generado por IA para detectar riesgos legales, sociales y de sostenibilidad del negocio."><strong>Consultor de Viabilidad Digital</strong> — audita plataformas construidas con código generado por IA para detectar riesgos legales, sociales y de sostenibilidad del negocio.</td>
+        </tr>
+        <tr data-disciplina="gameeng">
+          <th scope="row">Game Engineering</th>
+          <td data-role="Diseñador de juego responsable" data-desc="revisa las mecánicas de monetización de un juego móvil y ajusta el diseño para evitar patrones adictivos en menores."><strong>Diseñador de juego responsable</strong> — revisa las mecánicas de monetización de un juego móvil y ajusta el diseño para evitar patrones adictivos en menores.</td>
+          <td data-role="Analista de Impacto en Videojuegos" data-desc="revisa sistemas de juego generados por IA para anticipar efectos sociales y culturales antes de que lleguen a los jugadores."><strong>Analista de Impacto en Videojuegos</strong> — revisa sistemas de juego generados por IA para anticipar efectos sociales y culturales antes de que lleguen a los jugadores.</td>
+        </tr>
+        <tr data-disciplina="multimedia">
+          <th scope="row">Multimedia Artist</th>
+          <td data-role="Productor de medios críticos" data-desc="produce un documental interactivo sobre desplazamiento urbano y coordina permisos y consentimientos con las comunidades retratadas."><strong>Productor de medios críticos</strong> — produce un documental interactivo sobre desplazamiento urbano y coordina permisos y consentimientos con las comunidades retratadas.</td>
+          <td data-role="Curador Crítico de Medios" data-desc="analiza piezas audiovisuales generadas por IA y decide cuáles son viables de publicar según su impacto cultural y ético."><strong>Curador Crítico de Medios</strong> — analiza piezas audiovisuales generadas por IA y decide cuáles son viables de publicar según su impacto cultural y ético.</td>
+        </tr>
+        <tr data-disciplina="aitech">
+          <th scope="row">AI Technologist</th>
+          <td data-role="Especialista en ética de IA" data-desc="audita un modelo de recomendación por sesgos demográficos y documenta los hallazgos para el comité de gobernanza de datos."><strong>Especialista en ética de IA</strong> — audita un modelo de recomendación por sesgos demográficos y documenta los hallazgos para el comité de gobernanza de datos.</td>
+          <td data-role="Auditor de Ética en IA" data-desc="evalúa la viabilidad social de sistemas autónomos antes de su despliegue, negociando límites entre equipos técnicos y comunidades afectadas."><strong>Auditor de Ética en IA</strong> — evalúa la viabilidad social de sistemas autónomos antes de su despliegue, negociando límites entre equipos técnicos y comunidades afectadas.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="routes__matrix-table" data-linea="estetica">
+      <caption>Estética</caption>
+      <thead><tr><th scope="col">Disciplina</th><th scope="col">Hoy (2026)</th><th scope="col">En 2031</th></tr></thead>
+      <tbody>
+        <tr data-disciplina="uxui">
+          <th scope="row">UX/UI Design</th>
+          <td data-role="Visual UI designer" data-desc="define la paleta, tipografía y microinteracciones de una app y prueba variantes visuales para elevar la percepción de calidad."><strong>Visual UI designer</strong> — define la paleta, tipografía y microinteracciones de una app y prueba variantes visuales para elevar la percepción de calidad.</td>
+          <td data-role="Director de Lenguaje Visual UX" data-desc="define la identidad estética de interfaces generadas por IA, ajustando forma y ritmo hasta lograr una experiencia deseable y coherente."><strong>Director de Lenguaje Visual UX</strong> — define la identidad estética de interfaces generadas por IA, ajustando forma y ritmo hasta lograr una experiencia deseable y coherente.</td>
+        </tr>
+        <tr data-disciplina="3d">
+          <th scope="row">3D Production</th>
+          <td data-role="Artista de look development 3D" data-desc="ajusta materiales, iluminación y shaders de un personaje 3D hasta lograr el acabado estético que pide el director de arte."><strong>Artista de look development 3D</strong> — ajusta materiales, iluminación y shaders de un personaje 3D hasta lograr el acabado estético que pide el director de arte.</td>
+          <td data-role="Director de Arte Virtual" data-desc="cura la estética de entornos 3D generados por IA, refinando texturas, luz y composición hasta lograr una identidad visual propia."><strong>Director de Arte Virtual</strong> — cura la estética de entornos 3D generados por IA, refinando texturas, luz y composición hasta lograr una identidad visual propia.</td>
+        </tr>
+        <tr data-disciplina="swdev">
+          <th scope="row">Software Dev</th>
+          <td data-role="Creative technologist frontend" data-desc="programa transiciones y efectos visuales con CSS y WebGL para que la interfaz de un sitio se sienta pulida y premium."><strong>Creative technologist frontend</strong> — programa transiciones y efectos visuales con CSS y WebGL para que la interfaz de un sitio se sienta pulida y premium.</td>
+          <td data-role="Ingeniero de Sistemas de Diseño" data-desc="codifica reglas visuales que guían a la IA generativa, manteniendo coherencia estética entre miles de componentes producidos automáticamente."><strong>Ingeniero de Sistemas de Diseño</strong> — codifica reglas visuales que guían a la IA generativa, manteniendo coherencia estética entre miles de componentes producidos automáticamente.</td>
+        </tr>
+        <tr data-disciplina="gameeng">
+          <th scope="row">Game Engineering</th>
+          <td data-role="Artista técnico de videojuegos" data-desc="ajusta shaders y paletas de color de un videojuego para reforzar su identidad visual sin sacrificar el rendimiento en consola."><strong>Artista técnico de videojuegos</strong> — ajusta shaders y paletas de color de un videojuego para reforzar su identidad visual sin sacrificar el rendimiento en consola.</td>
+          <td data-role="Diseñador de Sensación Jugable" data-desc="ajusta cómo se sienten las mecánicas generadas por IA, afinando ritmo, feedback visual y sonoro hasta lograr una experiencia deseable."><strong>Diseñador de Sensación Jugable</strong> — ajusta cómo se sienten las mecánicas generadas por IA, afinando ritmo, feedback visual y sonoro hasta lograr una experiencia deseable.</td>
+        </tr>
+        <tr data-disciplina="multimedia">
+          <th scope="row">Multimedia Artist</th>
+          <td data-role="Director de arte multimedia" data-desc="define la estética visual y sonora de una campaña de marca y supervisa que cada pieza mantenga coherencia entre formatos."><strong>Director de arte multimedia</strong> — define la estética visual y sonora de una campaña de marca y supervisa que cada pieza mantenga coherencia entre formatos.</td>
+          <td data-role="Curador Estético Multiformato" data-desc="selecciona y refina piezas visuales y sonoras generadas por IA, cuidando su lenguaje de forma en cada pantalla y formato."><strong>Curador Estético Multiformato</strong> — selecciona y refina piezas visuales y sonoras generadas por IA, cuidando su lenguaje de forma en cada pantalla y formato.</td>
+        </tr>
+        <tr data-disciplina="aitech">
+          <th scope="row">AI Technologist</th>
+          <td data-role="Diseñador de IA generativa" data-desc="entrena y ajusta modelos generativos de imagen para producir un estilo visual coherente con la identidad de marca del cliente."><strong>Diseñador de IA generativa</strong> — entrena y ajusta modelos generativos de imagen para producir un estilo visual coherente con la identidad de marca del cliente.</td>
+          <td data-role="Director de Estilo IA" data-desc="entrena y ajusta modelos generativos para que produzcan una estética coherente y deseable en distintos proyectos y plataformas."><strong>Director de Estilo IA</strong> — entrena y ajusta modelos generativos para que produzcan una estética coherente y deseable en distintos proyectos y plataformas.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="routes__matrix-table" data-linea="usuarios">
+      <caption>Usuarios</caption>
+      <thead><tr><th scope="col">Disciplina</th><th scope="col">Hoy (2026)</th><th scope="col">En 2031</th></tr></thead>
+      <tbody>
+        <tr data-disciplina="uxui">
+          <th scope="row">UX/UI Design</th>
+          <td data-role="UX researcher de interacción" data-desc="modera entrevistas y pruebas de usabilidad con usuarios reales y traduce los hallazgos en ajustes concretos al flujo de la app."><strong>UX researcher de interacción</strong> — modera entrevistas y pruebas de usabilidad con usuarios reales y traduce los hallazgos en ajustes concretos al flujo de la app.</td>
+          <td data-role="Investigador de Experiencia Humana" data-desc="observa cómo interactúan personas reales con interfaces generadas por IA y ajusta cada flujo según sus fricciones y emociones."><strong>Investigador de Experiencia Humana</strong> — observa cómo interactúan personas reales con interfaces generadas por IA y ajusta cada flujo según sus fricciones y emociones.</td>
+        </tr>
+        <tr data-disciplina="3d">
+          <th scope="row">3D Production</th>
+          <td data-role="Diseñador de experiencias 3D inmersivas" data-desc="diseña un recorrido en realidad virtual y ajusta la navegación 3D según cómo se mueven los usuarios dentro de la prueba."><strong>Diseñador de experiencias 3D inmersivas</strong> — diseña un recorrido en realidad virtual y ajusta la navegación 3D según cómo se mueven los usuarios dentro de la prueba.</td>
+          <td data-role="Diseñador de Inmersión Humana" data-desc="estudia cómo reaccionan los usuarios dentro de mundos 3D generados por IA y recalibra la experiencia para reducir fatiga e incomodidad."><strong>Diseñador de Inmersión Humana</strong> — estudia cómo reaccionan los usuarios dentro de mundos 3D generados por IA y recalibra la experiencia para reducir fatiga e incomodidad.</td>
+        </tr>
+        <tr data-disciplina="swdev">
+          <th scope="row">Software Dev</th>
+          <td data-role="Software engineer centrado en usuario" data-desc="implementa analítica de comportamiento en la app y ajusta el código según los patrones de uso que revelan los usuarios reales."><strong>Software engineer centrado en usuario</strong> — implementa analítica de comportamiento en la app y ajusta el código según los patrones de uso que revelan los usuarios reales.</td>
+          <td data-role="Ingeniero de Experiencia de Producto" data-desc="analiza datos de uso real para ajustar la lógica que la IA genera detrás de cada plataforma según el comportamiento humano."><strong>Ingeniero de Experiencia de Producto</strong> — analiza datos de uso real para ajustar la lógica que la IA genera detrás de cada plataforma según el comportamiento humano.</td>
+        </tr>
+        <tr data-disciplina="gameeng">
+          <th scope="row">Game Engineering</th>
+          <td data-role="Diseñador de experiencia de jugador" data-desc="observa sesiones de playtesting y ajusta la curva de dificultad del juego según la frustración que muestran los jugadores."><strong>Diseñador de experiencia de jugador</strong> — observa sesiones de playtesting y ajusta la curva de dificultad del juego según la frustración que muestran los jugadores.</td>
+          <td data-role="Diseñador de Interacción Jugable" data-desc="observa cómo juegan personas reales sistemas generados por IA y recalibra reglas para mantener el desafío humano y justo."><strong>Diseñador de Interacción Jugable</strong> — observa cómo juegan personas reales sistemas generados por IA y recalibra reglas para mantener el desafío humano y justo.</td>
+        </tr>
+        <tr data-disciplina="multimedia">
+          <th scope="row">Multimedia Artist</th>
+          <td data-role="Narrador transmedia interactivo" data-desc="diseña una narrativa transmedia que el público navega en redes y videojuego, y ajusta los capítulos según la interacción real."><strong>Narrador transmedia interactivo</strong> — diseña una narrativa transmedia que el público navega en redes y videojuego, y ajusta los capítulos según la interacción real.</td>
+          <td data-role="Productor de Narrativas Interactivas" data-desc="ajusta piezas audiovisuales generadas por IA según cómo las audiencias reales las reciben en distintas plataformas y contextos."><strong>Productor de Narrativas Interactivas</strong> — ajusta piezas audiovisuales generadas por IA según cómo las audiencias reales las reciben en distintas plataformas y contextos.</td>
+        </tr>
+        <tr data-disciplina="aitech">
+          <th scope="row">AI Technologist</th>
+          <td data-role="Diseñador de conversación con IA" data-desc="diseña los diálogos de un asistente conversacional y ajusta sus respuestas según las conversaciones reales que sostienen los usuarios."><strong>Diseñador de conversación con IA</strong> — diseña los diálogos de un asistente conversacional y ajusta sus respuestas según las conversaciones reales que sostienen los usuarios.</td>
+          <td data-role="Guía de Interacción Humano-IA" data-desc="diseña y ajusta cómo sistemas autónomos de IA responden a personas reales, priorizando siempre un fin humano y comprensible."><strong>Guía de Interacción Humano-IA</strong> — diseña y ajusta cómo sistemas autónomos de IA responden a personas reales, priorizando siempre un fin humano y comprensible.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================================================
+       3.12 — Ruta transversal · Emprendimiento. El frame no lo
+       dibuja (Spec §3.12); tratamiento propuesto: tres filas de
+       ficha técnica sin panel, mismo patrón que Territorio sin fondo.
+       ============================================================ -->
+  <section class="routes__venture">
+    <p class="routes__venture-p" data-reveal>No pertenece a ninguna línea ni a ninguna disciplina — aplica sin importar qué combinación elegiste arriba, y en cinco años va a pesar tanto como el dominio técnico específico de cualquiera de ellas.</p>
+    <dl class="routes__venture-rows" data-reveal>
+      <div class="routes__venture-row">
+        <dt>Portafolio</dt>
+        <dd>Pocos proyectos completos, con roles y resultados reales, pesan más que muchos ejercicios sueltos que nunca se conectan entre sí.</dd>
+      </div>
+      <div class="routes__venture-row">
+        <dt>Precios</dt>
+        <dd>Cobrar por presupuesto mensual, no por proyecto suelto, da margen para negociar sin regalar el trabajo.</dd>
+      </div>
+      <div class="routes__venture-row">
+        <dt>Pitch</dt>
+        <dd>Vender una idea es una habilidad tan entrenable como cualquier herramienta técnica — no un talento con el que se nace.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- ============================================================
+       3.13 — Cierre del sitio. El aire más largo del nodo, por
+       encima y por debajo (Spec §3.13).
+       ============================================================ -->
+  <p class="routes__outro" data-reveal>Ninguna de las combinaciones de arriba es una promesa. Son lecturas de una trayectoria — y las trayectorias, se sabe desde el principio de esta Guía, se pueden desviar. Lo único que no cambia en cinco años es la pregunta con la que arrancó todo esto: qué clase de figura profesional es el Creador Digital, en qué territorio opera, y qué rutas puede trazar en un campo que todavía no tiene cartografía establecida. Esta Guía no termina esa cartografía — la empieza. El resto lo combina quien la use.</p>
+
+  <!-- 3.14 — fondo reservado, vacío en esta fase (Spec §3.14) -->
+  <div class="routes__field" aria-hidden="true"></div>
+
+</section>
+
 <!-- Lenis — scroll suave global, alcance TODO el documento (ver Ruta
      Técnica de Método en el vault). Versión exacta fijada (nunca
      @latest), con integrity para que un CDN comprometido rompa la carga
@@ -1077,7 +1427,7 @@
 ></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=56"></script>
+<script src="script.js?v=57"></script>
 
 </body>
 </html>
