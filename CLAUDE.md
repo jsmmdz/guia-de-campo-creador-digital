@@ -34,6 +34,15 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 - **Breakpoints** (fijos, también en el header de `styles.css`): móvil
   ≤767 · tablet 768–1023 · laptop 1024–1439 (tier base, sin `@media`) ·
   desktop 1440–1919 · pantallas grandes ≥1920.
+  **Esto describe el código de hoy, no el objetivo.** `DESIGN.md` invierte
+  la cascada —1440 pasa a ser el tier base, el ancho de autoría de Figma— y
+  manda sobre cualquier valor de layout nuevo. Esta línea se reescribe en el
+  commit que implemente la inversión, no antes.
+- **Ningún valor de layout inventado a mano**: todo `max-width`, margen o
+  spacing sale de una medición del frame de Figma a 1440, o de la fórmula de
+  `DESIGN.md` §2, o queda anotado como decisión explícita. Un `38rem`
+  elegido a ojo no es ninguna de las tres — así quedó Método midiendo la
+  mitad de lo que debía (`DESIGN.md` §8, D-01).
 - **Tipografía base**: una sola familia (Archivo) — itálica-black para
   títulos, regular/medium para cuerpo. El spec de Acto I pide explícitamente
   "la misma familia" para títulos y cuerpo (a diferencia del spec de home
@@ -57,6 +66,7 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 
 | Archivo | Cuándo leerlo |
 |---|---|
+| [DESIGN.md](DESIGN.md) | **Antes de tocar cualquier valor de layout, spacing o breakpoint.** El sistema responsive anclado a 1440, la fórmula, el protocolo de medición y las discrepancias abiertas contra Figma |
 | [docs/flujo-de-trabajo.md](docs/flujo-de-trabajo.md) | Al empezar cualquier sesión de trabajo real |
 | [docs/arquitectura.md](docs/arquitectura.md) | Stack, CDN, estructura de carpetas, peso y carga de assets |
 | [docs/errores-corregidos.md](docs/errores-corregidos.md) | Antes de tocar CSS o JS. Los 26 bugs ya resueltos, con su regla |

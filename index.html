@@ -11,23 +11,29 @@
      cuanto peor la conexión. Así el fetch va en paralelo con styles.css. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
-<!-- Nodo 2 (Territorio) suma 3 familias nuevas, acotadas a ese nodo (ver
-     CLAUDE.md) — Martian Mono no expone su eje de ancho "Condensed" vía la
-     API pública de Google Fonts (probado: family=Martian+Mono:wdth,wght@...
-     devuelve 400), así que el "corte Condensed" del spec se aproxima con
-     tracking/tamaño en CSS, no con una variante real de la fuente. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..700&family=Gantari:ital,wght@1,700;1,800&family=Martian+Mono:wght@400;500&display=swap" />
-<!-- Nodo 3 (Método) suma Plus Jakarta Sans — reemplaza a Gantari en casi
-     todo el registro medio/pequeño/bisagra/diagramas de ese nodo (dato de
-     Figma, confirmado por el usuario); Gantari queda igual que antes
-     (700/800 itálica nomás, sin nuevo peso), solo para el marquee y los
-     enunciados grandes de Método, que reusan ese mismo tratamiento. Las 3
-     líneas sueltas y la apertura narrativa de Método sí piden Fraunces en
-     Semibold (600), ya cubierto por el rango 400..700 que ese link ya
-     cargaba. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;1,900&display=swap" />
+<!-- IBM Plex Mono NO es tipografía del sistema de diseño: el sitio ya no usa
+     monoespaciada para texto (DESIGN.md §5). Sobrevive como primitiva de
+     render del efecto ASCII de "Digital" (Nodo 0), que es una grilla y
+     depende del ancho fijo de carácter — initAsciiText() la pide por nombre
+     en script.js, y CanvasTxt no declara cadena de respaldo, así que sin
+     este link caería a la sans por defecto y la grilla se desalinearía (el
+     mismo desfase que documenta el comentario de initAsciiText). Solo los
+     dos pesos que el script carga: 400 para el <pre>, 600 para el mesh. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" />
+<!-- Nodo 2 (Territorio) suma Gantari y Fraunces. Martian Mono se eliminó
+     junto con IBM Plex Mono: el sitio ya no usa monoespaciada, el registro
+     técnico pasó a Plus Jakarta con uppercase + tracking (DESIGN.md §5).
+     Con eso se van 2 de las 5 familias que se cargaban. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..700&family=Gantari:ital,wght@1,700;1,800&display=swap" />
+<!-- Plus Jakarta Sans — entró por Método y hoy es familia de sitio completo
+     (DESIGN.md §5): además del registro medio/pequeño/bisagra/diagramas de
+     ese nodo, absorbe TODO el registro técnico que antes era monoespaciada
+     — etiquetas, eyebrows, sellos, coordenadas del HUD y atribuciones, en
+     los 5 nodos. Los pesos 400..700 ya cubrían esos usos, así que el link
+     no cambió al migrar. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" />
-<link rel="stylesheet" href="styles.css?v=23" />
+<link rel="stylesheet" href="styles.css?v=24" />
 </head>
 <body>
 

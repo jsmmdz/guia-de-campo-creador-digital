@@ -5,10 +5,14 @@
    idea aplicada en distintos puntos del recorrido.
    ============================================================ */
 
-/* Archivo + IBM Plex Mono se cargan desde index.html (<link
-   rel="stylesheet"> + preconnect) en vez de @import acá — un @import
-   dentro de un CSS bloquea el CSSOM hasta que ese round-trip completa,
-   antes de que cualquier estilo de este archivo aplique. */
+/* Las fuentes se cargan desde index.html (<link rel="stylesheet"> +
+   preconnect) en vez de @import acá — un @import dentro de un CSS bloquea
+   el CSSOM hasta que ese round-trip completa, antes de que cualquier
+   estilo de este archivo aplique.
+
+   Familias del sitio: Archivo, Gantari, Fraunces y Plus Jakarta Sans.
+   IBM Plex Mono también se carga, pero NO es tipografía: la usa solo el
+   efecto ASCII del Nodo 0 como primitiva de render (ver index.html). */
 
 /* ============================================================
    BREAKPOINTS — escala fija en todo el archivo (no hay unidades
@@ -40,7 +44,13 @@
   --sp-6: 96px;
 
   --f-display: "Archivo", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Registro técnico de todo el sitio: etiquetas, eyebrows, sellos,
+     coordenadas del HUD, atribuciones. Reemplaza a la monoespaciada
+     (antes --f-mono/IBM Plex Mono y --t-f-mono/Martian Mono), eliminada
+     del sitio por decisión del usuario — ver DESIGN.md §5. Ese registro
+     ahora se marca con uppercase + tracking amplio, no con el ancho fijo
+     de la mono. */
+  --f-sans: "Plus Jakarta Sans", var(--f-display);
 
   /* espectro de especímenes, en el orden fijo del catálogo */
   --spec-1: #b9bce8; --spec-1-deep: #6f73bd; /* UX/UI Design      */
@@ -85,7 +95,7 @@ img { max-width: 100%; display: block; }
 .hud__coord {
   position: fixed;
   z-index: 40;
-  font-family: var(--f-mono);
+  font-family: var(--f-sans);
   font-size: 9.5px;
   font-weight: 400;
   letter-spacing: 0.16em;
@@ -459,7 +469,7 @@ body.in-catalog .field-bg { opacity: 1; }
 }
 
 .plate__reg {
-  font-family: var(--f-mono);
+  font-family: var(--f-sans);
   font-size: 11px;
   letter-spacing: 0.22em;
   opacity: 0.65;
@@ -621,7 +631,6 @@ body.catalog-enhanced .plate { flex: 0 0 100vw; width: 100vw; }
 
   --t-f-display: "Gantari", var(--f-display);
   --t-f-serif: "Fraunces", serif;
-  --t-f-mono: "Martian Mono", var(--f-mono);
 }
 
 .territory {
@@ -740,7 +749,7 @@ body:not(.enhanced) .territory__marquee { display: none; }
   bottom: var(--sp-5);
   left: 50%;
   transform: translateX(-50%);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 20px;
 }
 
@@ -788,7 +797,7 @@ body:not(.enhanced) .territory__marquee { display: none; }
 .territory__level-eyebrow {
   display: block;
   margin-bottom: var(--sp-2);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 11px;
   font-style: normal;
   font-weight: 400;
@@ -870,7 +879,7 @@ body.territory-ascent .territory__center { opacity: 1; }
   top: 50%;
   transform: translateY(-50%);
   white-space: nowrap;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -918,7 +927,7 @@ body.territory-ascent .territory__center { opacity: 1; }
   position: absolute;
   top: var(--sp-2);
   right: var(--sp-3);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 10px;
   letter-spacing: 0.2em;
   opacity: 0.55;
@@ -993,7 +1002,7 @@ body.territory-ascent .territory__center { opacity: 1; }
   border-left: 2px solid var(--t-accent);
 }
 .territory__callout-title {
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1011,7 +1020,7 @@ body.territory-ascent .territory__center { opacity: 1; }
 .territory__compare { flex-direction: column; justify-content: center; gap: var(--sp-4); }
 .territory__compare-label {
   text-align: center;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1080,7 +1089,11 @@ body.territory-ascent .territory__center { opacity: 1; }
    sitio, no solo este nodo).
    ============================================================ */
 :root {
-  --m-f-sans: "Plus Jakarta Sans", var(--f-display);
+  /* Alias histórico: Plus Jakarta entró por Método y quedó nombrada con
+     su prefijo. Hoy es familia de sitio completo (--f-sans, ver arriba) —
+     el alias se conserva para no reescribir los ~14 selectores de este
+     nodo que ya la usan. */
+  --m-f-sans: var(--f-sans);
   /* easing propio del nodo: ease-out marcado, sin rebote (las curvas
      nativas de CSS son débiles; esta tiene más "punch" para un reveal
      de 600ms que se sienta intencional, no genérico). */
@@ -1406,7 +1419,7 @@ body.method-js .method [data-reveal].no-anim {
   align-items: center;
   justify-content: center;
   width: 2em;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 13px;
   color: var(--t-hairline-hi);
   opacity: 0.65;
@@ -1598,7 +1611,7 @@ body.method-js .method [data-reveal].no-anim {
 .method__quote-attr {
   display: block;
   margin-top: var(--sp-2);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-style: normal;
   font-size: 11px;
   letter-spacing: 0.2em;
@@ -1888,7 +1901,7 @@ body.voices-js .voices [data-reveal].no-anim {
 }
 .voices__id-caption {
   margin-top: var(--sp-2);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1938,7 +1951,7 @@ body.voices-js .voices [data-reveal].no-anim {
 }
 .voices__header-reg {
   display: block;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1958,7 +1971,7 @@ body.voices-js .voices [data-reveal].no-anim {
 .voices__header-role {
   display: block;
   margin-top: var(--sp-1);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2097,7 +2110,7 @@ body.voices-js .voices__row-body {
 .voices__quote-attr {
   display: block;
   margin-top: var(--sp-2);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-style: normal;
   font-size: 11px;
   letter-spacing: 0.2em;
@@ -2126,7 +2139,7 @@ body.voices-js .voices__row-body {
 .voices__panel::after { bottom: -1px; right: -1px; border-bottom: 1px solid var(--t-hairline-hi); border-right: 1px solid var(--t-hairline-hi); }
 .voices__panel-label {
   display: block;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -2151,7 +2164,7 @@ body.voices-js .voices__row-body {
 }
 .voices__area-label {
   display: block;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -2267,7 +2280,7 @@ body.voices-js .voices__row-body {
    rediseñar a full-width horizontal como el Diagrama 01. */
 .voices__flow-label {
   display: block;
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -2299,7 +2312,7 @@ body.voices-js .voices__row-body {
   display: block;
   padding: var(--sp-1) 0;
   margin-left: var(--sp-3);
-  font-family: var(--t-f-mono);
+  font-family: var(--f-sans);
   font-size: 13px;
   color: var(--t-hairline-hi);
   opacity: 0.65;
