@@ -5,8 +5,9 @@
 > familias tipográficas y el criterio de forma. **Nunca existió** — las dos
 > specs lo dieron por escrito. Este archivo salda esa deuda.
 >
-> Iniciado 2026-07-27. Hoy cubre **responsive** y la **paleta y tipografía
-> de Método**, confirmadas contra Figma por MCP el 2026-07-28.
+> Iniciado 2026-07-27. Hoy cubre **responsive**, la **paleta y tipografía
+> de Método** y las de **Rutas** (§11), confirmadas contra Figma por MCP el
+> 2026-07-28.
 >
 > **Todo valor de acá salió de una medición o de una decisión explícita del
 > usuario.** Lo que no, dice `PENDIENTE` y no se implementa.
@@ -463,8 +464,9 @@ el dato bueno antes de activarla.
 
 Alcance elegido por el usuario: responsive primero.
 
-- **Paleta del resto del sitio** — §6 cubre Método. Faltan Umbral, Catálogo,
-  Territorio y Voces, hoy dispersos entre `:root` y los tokens `--t-*`.
+- **Paleta del resto del sitio** — §6 cubre Método y §11 cubre Rutas. Faltan
+  Umbral, Catálogo, Territorio y Voces, hoy dispersos entre `:root` y los
+  tokens `--t-*`.
 - **Criterio de forma** — radio 0, sin sombras, sin degradados, filetes de
   1px. Está en las dos specs; falta consolidarlo acá.
 - **Escala de espaciado** — `Spec - Nodo 3` §5 la fija (8/16/24/40/64/96,
@@ -473,3 +475,59 @@ Alcance elegido por el usuario: responsive primero.
 - **Motion** — easings y duraciones conviven sin unificar (`power2.out`,
   `power1.out`, `sine.inOut`, `--m-ease-out`, el easing de Lenis). Es el
   encargo de `Brief - Sesion de UX y Acabado Premium` §5.
+
+---
+
+## 11 · Rutas (Nodo 5), confirmado por MCP
+
+Frame `Desktop - 17`, node-id **`270:563`**, fileKey **`ml7agEUFaiqNyknGicfH5B`**.
+Medido el 2026-07-28 con `get_design_context`. El nodo todavía no está
+construido: esto es la fuente de la que sale su CSS. Detalle completo en
+`Spec - Nodo 5 Rutas.md` §5 del vault.
+
+### Escala
+
+| Bloque | Tamaño | Familia y corte | Interlineado |
+|---|---|---|---|
+| Marquesina `RUTAS.` | 128px | Gantari Bold Italic | normal |
+| `EXPLORACIÓN DE RUTAS` | **85px** | Gantari Bold Italic, uppercase | normal |
+| Las tres líneas | **80px** | Fraunces SemiBold Italic, centrado | normal |
+| Bisagra | 48px | Fraunces SemiBold Italic | normal |
+| Aterrizaje y cierre | 32px | Plus Jakarta Medium | 52.8px |
+| Rol de la tarjeta | 48px | Plus Jakarta Bold Italic | 32px |
+| Descripción de la tarjeta | 32px | Plus Jakarta Regular | 32px |
+| Chip | 12px, tracking 1.98px | Plus Jakarta Medium, uppercase | 13.2px |
+| Etiqueta de selector | 11px, tracking 1.1px | Plus Jakarta Regular, uppercase | 13.2px |
+| Eyebrow de combinación | 11px, tracking 2.42px | Plus Jakarta SemiBold, uppercase | 16px |
+
+**`85px` y `52.8px` coinciden exactos con Método** (§5): `EXPLORACIÓN DE
+RUTAS` e `INVESTIGACIÓN-CREACIÓN.` son el mismo escalón, y la prosa de los
+dos nodos comparte interlineado absoluto. **`80px` es un tier nuevo**, no
+tabulado en §2 → `clamp(33px, 5.56vw, 106.67px)`.
+
+### Paleta
+
+Idéntica a la de Método (§6) salvo los cuatro tonos de la tarjeta de
+resultado, que son nuevos y **codifican tiempo, no disciplina**:
+
+| | Estado `HOY` | Estado `FUTURO` |
+|---|---|---|
+| Fondo | `rgba(18,20,17,0.5)` | `rgba(111,17,0,0.1)` |
+| Filete | `rgba(70,69,84,0.3)` | `rgba(255,180,164,0.3)` |
+| Cuadrado y eyebrow | `#c0c1ff` | `#ffb4a4` |
+
+Los chips de disciplina usan los `--spec-1..6` de `:root` **sin una sola
+variación de hex** — primer nodo del sitio que no agrega ningún token de
+color propio. Los `--spec-N-deep` no se usan.
+
+### Discrepancias que abre este frame
+
+| | Qué | Estado |
+|---|---|---|
+| D-17 | El frame usa **Archivo Narrow** (etiqueta de horizonte) y **JetBrains Mono** (botón), dos familias fuera del trío de §5 — y la segunda es monoespaciada, justo lo que D-07 eliminó del sitio | Resuelta en el spec: las dos migran a Plus Jakarta con uppercase + tracking. **Falta corregir el Figma** |
+| D-18 | Tres márgenes distintos en un mismo frame: 106px (combinador), 118px (bisagra, enunciado), 120px (prosa), contra los **105px** de §4 | Normalizar a `--page-margin`. Deriva de diagramación, no sistema |
+| D-19 | El filete de acento de la bisagra mide **4px**; en Método el equivalente es fino | Sin decidir — es el único elemento del sitio con filete grueso |
+| D-20 | La tarjeta de estado `FUTURO` repite la etiqueta `A DIA DE HOY`, y sus corchetes de esquina quedaron en el lavanda de la otra tarjeta | Deslices del frame. Falta el copy del horizonte de 2031 |
+
+Faltas de tilde en el frame, ya registradas en el spec: `exploracion de
+rutas` y `A DIA DE HOY`.
