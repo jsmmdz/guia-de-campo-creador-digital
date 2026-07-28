@@ -67,6 +67,7 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 | Archivo | Cuándo leerlo |
 |---|---|
 | [DESIGN.md](DESIGN.md) | **Antes de tocar cualquier valor de layout, spacing o breakpoint.** El sistema responsive anclado a 1440, la fórmula, el protocolo de medición y las discrepancias abiertas contra Figma |
+| [docs/plan-reconciliacion-y-responsive.md](docs/plan-reconciliacion-y-responsive.md) | Al retomar la fase de responsive. Qué quedó reconciliado del Figma de Rutas y qué falta, con las dos ramas de alcance |
 | [docs/flujo-de-trabajo.md](docs/flujo-de-trabajo.md) | Al empezar cualquier sesión de trabajo real |
 | [docs/arquitectura.md](docs/arquitectura.md) | Stack, CDN, estructura de carpetas, peso y carga de assets |
 | [docs/errores-corregidos.md](docs/errores-corregidos.md) | Antes de tocar CSS o JS. Los 26 bugs ya resueltos, con su regla |
@@ -86,7 +87,7 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 | 2 — Territorio | `#territory` | Integrado · sin confirmar contra Figma |
 | 3 — Método | `#method` | Integrado |
 | 4 — Voces | `#voices` | Integrado · un bug visual abierto (cita de Melisa) |
-| 5 — Rutas | `#routes` | Integrado · Footer real pendiente (hoy termina en `</section>` de Rutas), sintonía fina de responsive en móvil/tablet pendiente de la sesión dedicada |
+| 5 — Rutas | `#routes` | Integrado · reconciliado contra el Figma remedido y **responsive cerrado** (ritmo narrativo en `clamp()`, verificado en 6 anchos) · Footer real pendiente (hoy termina en `</section>` de Rutas) |
 | Bitácora Oculta | — | Sin construir. Tarea Fase 0, se repite en los 5 nodos |
 
 ## Correr en local

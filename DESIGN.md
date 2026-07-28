@@ -7,7 +7,8 @@
 >
 > Iniciado 2026-07-27. Hoy cubre **responsive**, la **paleta y tipografía
 > de Método** y las de **Rutas** (§11), confirmadas contra Figma por MCP el
-> 2026-07-28.
+> 2026-07-28. §11 se **remidió el 2026-07-28 por la tarde**, después de que
+> el frame de Rutas cambiara — ver §11.4.
 >
 > **Todo valor de acá salió de una medición o de una decisión explícita del
 > usuario.** Lo que no, dice `PENDIENTE` y no se implementa.
@@ -382,6 +383,11 @@ para *derivar* el sistema, no para cerrar un bug que el usuario está viendo.
 | D-14 | Son 5 condiciones de Frascati, el sitio tiene 4 | **Falta la quinta** |
 | D-15 | La línea `REF:` del Figma no coincide con el vault | Nueva |
 | D-16 | `EMERGE DE ÉL` es Plus Jakarta en Figma, Gantari en el spec | Nueva |
+| D-21 | El chip de línea sin seleccionar mide 46px y todo el resto 50px | Cerrada: se toma 50 (§11.4) |
+| D-22 | La etiqueta de horizonte cae a 10px, bajo el mínimo de §2 | Cerrada: se conserva 11px (§11.4) |
+| D-23 | La tarjeta `FUTURO` abre su gap interno a 12px contra los 8px de `HOY` | Cerrada: se conserva 8px (§11.4) |
+| D-24 | El frame dibuja un footer placeholder gris que no es diseño | Abierta: falta el footer real |
+| D-25 | El gap de la fila de disciplinas sube a 35px contra los 30px de líneas | Aplicada, candidata a normalizar |
 
 ### D-01 · Método mide ~la mitad de ancho que en Figma
 
@@ -481,18 +487,20 @@ Alcance elegido por el usuario: responsive primero.
 ## 11 · Rutas (Nodo 5), confirmado por MCP
 
 Frame `Desktop - 17`, node-id **`270:563`**, fileKey **`ml7agEUFaiqNyknGicfH5B`**.
-Medido el 2026-07-28 con `get_design_context`. **Construido e integrado
-2026-07-28** — primer nodo del sitio bajo la cascada invertida (§1/§3):
-`--page-margin`/`--page-col` viven ahora en el `:root` de sitio en
-`styles.css`, no solo acá. Detalle completo en `Spec - Nodo 5 Rutas.md`
-§5 del vault.
+Medido el 2026-07-28 con `get_design_context` y **remedido el mismo día por
+la tarde**, después de que el frame cambiara — el node-id es el mismo, el
+contenido no. **Construido e integrado 2026-07-28** — primer nodo del sitio
+bajo la cascada invertida (§1/§3): `--page-margin`/`--page-col` viven ahora
+en el `:root` de sitio en `styles.css`, no solo acá. Detalle completo en
+`Spec - Nodo 5 Rutas.md` §5 del vault.
 
-### Escala
+### 11.1 · Escala
 
 | Bloque | Tamaño | Familia y corte | Interlineado |
 |---|---|---|---|
-| Marquesina `RUTAS.` | 128px | Gantari Bold Italic | normal |
-| `EXPLORACIÓN DE RUTAS` | **85px** | Gantari Bold Italic, uppercase | normal |
+| Marquesina `RUTAS.` | 128px | Gantari **ExtraBold** Italic | normal |
+| Remate `El resto lo combina quien la use.` | **128px** | Plus Jakarta **Bold, recto** | **127px** |
+| `EXPLORACIÓN DE RUTAS` | **85px** | Gantari **Bold** Italic, uppercase | normal |
 | Las tres líneas | **80px** | Fraunces SemiBold Italic, centrado | normal |
 | Bisagra | 48px | Fraunces SemiBold Italic | normal |
 | Aterrizaje y cierre | 32px | Plus Jakarta Medium | 52.8px |
@@ -501,13 +509,23 @@ Medido el 2026-07-28 con `get_design_context`. **Construido e integrado
 | Chip | 12px, tracking 1.98px | Plus Jakarta Medium, uppercase | 13.2px |
 | Etiqueta de selector | 11px, tracking 1.1px | Plus Jakarta Regular, uppercase | 13.2px |
 | Eyebrow de combinación | 11px, tracking 2.42px | Plus Jakarta SemiBold, uppercase | 16px |
+| Botón `¿Y CÓMO SE VE EL FUTURO?` | **14px**, tracking 1.4px | Plus Jakarta, uppercase | 21px |
 
 **`85px` y `52.8px` coinciden exactos con Método** (§5): `EXPLORACIÓN DE
 RUTAS` e `INVESTIGACIÓN-CREACIÓN.` son el mismo escalón, y la prosa de los
 dos nodos comparte interlineado absoluto. **`80px` es un tier nuevo**, no
-tabulado en §2 → `clamp(33px, 5.56vw, 106.67px)`.
+tabulado en §2 → `clamp(33px, 5.56vw, 106.67px)`. El de 14px del botón
+tampoco estaba tabulado → `clamp(12px, 0.98vw, 18.67px)`.
 
-### Paleta
+**Los dos picos de 128px no son el mismo tipo de pico.** La marquesina es
+Gantari ExtraBold itálica y corre; el remate es Plus Jakarta Bold **recto**,
+centrado y quieto — el único bloque del nodo sin itálica. Comparten tamaño
+para cerrar el arco, no familia.
+
+**Gantari se usa en dos pesos, no en uno.** ExtraBold (800) en la marquesina,
+Bold (700) en el enunciado. El `<link>` ya carga los dos en itálica.
+
+### 11.2 · Paleta
 
 Idéntica a la de Método (§6) salvo los cuatro tonos de la tarjeta de
 resultado, que son nuevos y **codifican tiempo, no disciplina**:
@@ -522,7 +540,105 @@ Los chips de disciplina usan los `--spec-1..6` de `:root` **sin una sola
 variación de hex** — primer nodo del sitio que no agrega ningún token de
 color propio. Los `--spec-N-deep` no se usan.
 
-### Discrepancias que abre este frame
+**El botón del futuro tampoco era neutro.** El frame lo dibuja en la familia
+salmón de la tarjeta que dispara, no en la tinta de prosa:
+
+| | Hex |
+|---|---|
+| Filete del botón | `#9e3000` |
+| Tinta del botón | `#ffbda8` |
+
+### 11.3 · Geometría del combinador
+
+| | Valor a 1440 |
+|---|---|
+| Entre las tres secciones | 48px |
+| Filete de sección → etiqueta | 10px |
+| Etiqueta → fila de chips | **24px** |
+| Gap entre chips — líneas | 30px |
+| Gap entre chips — disciplinas | **35px** |
+| Alto de chip | **50px** |
+| Padding de chip | 24px horizontal, filete de 2px |
+| Fila de disciplinas → tarjeta | 32px |
+| Tarjeta | alto 347px, padding 25px, gap interno 8px, `blur(2px)` |
+| Corchetes de esquina | 8px |
+| Tarjeta → botón | 424px |
+| Padding del botón | 49px horizontal, 25px vertical |
+
+**El alto de chip es el hallazgo de la remedición.** El spec lo había
+*derivado* del padding (7 + 13.2 + 8.19 + 4 ≈ 30px) y de ahí salía que no
+llegaba al área tocable de 40px, con un parche `min-height: 40px` acotado a
+≤767. Pero la caja de Figma tiene **altura fija declarada**, y mide 50px: el
+chip nunca estuvo bajo el mínimo en el diseño, estaba mal derivado en el
+código. Con 50px desde el tier base el parche sobra y el hueco de tablet
+—donde caía a ~31px— se cierra solo.
+
+### 11.3.b · El ritmo narrativo, en `clamp()`
+
+Los ocho saltos grandes del nodo viven en tokens `--r-air-*`, derivados con
+la fórmula de §2 desde el valor medido. Es la primera aplicación de la
+cascada invertida sobre **ritmo vertical** y no sobre tipografía:
+
+| Figma | Piso | Slope | Techo | @768 | @390 | @359 |
+|---|---|---|---|---|---|---|
+| 281 | 67px | 19.52vw | 374.67px | 150 | 76 | 70 |
+| 289 | 68px | 20.07vw | 385.33px | 154 | 78 | 72 |
+| 342 | 75px | 23.75vw | 456px | 182 | 93 | 85 |
+| 350 | 76px | 24.31vw | 466.67px | 187 | 95 | 87 |
+| 384 | 80px | 26.67vw | 512px | 205 | 104 | 96 |
+| 424 | 85px | 29.45vw | 565.33px | 226 | 115 | 106 |
+| 451 | 88px | 31.32vw | 601.33px | 241 | 122 | 112 |
+| 480 | 91px | 33.34vw | 640px | 256 | 130 | 120 |
+
+**En este rango el piso casi no actúa: manda el slope.** Para 281 el piso
+recién gana por debajo de ~343px de viewport. La curva de §2 estaba ajustada
+para tipografía y resulta que también ordena bien el aire — su propiedad 1,
+*comprime más lo grande que lo chico*, es justo lo que hace falta acá.
+
+Antes de esto los dos `@media` del nodo aplastaban los ocho saltos a **96px
+planos** en móvil y tablet, lo que borraba la jerarquía completa. Verificado
+en seis anchos: cero inversiones de orden.
+
+**Los bloques de prosa llevan `min(1159px, var(--page-col))`.** Con `1159px`
+pelado y `margin: auto`, por debajo de ese viewport el `auto` no reparte nada
+y la prosa quedaba a sangre — 390px de ancho a 390 de viewport. La medida de
+lectura a 1024 bajaba de 81 caracteres a 69, dentro del techo de ~77 de §7.
+
+**`24px` entre etiqueta y chips, no 87/97.** El frame declara `pt-87px` y
+`pt-97px` en esos contenedores, pero es residuo de haberles fijado altura en
+Figma; el spec ya lo había medido en 24px y esa medición sigue valiendo.
+
+### 11.4 · Qué cambió en la remedición del 2026-07-28
+
+**El ritmo vertical no cambió.** Todo lo que está por encima del combinador
+coincide al píxel con la medición anterior — 164 · 440→676 · 558 · 907.5 ·
+1188.5 · 1477.5 · 1819 · 2270 · 2619, y los saltos de 281 · 289 · 341.5 ·
+451px siguen idénticos.
+
+Por debajo, el botón y el cierre bajaron **exactamente +326px los dos**: no
+es ritmo nuevo, es que el frame ahora dibuja las **dos** tarjetas de estado
+apiladas donde antes había una. El Δ de 424px entre el fin del combinador y
+el botón se conserva exacto, que es el valor que el sitio implementa.
+
+Lo genuinamente nuevo:
+
+| | Qué | Aplicado al sitio |
+|---|---|---|
+| C-01 | El remate pasa a pico propio de 128px | Sí — sale del párrafo de cierre a `.routes__closer` |
+| C-02 | Alto de chip 50px (era ~32 en el sitio) | Sí — y se retira el parche de ≤767 |
+| C-03 | Gap de disciplinas 35px | Sí |
+| C-04 | Botón en `#9e3000` / `#ffbda8`, 14px | Sí |
+| C-05 | Gantari ExtraBold marquesina / Bold enunciado | Sí — el enunciado bajó de 800 a 700 |
+| C-06 | Horizonte a 10px / `#908fa0` | **No** — ver D-22 |
+| C-07 | Gap interno de 12px en la tarjeta `FUTURO` | **No** — ver D-23 |
+| C-08 | Footer placeholder gris | **No** — ver D-24 |
+
+**Lo que el frame sigue sin dibujar:** la ruta transversal de Emprendimiento
+(`.routes__venture`). No es un descarte — `Spec - Nodo 5` §3.12 ya registró
+esa ausencia y resolvió por la regla 1 de precedencias que **el contenido
+manda y el bloque va**. Se queda en el sitio.
+
+### 11.5 · Discrepancias que abre este frame
 
 | | Qué | Estado |
 |---|---|---|
@@ -530,6 +646,16 @@ color propio. Los `--spec-N-deep` no se usan.
 | D-18 | Tres márgenes distintos en un mismo frame: 106px (combinador), 118px (bisagra, enunciado), 120px (prosa), contra los **105px** de §4 | Normalizar a `--page-margin`. Deriva de diagramación, no sistema |
 | D-19 | El filete de acento de la bisagra mide **4px**; en Método el equivalente es fino | Sin decidir — es el único elemento del sitio con filete grueso |
 | D-20 | La tarjeta de estado `FUTURO` repite la etiqueta `A DIA DE HOY`, y sus corchetes de esquina quedaron en el lavanda de la otra tarjeta | Deslices del frame. Falta el copy del horizonte de 2031 |
+| D-21 | El chip de línea **sin seleccionar** mide 46px con filete de 2px; el seleccionado 50px con filete de 1px; los seis de disciplina, 50px con filete de 2px | **Cerrada: se toma 50px y filete de 2px para todos.** Que un chip cambie de alto al seleccionarse es un salto de layout, no un estado. Corregir el frame |
+| D-22 | La etiqueta de horizonte baja a **10px** y a `#908fa0` | **Cerrada: se conserva 11px y `#908fa1`.** §2 fija 11px como mínimo de etiqueta, y el hex es un desvío de una unidad contra el token que ya comparte con Método |
+| D-23 | La tarjeta `FUTURO` abre su gap interno a 12px contra los 8px de `HOY` | **Cerrada: se conserva 8px.** El sitio tiene una sola tarjeta que cambia de estado; un gap por estado la haría saltar, que es justo lo que `Spec - Nodo 5` §4.2 prohíbe |
+| D-24 | Banda de footer `#757575` a sangre, 1440×367, con la palabra `FOOTER` en Gantari Bold Italic 85px | **Abierta.** Es placeholder, no diseño: el gris no pertenece a la paleta y el contenido es el nombre del componente. Falta el footer real |
+| D-25 | El gap de disciplinas sube a 35px contra los 30px de líneas | **Aplicada tal cual**, porque esa fila dejó de estar en absoluto y ahora declara el valor. Candidata a normalizar a 30 en la sesión de responsive |
 
 Faltas de tilde en el frame, ya registradas en el spec: `exploracion de
 rutas` y `A DIA DE HOY`.
+
+**Divergencias de copy contra el sitio, no aplicadas** — el copy vive en el
+vault, no en el frame: el frame dice *"las seis disciplinas que ya viste en
+el nodo 1"* donde el sitio dice *"en el Catálogo"* (el sitio no numera nodos
+para el lector), y arranca la descripción de la tarjeta `HOY` en mayúscula.
