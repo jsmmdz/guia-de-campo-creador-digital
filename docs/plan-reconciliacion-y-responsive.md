@@ -184,7 +184,28 @@ otros nodos:
 - `.territory__callout` — ya registrado como **D-11** en DESIGN.md §9,
   *"desborda en celular, bug real, sin tocar"*.
 
-Los tres caen dentro del alcance de (b).
+**Resuelto, y la atribución del agente era incorrecta.** Medido de nuevo:
+`.field-bg` y `.threshold__sweep` están dentro de un ancestro con
+`overflow: hidden` y no pueden generar scroll. El único culpable real era
+`.territory__callout`, y no por falta de breakpoint sino por una colisión
+de especificidad — **D-11, cerrada**, detalle en DESIGN.md §9. Al
+arreglarla `scrollWidth` volvió a igualar `clientWidth` en los tres anchos
+chicos.
+
+Lección de método: `scrollWidth > clientWidth` con `body { overflow-x:
+hidden }` no prueba que haya scroll horizontal. La prueba que decide es
+`window.scrollTo(2000, y)` y leer `scrollX` — si no se mueve, el desborde
+es fantasma y hay que buscar contenido **recortado**, no scroll.
+
+### Estado de (b)
+
+| Nodo | Estado |
+|---|---|
+| Territorio | **D-11 cerrada.** Falta la migración de sus `--sp-N` a `clamp()` |
+| Método | Sin empezar. Arrastra D-01 (mide la mitad de ancho que Figma) y D-14 (cuatro celdas donde van cinco) |
+| Voces | Sin empezar. Un bug visual abierto en la cita de Melisa |
+| Umbral | Sin empezar. `script.js` lee 767/1023 para el radio de la órbita |
+| Catálogo | Sin empezar. El más riesgoso: pin y frames por edge |
 
 ### Rama (b) — Migrar los otros nodos a la cascada de DESIGN.md
 

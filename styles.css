@@ -718,6 +718,25 @@ body.enhanced .territory__level-name {
 }
 body:not(.enhanced) .territory__stint { height: auto; overflow: visible; }
 body:not(.enhanced) .territory__page { min-height: 60vh; display: flex; align-items: center; }
+/* ...salvo las dos variantes de página que son grids de tres columnas
+   (.territory__card §898 y .territory__note §979).
+
+   La regla de arriba se las comía: `body:not(.enhanced) .territory__page`
+   pesa (0,2,1) contra la (0,1,0) de la clase sola, así que en modo NO
+   enhanced —que es exactamente móvil y tablet— las dos se volvían una
+   fila flex de tres hijos sin wrap. De ahí salían dos cosas:
+
+   - El `grid-template-columns: 1fr` del bloque ≤767 no hacía nada, porque
+     no había grid al que aplicárselo. Llevaba ahí sin efecto desde que se
+     escribió.
+   - .territory__callout, tercer hijo de la fila, terminaba en 412px con el
+     viewport en 390 y el `overflow-x: hidden` del body le cortaba 22px de
+     contenido. Eso es D-11.
+
+   El centrado vertical que aportaba `align-items: center` no se pierde: las
+   dos ya declaran `align-content: center`, escrito esperando ser grid. */
+body:not(.enhanced) .territory__card,
+body:not(.enhanced) .territory__note { display: grid; }
 body:not(.enhanced) .territory__center,
 body:not(.enhanced) .territory__marquee { display: none; }
 

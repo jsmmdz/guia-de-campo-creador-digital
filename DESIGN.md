@@ -377,7 +377,7 @@ para *derivar* el sistema, no para cerrar un bug que el usuario está viendo.
 | D-06 | Juego de breakpoints | Cerrada: §3 |
 | D-07 | La mono se elimina | **Cerrada: migrada** |
 | D-08 | Medida de lectura a ~77 caracteres | Decidida, falta actualizar el spec |
-| D-11 | `.territory__callout` desborda en celular | Bug real, sin tocar |
+| D-11 | `.territory__callout` desborda en celular | **Cerrada 2026-07-28: era una colisión de especificidad** (ver abajo) |
 | D-12 | Tres convenciones de `clamp()` | A corregir al implementar |
 | D-13 | El fondo de Método es negro puro, no `#050507` | Nueva |
 | D-14 | Son 5 condiciones de Frascati, el sitio tiene 4 | **Falta la quinta** |
@@ -404,6 +404,36 @@ ninguna medición. Medido a 1440:
 **Consecuencia medida:** los dos párrafos de apertura rompen en **5 y 4
 líneas** en el sitio, donde Figma tiene **3 y 3**. La tipografía coincide
 exacto (48px); el problema es solo de contenedor.
+
+### D-11 · El callout de Territorio — **cerrada 2026-07-28**
+
+No faltaba un breakpoint: **`body:not(.enhanced) .territory__page`** pesa
+(0,2,1) y le pisaba el `display: grid` a `.territory__card` y
+`.territory__note`, que pesan (0,1,0). En modo no enhanced —o sea móvil y
+tablet, justo donde se veía el bug— las dos variantes se volvían una fila
+flex de tres hijos sin wrap.
+
+Dos consecuencias, y la segunda es la que se veía:
+
+1. El `grid-template-columns: 1fr` del bloque `≤767` **no hacía nada**,
+   porque no había grid. Llevaba ahí sin efecto desde que se escribió.
+2. `.territory__callout`, tercer hijo de la fila, terminaba en **412px con
+   el viewport en 390**, y el `overflow-x: hidden` del `body` le cortaba
+   22px de contenido.
+
+Arreglado reafirmando el grid con la misma especificidad. El centrado
+vertical no se perdió: las dos ya declaraban `align-content: center`,
+escrito esperando ser grid — de hecho el comentario de `.territory__card`
+ya nombraba *"el bug de display:flex"* y lo había parcheado por ahí.
+
+**Verificado** a 390 (callout 24→366, antes 253→412), a 768 (grid de
+210/252/210, sin desborde) y a 1440 en modo enhanced (405/486/405, sin
+cambio). `scrollWidth == clientWidth` en los tres.
+
+**De paso desmiente un falso positivo:** el desborde de documento de 413px
+que aparecía a ≤390 no venía de `.field-bg` ni de `.threshold__sweep` —los
+dos están dentro de un ancestro con `overflow: hidden`— sino de este
+callout. Al cerrarlo, `scrollWidth` volvió a igualar `clientWidth`.
 
 ### D-07 · La mono se elimina — **cerrada 2026-07-28**
 
