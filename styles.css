@@ -458,6 +458,57 @@ body.in-catalog .field-bg { opacity: 1; }
      (nunca scroll horizontal). El modo scroll-jacking (laptop+, ver
      body.catalog-enhanced más abajo) es la excepción que reintroduce el
      eje horizontal, no al revés. */
+
+  /* --- curvas del nodo (DESIGN.md §2), derivadas de las anclas del render
+         a 1440: título 74 · copy 18 · reg 11 · blob 460 · padding 96/64 ·
+         gap 24 · retícula 18. Reemplazan los cuatro @media de cantidad que
+         vivían al final de esta sección: todos cambiaban tamaño, ninguno
+         estructura (§7 / criterio D-4). --- */
+  --pl-title: clamp(31px, 5.14vw, 98.67px);
+  --pl-copy:  clamp(16px, 1.25vw, 24px);   /* piso 16: mínimo de prosa, L-1 */
+  --pl-reg:   clamp(11px, 0.77vw, 14.67px);
+  --pl-gap:   clamp(17px, 1.67vw, 32px);
+  --pl-tick:  clamp(14px, 1.25vw, 24px);
+  --pl-pad-x: clamp(24px, 4.45vw, 85.33px);
+
+  /* El padding vertical se ancla al ALTO de diseño, no al ancho: el frame
+     del Catálogo son seis placas de 1440 × 1053 (§8.b), y 96/1053 = 9.12vh.
+     Con la curva en vw, a 1920×1080 el padding subía a 128px sobre una
+     pantalla que sigue midiendo 1080 de alto y se comía el blob. */
+  --pl-pad-y: clamp(24px, 9.12vh, 128px);
+
+  /* Ancho del blob. Dos tramos, los dos medidos sobre el render actual:
+     60vw es lo que el nodo ya hacía en móvil y 380px su meseta de laptop;
+     31.95vw es la pendiente que reproduce los 460px a 1440 y crece hasta
+     613.33 (= 460 × 4/3) a 1920. La expresión es continua y monótona. */
+  --pl-blob-w: max(min(60vw, 380px), clamp(234px, 31.95vw, 613.33px));
+
+  /* Alto reservado para todo lo que NO es el blob, con el mismo desglose
+     que la placa: padding + 3 gaps + reg (1 línea) + título (2) + copy (3).
+     Las 3 líneas de copy son el peor caso real del rango; a 1440 × 1053 —el
+     alto de diseño— la reserva da 510 y el blob conserva sus 460 exactos. */
+  --pl-reserve: calc(
+    2 * var(--pl-pad-y) + 3 * var(--pl-gap) +
+    1.3 * var(--pl-reg) + 2 * var(--pl-title) + 4.65 * var(--pl-copy)
+  );
+
+  /* Un cuadrado lo acota la dimensión menor: sin el tope por alto, la placa
+     medía 974px dentro de un .catalog de 900 con overflow:hidden. */
+  --pl-blob: min(var(--pl-blob-w), calc(100svh - var(--pl-reserve)));
+
+  /* Desfase del blob respecto al centro de la pantalla.
+     El hueco de la placa NO está en el centro: arriba hay reg + título
+     (186px a 1440) y abajo solo la copy (56px), así que el centro del hueco
+     cae (arriba − abajo) / 2 por debajo del centro. El blob es fijo en
+     top:50%, y por eso quedaba 65px alto y pisaba el título.
+     Se corrige moviendo el blob, no el texto: centrar el hueco obligaría a
+     igualar las dos mitades, y ese aire de más deja al blob en ~322px a
+     1920×1080. Con el desfase el blob conserva 460 a 1440×1053 y ~459 a
+     1920×1080. El término de la copy asume sus 2 líneas de 1440. */
+  --pl-drop: calc(
+    (1.3 * var(--pl-reg) + var(--pl-gap) + 2 * var(--pl-title)
+     - 3.1 * var(--pl-copy)) / 2
+  );
 }
 
 .catalog__rail { display: flex; flex-direction: column; }
@@ -465,20 +516,28 @@ body.in-catalog .field-bg { opacity: 1; }
 .plate {
   position: relative;
   width: 100%;
-  min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-3);
-  padding: var(--sp-6) var(--sp-4);
+  gap: var(--pl-gap);
+  padding: var(--pl-pad-y) var(--pl-pad-x);
   text-align: center;
+}
+
+/* reg + título viajan juntos para que el desfase del blob (--pl-drop) tenga
+   un bloque único arriba del hueco que medir, en vez de dos items sueltos. */
+.plate__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--pl-gap);
 }
 
 .plate__reg {
   font-family: var(--f-sans);
-  font-size: 11px;
+  font-size: var(--pl-reg);
   letter-spacing: 0.22em;
   opacity: 0.65;
   mix-blend-mode: difference;
@@ -488,14 +547,18 @@ body.in-catalog .field-bg { opacity: 1; }
   font-weight: 900;
   font-style: italic;
   text-transform: uppercase;
-  font-size: clamp(32px, 6vw, 74px);
+  font-size: var(--pl-title);
   line-height: 1;
   mix-blend-mode: difference;
 }
 
 .plate__copy {
-  max-width: 460px;
-  font-size: clamp(14px, 1.6vw, 18px);
+  /* El piso de 460px es el ancho medido a 1440; por debajo de ese viewport
+     manda el 100% y el párrafo ocupa la columna, que es lo que ya hacía.
+     Con la misma pendiente del blob, la medida de lectura queda constante
+     en ~51 caracteres de 1440 a 1920 (L-2, techo ~77). */
+  max-width: min(100%, clamp(460px, 31.95vw, 613.33px));
+  font-size: var(--pl-copy);
   font-weight: 400;
   line-height: 1.55;
   mix-blend-mode: difference;
@@ -507,9 +570,8 @@ body.in-catalog .field-bg { opacity: 1; }
 
 .plate__viewport {
   position: relative;
-  width: min(42vw, 380px);
+  width: var(--pl-blob);
   aspect-ratio: 1;
-  margin: var(--sp-2) 0;
 }
 
 /* --- catalog__hero: el blob real, fijo y centrado en la pantalla — no
@@ -519,10 +581,10 @@ body.in-catalog .field-bg { opacity: 1; }
 
 .catalog__hero {
   position: fixed;
-  top: 50%;
+  top: calc(50% + var(--pl-drop));
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(42vw, 380px);
+  width: var(--pl-blob);
   aspect-ratio: 1;
   z-index: 5;
   display: grid;
@@ -547,7 +609,7 @@ body.in-catalog .catalog__hero { opacity: 1; }
 }
 .hero-reticle span {
   position: absolute;
-  width: 16px; height: 16px;
+  width: var(--pl-tick); height: var(--pl-tick);
   border: 1.5px solid var(--paper);
 }
 .hero-reticle span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
@@ -596,30 +658,12 @@ body.catalog-enhanced .catalog {
 body.catalog-enhanced .catalog__rail { flex-direction: row; width: 600%; will-change: transform; }
 body.catalog-enhanced .plate { flex: 0 0 100vw; width: 100vw; }
 
-/* móvil ≤767 */
-@media (max-width: 767px) {
-  .plate__viewport, .catalog__hero { width: min(60vw, 320px); }
-  .plate { padding: var(--sp-5) var(--sp-3); gap: var(--sp-2); }
-  .plate__reticle span, .hero-reticle span { width: 12px; height: 12px; }
-}
-/* tablet 768–1023 */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .plate__viewport, .catalog__hero { width: min(50vw, 340px); }
-  .plate { padding: var(--sp-5) var(--sp-4); }
-  .plate__reticle span, .hero-reticle span { width: 14px; height: 14px; }
-}
-/* desktop 1440–1919 */
-@media (min-width: 1440px) and (max-width: 1919px) {
-  .plate__viewport, .catalog__hero { width: min(38vw, 460px); }
-  .plate { padding: var(--sp-6) var(--sp-5); }
-  .plate__reticle span, .hero-reticle span { width: 18px; height: 18px; }
-}
-/* pantallas grandes ≥1920 */
-@media (min-width: 1920px) {
-  .plate__viewport, .catalog__hero { width: min(32vw, 560px); }
-  .plate { padding: var(--sp-6) var(--sp-6); }
-  .plate__reticle span, .hero-reticle span { width: 22px; height: 22px; }
-}
+/* Los cuatro @media del Catálogo (≤767 · 768–1023 · 1440–1919 · ≥1920)
+   desaparecieron: los tres valores que tocaban —ancho del blob, padding de
+   la placa y tamaño de la retícula— son cantidad, y la cantidad va en curva
+   (§7 / criterio D-4). De paso se va el @media (min-width: 1440px) que §3
+   prohíbe. El nodo no tiene ningún cambio de ESTRUCTURA por ancho: ya era
+   una sola columna en todos los breakpoints, así que no queda ninguno. */
 
 /* ============================================================
    TERRITORIO — Nodo 2
@@ -2318,89 +2362,168 @@ body.voices-js .voices__row-body {
    3.8 — Qué técnica o método rescato de cada entrevista
    Contenido SIEMPRE visible, nunca en acordeón (Spec §3.8).
    ============================================================ */
+/* Medido por MCP sobre el frame `Desktop - 16` (261:277, fileKey
+   ml7agEUFaiqNyknGicfH5B) el 2026-07-29, a 1440 y escala 1:1. Reemplaza la
+   escala PROVISIONAL que este bloque traía por no tener datos de Figma.
+   Anclas: título 48 · eyebrow 11/1.1 · subtítulo 48/40 · label 15/1.8 ·
+   cuerpo 32/52.8 · tarjeta 209×106 con gap 44 · prosa 1159 · título 1229. */
 .voices__method-recap {
+  /* El bloque sale de la columna de 42rem: el frame lo pone a ancho de
+     página (left 109, prosa 1159, título 1229), que es también lo que hacía
+     falta para que las 5 tarjetas entren en fila.
+     El contenedor crece con el resto hasta 1229 × 4/3 (§2): topado en 1229
+     fijo, a 1920 el gap seguía creciendo contra un ancho quieto y la tarjeta
+     ENCOGÍA de 210 a 192 — una inversión de jerarquía (D-1). */
+  max-width: min(100%, clamp(1229px, 85.35vw, 1638.67px));
+  margin-inline: auto;
   margin-top: var(--sp-6);
   margin-bottom: var(--sp-6);
 }
 .voices__method-recap-title {
-  max-width: 42rem;
-  font-family: var(--t-f-display);
-  font-weight: 700;
-  text-transform: uppercase;
-  /* PROVISIONAL — sin datos exactos de Figma aún, ver Spec §5.4 */
-  font-size: clamp(1.75rem, 3.9vw, 3.5rem);
-  line-height: 1.15;
-  color: var(--paper);
-}
-.voices__method-block {
-  max-width: 42rem; /* Spec §3.8: Diagrama 02 "dentro de la columna de lectura" */
-  margin-top: var(--sp-5);
-}
-.voices__method-subtitle {
-  font-family: var(--t-f-serif);
+  font-family: var(--m-f-sans);
   font-style: italic;
   font-weight: 600;
-  font-size: clamp(28px, 3.34vw, 64px); /* tier 48px */
-  line-height: 1.4;
+  font-size: clamp(25px, 3.34vw, 64px); /* 48px a 1440 */
+  line-height: 1.15;
+  color: #fff;
+}
+.voices__method-block {
+  margin-top: var(--sp-5);
+}
+.voices__method-eyebrow {
+  display: block;
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px a 1440 */
+  letter-spacing: 0.1em;                   /* 1.1px sobre 11px */
+  line-height: 1.45;
+  text-transform: uppercase;
+  color: #908fa0;
+  margin-bottom: var(--sp-1);
+}
+.voices__method-subtitle {
+  /* El frame lo pone en Plus Jakarta SemiBold itálica, no en Fraunces: la
+     serif de este nodo queda reservada para las citas. */
+  font-family: var(--m-f-sans);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(25px, 3.34vw, 64px); /* 48px a 1440 */
+  line-height: 1.1;                     /* 40/48 en el frame, con aire para 2 líneas */
   color: var(--t-ink);
-  margin-bottom: var(--sp-3);
+  margin-bottom: var(--sp-4);
 }
 .voices__method-body {
+  /* El 36.2em es el ancho de Figma expresado en cuerpos (1159 / 32): en px
+     puros la medida de lectura se disparaba a 81.5 caracteres a 1024, sobre
+     el techo de ~77 de §7, porque el ancho se quedaba en el 100% mientras la
+     tipografía bajaba. A 1440 los tres términos coinciden y da 1159 igual. */
+  max-width: min(100%, clamp(1159px, 80.5vw, 1545.33px), 36.2em);
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(18px, 2.23vw, 42.67px);
-  line-height: 1.5;
-  color: var(--t-ink);
-  margin-top: var(--sp-3);
+  font-size: clamp(19px, 2.23vw, 42.67px); /* 32px a 1440 */
+  line-height: 1.65;                       /* 52.8/32 */
+  color: #e4e1ee;
+  margin-top: var(--sp-4);
 }
 
 /* ---------- Diagrama 02: secuencia de ejecución técnica ----------
-   Confinado a la columna de lectura (a diferencia del Diagrama 01,
-   que es full-width) — por eso es SIEMPRE vertical, con flechas hacia
-   abajo, en todos los breakpoints. Última caja en fill sólido.
-   PENDIENTE (ver comparación contra Figma 2026-07-26): el frame real
-   muestra las 5 cajas horizontales — mantenerlo vertical fue decisión
-   de una sesión anterior por el ancho de columna (~42rem no alcanza
-   para 5 cajas horizontales sin romper). Decidir si vale la pena
-   rediseñar a full-width horizontal como el Diagrama 01. */
+   HORIZONTAL, cerrando la decisión que quedó abierta en 2026-07-26.
+   Entonces se dejó vertical porque el bloque vivía confinado a 42rem y
+   5 cajas no entraban; el frame (299:165-184) lo dibuja en fila, y con
+   el bloque ya a ancho de página (1229) entra exacto: 5 × 209 + 4 × 44
+   = 1221. Las flechas ↓ se van con la columna — en fila el orden lo dan
+   la posición y el rótulo STEP_0N, que el frame agrega y el sitio no
+   tenía. Es un <ol>: siempre fue una secuencia ordenada. */
 .voices__flow-label {
   display: block;
-  font-family: var(--f-sans);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-family: var(--m-f-sans);
+  font-weight: 700;
+  font-size: clamp(13px, 1.05vw, 20px); /* 15px a 1440 */
+  letter-spacing: 0.12em;               /* 1.8px sobre 15px */
+  line-height: 1.6;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: #c0c1ff;
   margin-bottom: var(--sp-3);
 }
 .voices__flow {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(23px, 3.06vw, 58.67px);    /* 44px a 1440 */
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.voices__flow-chip {
-  display: inline-flex;
+.voices__step {
+  position: relative;
+  display: flex;
   align-items: center;
-  padding: var(--sp-2) var(--sp-3);
-  border: 1px solid var(--t-hairline);
-  background: var(--t-panel);
-  font-family: var(--m-f-sans);
-  font-weight: 600;
-  font-size: clamp(0.8125rem, 1.25vw, 1.125rem);
+  justify-content: center;
+  /* 106px = los cuatro números del frame compuestos: el rótulo centrado en
+     y=12 con interlínea 16 ocupa 4–20, más el gap de 21, y el nombre de
+     interlínea 24 centrado en la caja ⇒ (H − 24) / 2 = 41. */
+  min-height: clamp(72px, 7.37vw, 141.33px);
+  padding: clamp(28px, 2.5vw, 40px) var(--sp-2) var(--sp-2);
+  border: 1px solid #464554;
+  text-align: center;
+}
+.voices__step-id {
+  position: absolute;
+  top: clamp(4px, 0.28vw, 5.33px);
+  left: clamp(4px, 0.28vw, 5.33px);
+  font-family: var(--f-sans);
+  font-weight: 500;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px a 1440 */
+  letter-spacing: 0.22em;                  /* 2.42px sobre 11px */
+  line-height: 1.45;
+  color: #908fa0;
+  opacity: 0.5;
+}
+.voices__step-name {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(13px, 1.12vw, 21.33px); /* 16px a 1440 */
+  letter-spacing: 0.05em;                  /* 0.8px sobre 16px */
+  line-height: 1.5;
+  text-transform: uppercase;
   color: var(--t-ink);
 }
-.voices__flow-chip--fill {
-  background: var(--signal-hi);
-  border-color: var(--signal-hi);
-  color: var(--paper);
+/* El paso final no va en relleno sólido: el frame lo marca con el mismo
+   borde en el acento y un velo del 5%, para que se lea como el cierre de
+   la secuencia y no como un botón. */
+.voices__step--final {
+  background: rgba(193, 193, 255, 0.05);
+  border-color: #c1c1ff;
 }
-.voices__flow-arrow {
-  display: block;
-  padding: var(--sp-1) 0;
-  margin-left: var(--sp-3);
-  font-family: var(--f-sans);
-  font-size: 13px;
-  color: var(--t-hairline-hi);
-  opacity: 0.65;
+.voices__step--final .voices__step-name { color: #c1c1ff; font-weight: 700; }
+.voices__step--final .voices__step-id   { color: #c1c1ff; opacity: 1; }
+
+/* Único cambio de ESTRUCTURA del bloque (§7): la secuencia pasa de fila a
+   columna apilada. A 1023 las cinco cajas caen a ~150px y "DIAGRAMA DE
+   FLUJO" ya no entra en una línea. */
+@media (max-width: 1023px) {
+  .voices__flow { grid-template-columns: 1fr; }
+}
+
+/* La cita de Melisa de esta sección es la "Climax Quote" del frame
+   (256:269) y no una cita de fila de acordeón: filete de 4px en el acento
+   (no 1px), sangría de 36px e interlínea 52.8/48 = 1.1, no 1.35. Acotada al
+   bloque para no pisar las citas del acordeón, que el frame mide en 20/32.5. */
+.voices__method-block .voices__quote {
+  max-width: min(100%, clamp(1174px, 81.53vw, 1565.33px));
+  padding-left: clamp(20px, 2.5vw, 48px);   /* 36px a 1440 */
+  border-left-width: clamp(2px, 0.28vw, 5.33px); /* 4px a 1440 */
+  border-left-color: #c1c1ff;
+  margin-top: var(--sp-5);
+}
+.voices__method-block .voices__quote-text {
+  line-height: 1.1;   /* 52.8 / 48 */
+  color: #e4e1ee;
+}
+.voices__method-block .voices__quote-attr {
+  font-size: clamp(11px, 0.77vw, 14.67px);
+  letter-spacing: 0.1em;   /* 1.1px sobre 11px */
+  color: #908fa1;
+  opacity: 1;
 }
 
 /* ============================================================

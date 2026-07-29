@@ -36,7 +36,7 @@
      combinador es Plus Jakarta Bold Italic (Spec §5.4), peso que
      ningún nodo anterior necesitaba. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500;1,700&display=swap" />
-<link rel="stylesheet" href="styles.css?v=34" />
+<link rel="stylesheet" href="styles.css?v=39" />
 </head>
 <body>
 
@@ -144,43 +144,55 @@
     -->
 
     <article class="plate" data-name="UX/UI Design" style="--c: var(--spec-1)">
-      <p class="plate__reg">ESPÉCIMEN 01 / 06</p>
-      <h3 class="plate__title">UX/UI<br />Design</h3>
+      <div class="plate__head">
+        <p class="plate__reg">ESPÉCIMEN 01 / 06</p>
+        <h3 class="plate__title">UX/UI<br />Design</h3>
+      </div>
       <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Diseñarás pantallas y experiencias que se sienten naturales, claras y humanas.</p>
     </article>
 
     <article class="plate" data-name="3D Production" style="--c: var(--spec-2)">
-      <p class="plate__reg">ESPÉCIMEN 02 / 06</p>
-      <h3 class="plate__title">3D<br />Production</h3>
+      <div class="plate__head">
+        <p class="plate__reg">ESPÉCIMEN 02 / 06</p>
+        <h3 class="plate__title">3D<br />Production</h3>
+      </div>
       <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Darás vida a mundos y objetos virtuales que sumergen al espectador en nuevas realidades visuales.</p>
     </article>
 
     <article class="plate" data-name="Software Dev" style="--c: var(--spec-3)">
-      <p class="plate__reg">ESPÉCIMEN 03 / 06</p>
-      <h3 class="plate__title">Software<br />Dev</h3>
+      <div class="plate__head">
+        <p class="plate__reg">ESPÉCIMEN 03 / 06</p>
+        <h3 class="plate__title">Software<br />Dev</h3>
+      </div>
       <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Programarás el motor invisible que hace funcionar la web — la lógica detrás de cada plataforma digital.</p>
     </article>
 
     <article class="plate" data-name="Game Engineering" style="--c: var(--spec-4)">
-      <p class="plate__reg">ESPÉCIMEN 04 / 06</p>
-      <h3 class="plate__title">Game<br />Engineering</h3>
+      <div class="plate__head">
+        <p class="plate__reg">ESPÉCIMEN 04 / 06</p>
+        <h3 class="plate__title">Game<br />Engineering</h3>
+      </div>
       <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Diseñarás las reglas y los sistemas de interacción detrás de cada mundo jugable.</p>
     </article>
 
     <article class="plate" data-name="Multimedia Artist" style="--c: var(--spec-5)">
-      <p class="plate__reg">ESPÉCIMEN 05 / 06</p>
-      <h3 class="plate__title">Multimedia<br />Artist</h3>
+      <div class="plate__head">
+        <p class="plate__reg">ESPÉCIMEN 05 / 06</p>
+        <h3 class="plate__title">Multimedia<br />Artist</h3>
+      </div>
       <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Producirás piezas visuales y sonoras que se sienten en cualquier pantalla o formato.</p>
     </article>
 
     <article class="plate" data-name="AI Technologist" style="--c: var(--spec-6)">
-      <p class="plate__reg">ESPÉCIMEN 06 / 06</p>
-      <h3 class="plate__title">AI<br />Technologist</h3>
+      <div class="plate__head">
+        <p class="plate__reg">ESPÉCIMEN 06 / 06</p>
+        <h3 class="plate__title">AI<br />Technologist</h3>
+      </div>
       <div class="plate__viewport" aria-hidden="true"></div>
       <p class="plate__copy">Guiarás sistemas de inteligencia artificial cada vez más autónomos hacia un fin humano.</p>
     </article>
@@ -1021,29 +1033,36 @@
        Contenido SIEMPRE visible, nunca en acordeón.
        ============================================================ -->
   <section class="voices__method-recap">
-    <h2 class="voices__method-recap-title" data-reveal>Qué técnica o método rescato de cada entrevista</h2>
+    <!-- Texto del frame (299:203), decisión del usuario 2026-07-29: gana el
+         Figma sobre el "Qué técnica o método rescato…" del Spec §3.8. Las
+         mayúsculas son literales del diseño, no un text-transform. -->
+    <h2 class="voices__method-recap-title" data-reveal>QUE CONSEJO RESCATO DE CADA ENTREVISTA ?</h2>
 
     <div class="voices__method-block" data-reveal>
-      <p class="voices__method-subtitle">Juan David — un flujo fijo, paso a paso</p>
+      <!-- El frame (299:207) separa el nombre del entrevistado en un
+           eyebrow propio y deja el título sin el "Juan David — " que el
+           sitio traía repetido. -->
+      <p class="voices__method-eyebrow">Juan David Aristizábal</p>
+      <p class="voices__method-subtitle">Un flujo fijo, paso a paso</p>
       <span class="voices__flow-label">Protocolo de ejecución técnica</span>
       <!-- Discrepancia #3: etiquetas exactas del spec (no las del
            archivo de Contenido) — son etiquetas de UI/diagrama. -->
-      <div class="voices__flow">
-        <span class="voices__flow-chip">PLANEACIÓN</span>
-        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
-        <span class="voices__flow-chip">ALGORITMO</span>
-        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
-        <span class="voices__flow-chip">PSEUDOCÓDIGO</span>
-        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
-        <span class="voices__flow-chip">DIAGRAMA DE FLUJO</span>
-        <span class="voices__flow-arrow" aria-hidden="true">↓</span>
-        <span class="voices__flow-chip voices__flow-chip--fill">RESULTADO FINAL</span>
-      </div>
-      <p class="voices__method-body">Planeación → Algoritmo → Pseudocódigo → Flowchart → Código final. Un método cerrado y repetible: la misma secuencia, proyecto tras proyecto, para traducir una idea en algo que funciona.</p>
+      <ol class="voices__flow">
+        <li class="voices__step"><span class="voices__step-id">STEP_01</span><span class="voices__step-name">PLANEACIÓN</span></li>
+        <li class="voices__step"><span class="voices__step-id">STEP_02</span><span class="voices__step-name">ALGORITMO</span></li>
+        <li class="voices__step"><span class="voices__step-id">STEP_03</span><span class="voices__step-name">PSEUDOCÓDIGO</span></li>
+        <li class="voices__step"><span class="voices__step-id">STEP_04</span><span class="voices__step-name">DIAGRAMA DE FLUJO</span></li>
+        <li class="voices__step voices__step--final"><span class="voices__step-id">STEP_05</span><span class="voices__step-name">RESULTADO FINAL</span></li>
+      </ol>
+      <!-- El frame (299:214) arranca en "Un método cerrado y repetible":
+           el prefijo "Planeación → Algoritmo → …" que había acá repetía en
+           prosa lo que el diagrama de arriba ya enumera. -->
+      <p class="voices__method-body">Un método cerrado y repetible: la misma secuencia, proyecto tras proyecto, para traducir una idea en algo que funciona.</p>
     </div>
 
     <div class="voices__method-block" data-reveal>
-      <p class="voices__method-subtitle">Melisa — desconfiar del método fijo, y estructurar el pensamiento propio</p>
+      <p class="voices__method-eyebrow">Melisa Ballesteros</p>
+      <p class="voices__method-subtitle">Desconfiar del método fijo,<br /> y estructurar el pensamiento propio</p>
       <!-- voices__accent--melisa: esta cita vive fuera de
            .voices__profile--melisa (esa sección ya cerró más arriba),
            así que necesita su propio scope de acento explícito. -->
