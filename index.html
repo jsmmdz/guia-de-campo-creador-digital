@@ -36,7 +36,7 @@
      combinador es Plus Jakarta Bold Italic (Spec §5.4), peso que
      ningún nodo anterior necesitaba. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500;1,700&display=swap" />
-<link rel="stylesheet" href="styles.css?v=39" />
+<link rel="stylesheet" href="styles.css?v=48" />
 </head>
 <body>
 
@@ -134,67 +134,68 @@
     <canvas class="hero-canvas" width="600" height="600" aria-hidden="true"></canvas>
   </div>
 
+  <!-- Rótulo del nodo. El frame (61:78) lo pone UNA vez arriba a la
+       izquierda, no un "ESPÉCIMEN 0N / 06" repetido en cada placa. Sale del
+       carril para no viajar con él en el desplazamiento horizontal. -->
+  <p class="catalog__reg">NODO 1</p>
+
   <div class="catalog__rail">
 
     <!--
-      COPY PROVISIONAL: el patrón de acción directa en segunda persona viene
-      del spec. El micro-copy de cada placa es un borrador en el mismo tono —
-      reemplázalo por el texto final antes de publicar (el spec marca los
-      copys de este nodo como intocables una vez confirmados).
+      COPY DEFINITIVO — tomado del frame `Desktop - 3` (25:2, nodos 137:272
+      a 137:278) el 2026-07-29. Reemplaza el borrador provisional que este
+      bloque arrastraba desde el build inicial: el texto final no existía
+      en ningún lado hasta que el frame del Catálogo se pudo medir.
+      Los títulos van en UNA línea, como el frame (73:693 y hermanos) — por
+      eso ya no llevan <br>.
     -->
 
     <article class="plate" data-name="UX/UI Design" style="--c: var(--spec-1)">
       <div class="plate__head">
-        <p class="plate__reg">ESPÉCIMEN 01 / 06</p>
-        <h3 class="plate__title">UX/UI<br />Design</h3>
+        <h3 class="plate__title">UX/UI Design</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Diseñarás pantallas y experiencias que se sienten naturales, claras y humanas.</p>
+      <p class="plate__copy">Diseñarás pantallas y experiencias centradas en las personas. Crearás interfaces intuitivas que guíen al usuario de forma natural, clara y sin esfuerzo.</p>
     </article>
 
     <article class="plate" data-name="3D Production" style="--c: var(--spec-2)">
       <div class="plate__head">
-        <p class="plate__reg">ESPÉCIMEN 02 / 06</p>
-        <h3 class="plate__title">3D<br />Production</h3>
+        <h3 class="plate__title">3D Production</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Darás vida a mundos y objetos virtuales que sumergen al espectador en nuevas realidades visuales.</p>
+      <p class="plate__copy">Darás vida a mundos tridimensionales. Crearás escenarios y objetos virtuales que sumerjan al espectador en nuevas realidades visuales e historias inmersivas.</p>
     </article>
 
     <article class="plate" data-name="Software Dev" style="--c: var(--spec-3)">
       <div class="plate__head">
-        <p class="plate__reg">ESPÉCIMEN 03 / 06</p>
-        <h3 class="plate__title">Software<br />Dev</h3>
+        <h3 class="plate__title">Software Dev</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Programarás el motor invisible que hace funcionar la web — la lógica detrás de cada plataforma digital.</p>
+      <p class="plate__copy">Programarás el motor invisible que hace funcionar la web. Construirás la lógica interna que sostiene cualquier plataforma digital para que sea rápida y segura.</p>
     </article>
 
     <article class="plate" data-name="Game Engineering" style="--c: var(--spec-4)">
       <div class="plate__head">
-        <p class="plate__reg">ESPÉCIMEN 04 / 06</p>
-        <h3 class="plate__title">Game<br />Engineering</h3>
+        <h3 class="plate__title">Game Engineering</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Diseñarás las reglas y los sistemas de interacción detrás de cada mundo jugable.</p>
+      <p class="plate__copy">Crearás las reglas y mecánicas de la interactividad. Diseñarás la lógica de los videojuegos para convertir al espectador en el verdadero protagonista.</p>
     </article>
 
     <article class="plate" data-name="Multimedia Artist" style="--c: var(--spec-5)">
       <div class="plate__head">
-        <p class="plate__reg">ESPÉCIMEN 05 / 06</p>
-        <h3 class="plate__title">Multimedia<br />Artist</h3>
+        <h3 class="plate__title">Multimedia Artist</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Producirás piezas visuales y sonoras que se sienten en cualquier pantalla o formato.</p>
+      <p class="plate__copy">Producirás piezas visuales y audiovisuales impactantes. Unirás el diseño con estrategias digitales para que tu contenido destaque, atrape a la audiencia y domine las redes.</p>
     </article>
 
     <article class="plate" data-name="AI Technologist" style="--c: var(--spec-6)">
       <div class="plate__head">
-        <p class="plate__reg">ESPÉCIMEN 06 / 06</p>
-        <h3 class="plate__title">AI<br />Technologist</h3>
+        <h3 class="plate__title">AI Technologist</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Guiarás sistemas de inteligencia artificial cada vez más autónomos hacia un fin humano.</p>
+      <p class="plate__copy">Usarás la inteligencia artificial como tu mejor aliada. Aprenderás a guiar estas herramientas para potenciar tus ideas, manteniendo siempre tu visión humana como filtro principal.</p>
     </article>
 
   </div>
@@ -228,7 +229,7 @@
   </div>
 
   <!-- ---------- Intro ---------- -->
-  <div class="territory__stint territory__stint--intro" data-stint="intro" data-pages="9">
+  <div class="territory__stint territory__stint--intro" data-stint="intro" data-pages="10">
 
     <!-- señalética en movimiento: independiente del scroll, nunca colgada
          del scrub del tramo (ver Ruta Técnica §Frontend) -->
@@ -242,21 +243,38 @@
       <p class="territory__hero-cue" aria-hidden="true">↓</p>
     </div>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Ya viste los tres niveles del territorio — el suelo, la ladera, la cima. Ninguno es más real que otro: son alturas distintas del mismo lugar.</p>
+    <!-- Preámbulo — los nueve fragmentos de `Contenido - Nodo 2 Territorio`
+         §Preámbulo, uno por página y alternando lado (Spec v2 §32 y §104).
+         Se corrigieron tres cosas contra el contenido cerrado:
+         · Se eliminó "Ya viste los tres niveles del territorio…", que no
+           existe en el contenido ni en el frame: el preámbulo abre en "El
+           mapa que estás pisando ahora…".
+         · "Hasta que… / el software se adoptó… / el territorio existe…" eran
+           un solo párrafo; el contenido los separa en tres fragmentos.
+         · "Pero no se entiende parado en un solo punto / hay que recorrerlo
+           de punta a punta" eran uno; son dos.
+         Los dos momentos de énfasis también alternan lado: §33 les da página
+         propia y mayor escala, pero siguen siendo fragmentos del preámbulo,
+         y el frame los dibuja uno a cada lado — no centrados. -->
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">El mapa que estás pisando ahora no lo dibujó nadie todavía del todo.</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">El mapa que estás pisando ahora no lo dibujó nadie todavía del todo.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Durante años fueron dos mundos que casi no funcionaban juntos.</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Durante años fueron dos mundos que casi no funcionaban juntos.</p>
+    <p class="territory__page territory__emphasis territory__emphasis--l" data-page="3">Lo creativo de un lado.</p>
 
-    <p class="territory__page territory__emphasis" data-page="4">Lo creativo de un lado.</p>
+    <p class="territory__page territory__emphasis territory__emphasis--r" data-page="4">Lo técnico del otro.</p>
 
-    <p class="territory__page territory__emphasis" data-page="5">Lo técnico del otro.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="5">Hasta que, hace relativamente poco,</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="6">Hasta que, hace relativamente poco, el software se adoptó como parte natural de ese mismo territorio creativo. El territorio existe, tiene nombre.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="6">el software se adoptó como parte natural de ese mismo territorio creativo.</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="7">Pero no se entiende parado en un solo punto, hay que recorrerlo de punta a punta,</p>
+    <!-- El frame (184:325) agrupa estas tres oraciones en un solo fragmento
+         y las puntúa con punto, no con coma. -->
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="7">El territorio existe. Tiene nombre. Pero no se entiende parado en un solo punto.</p>
 
-    <h2 class="territory__page territory__stint-title" data-page="8">Desde el suelo<span class="territory__stint-title-us">_</span>hasta la cima.</h2>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="8">hay que recorrerlo de punta a punta,</p>
+
+    <h2 class="territory__page territory__stint-title" data-page="9">Desde el suelo<span class="territory__stint-title-us">_</span>hasta la cima.</h2>
   </div>
 
   <!-- ---------- Suelo ---------- -->
@@ -1074,7 +1092,9 @@
     </div>
 
     <div class="voices__method-block" data-reveal>
-      <p class="voices__method-subtitle">Cómo pienso usar los dos de ahora en adelante</p>
+      <!-- Texto del prototipo, igual que el título de §3.8: mayúsculas
+           literales y signo de cierre, no un text-transform. -->
+      <p class="voices__method-subtitle">COMO PIENSO USAR LOS 2 DE AHORA EN ADELANTE?</p>
       <p class="voices__method-body">De ahora en adelante voy a preparar flujos de trabajo base, como los que propone Juan David, para cada tipo de producto que haga —una web, un diseño, un libro—. Pero al configurar esos flujos según las características de cada proyecto, voy a tener que estructurar el pensamiento propio, como plantea Melisa.</p>
     </div>
   </section>

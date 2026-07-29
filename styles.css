@@ -60,13 +60,18 @@
      de la mono. */
   --f-sans: "Plus Jakarta Sans", var(--f-display);
 
-  /* espectro de especímenes, en el orden fijo del catálogo */
-  --spec-1: #b9bce8; --spec-1-deep: #6f73bd; /* UX/UI Design      */
-  --spec-2: #7a4fae; --spec-2-deep: #3d1b5e; /* 3D Production     */
-  --spec-3: #d6336c; --spec-3-deep: #7a1638; /* Software Dev      */
-  --spec-4: #f2842b; --spec-4-deep: #8f4611; /* Game Engineering  */
-  --spec-5: #9bbe3f; --spec-5-deep: #556b1f; /* Multimedia Artist */
-  --spec-6: #ede9e2; --spec-6-deep: #a89f8c; /* AI Technologist   */
+  /* Espectro de especímenes, en el orden fijo del catálogo. Los seis hex
+     salen de los stops del gradiente del frame (25:2), que es UN gradiente
+     lineal continuo recorriendo las seis placas — no seis radiales sueltos.
+     `-deep` deja de ser "la versión oscura de este color" y pasa a ser el
+     color de la placa SIGUIENTE: así el tramo que se ve en cada placa es
+     literalmente el trozo de ese gradiente. Solo alimenta --field-b. */
+  --spec-1: #b7c0ed; --spec-1-deep: #2e0f55; /* UX/UI Design      13.4% */
+  --spec-2: #2e0f55; --spec-2-deep: #fa347b; /* 3D Production     21.5% */
+  --spec-3: #fa347b; --spec-3-deep: #fe8e26; /* Software Dev      38.0% */
+  --spec-4: #fe8e26; --spec-4-deep: #abb748; /* Game Engineering  58.4% */
+  --spec-5: #abb748; --spec-5-deep: #dcdbe1; /* Multimedia Artist 71.9% */
+  --spec-6: #dcdbe1; --spec-6-deep: #dcdbe1; /* AI Technologist   85.9% */
 
   --field-a: var(--depth);
   --field-b: var(--void);
@@ -444,7 +449,11 @@ body:not(.enhanced) .specimen-chip__frame { transform: none; }
   z-index: 0;
   opacity: 0;
   pointer-events: none;
-  background: radial-gradient(125% 100% at 50% 40%, var(--field-a) 0%, var(--field-b) 100%);
+  /* Lineal a 90°, como el frame. El radial centrado que había acá ponía el
+     color claro en el medio y el oscuro en los bordes; el frame recorre el
+     espectro de izquierda a derecha, que es la misma dirección en la que se
+     desplaza el carril. --field-a/--field-b los interpola applyProgress(). */
+  background: linear-gradient(90deg, var(--field-a) 0%, var(--field-b) 100%);
   transition: opacity 0.7s ease;
 }
 body.in-catalog .field-bg { opacity: 1; }
@@ -464,8 +473,8 @@ body.in-catalog .field-bg { opacity: 1; }
          gap 24 · retícula 18. Reemplazan los cuatro @media de cantidad que
          vivían al final de esta sección: todos cambiaban tamaño, ninguno
          estructura (§7 / criterio D-4). --- */
-  --pl-title: clamp(31px, 5.14vw, 98.67px);
-  --pl-copy:  clamp(16px, 1.25vw, 24px);   /* piso 16: mínimo de prosa, L-1 */
+  --pl-title: clamp(43px, 8.89vw, 170.67px);  /* 128px a 1440 (73:693) */
+  --pl-copy:  clamp(17px, 1.67vw, 32px);      /* 24px a 1440 (137:272) */
   --pl-reg:   clamp(11px, 0.77vw, 14.67px);
   --pl-gap:   clamp(17px, 1.67vw, 32px);
   --pl-tick:  clamp(14px, 1.25vw, 24px);
@@ -477,19 +486,21 @@ body.in-catalog .field-bg { opacity: 1; }
      pantalla que sigue midiendo 1080 de alto y se comía el blob. */
   --pl-pad-y: clamp(24px, 9.12vh, 128px);
 
-  /* Ancho del blob. Dos tramos, los dos medidos sobre el render actual:
-     60vw es lo que el nodo ya hacía en móvil y 380px su meseta de laptop;
-     31.95vw es la pendiente que reproduce los 460px a 1440 y crece hasta
-     613.33 (= 460 × 4/3) a 1920. La expresión es continua y monótona. */
-  --pl-blob-w: max(min(60vw, 380px), clamp(234px, 31.95vw, 613.33px));
+  /* Ancho del blob: 643px a 1440, medido en el frame (31:87 y hermanos —
+     seis cuadrados de 643 a top 205, uno por placa). Los 460 anteriores
+     salían del @media del propio sitio, no de Figma: el nodo se veía un 40%
+     más chico que el diseño. El piso de 234 sí es medición del render
+     (§8.c), y es el único tramo que no cambia. */
+  --pl-blob-w: clamp(234px, 44.65vw, 857.33px);
 
-  /* Alto reservado para todo lo que NO es el blob, con el mismo desglose
-     que la placa: padding + 3 gaps + reg (1 línea) + título (2) + copy (3).
-     Las 3 líneas de copy son el peor caso real del rango; a 1440 × 1053 —el
-     alto de diseño— la reserva da 510 y el blob conserva sus 460 exactos. */
+  /* Alto reservado para todo lo que NO es el blob. El desglose sigue la
+     composición del frame, que es más apretada de lo que el sitio asumía:
+     el título ocupa UNA línea (no dos) y la copy DOS (no tres). Con el
+     desglose viejo el blob nunca habría podido llegar a 643 — la reserva
+     se comía el alto que el diseño le da a la ilustración. */
   --pl-reserve: calc(
-    2 * var(--pl-pad-y) + 3 * var(--pl-gap) +
-    1.3 * var(--pl-reg) + 2 * var(--pl-title) + 4.65 * var(--pl-copy)
+    2 * var(--pl-pad-y) + 2 * var(--pl-gap) +
+    1.05 * var(--pl-title) + 4.65 * var(--pl-copy)
   );
 
   /* Un cuadrado lo acota la dimensión menor: sin el tope por alto, la placa
@@ -506,8 +517,7 @@ body.in-catalog .field-bg { opacity: 1; }
      1920×1080. Con el desfase el blob conserva 460 a 1440×1053 y ~459 a
      1920×1080. El término de la copy asume sus 2 líneas de 1440. */
   --pl-drop: calc(
-    (1.3 * var(--pl-reg) + var(--pl-gap) + 2 * var(--pl-title)
-     - 3.1 * var(--pl-copy)) / 2
+    (1.05 * var(--pl-title) - 3.1 * var(--pl-copy)) / 2
   );
 }
 
@@ -535,16 +545,33 @@ body.in-catalog .field-bg { opacity: 1; }
   gap: var(--pl-gap);
 }
 
-.plate__reg {
-  font-family: var(--f-sans);
-  font-size: var(--pl-reg);
-  letter-spacing: 0.22em;
-  opacity: 0.65;
-  mix-blend-mode: difference;
+/* Rótulo del nodo — fijo arriba a la izquierda mientras el catálogo está en
+   pantalla, con el mismo patrón de opacidad que .field-bg y .catalog__hero.
+   Gantari Regular 16px blanco, medido en el frame (61:78). */
+.catalog__reg {
+  position: fixed;
+  top: var(--pl-pad-y);
+  left: var(--pl-pad-x);
+  z-index: 6;
+  font-family: var(--t-f-display);
+  font-weight: 400;
+  font-size: clamp(13px, 1.12vw, 21.33px);  /* 16px a 1440 */
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
+body.in-catalog .catalog__reg { opacity: 1; }
 
 .plate__title {
-  font-weight: 900;
+  /* Gantari Bold itálica, como el frame (73:693). En Archivo Black —lo que
+     había— "GAME ENGINEERING" a 128px no entra en la placa y rompe en dos
+     líneas: eso hacía crecer la placa por encima del viewport y, de paso,
+     desalineaba el blob, porque --pl-drop cuenta las líneas del título. */
+  font-family: var(--t-f-display);
+  font-weight: 700;
   font-style: italic;
   text-transform: uppercase;
   font-size: var(--pl-title);
@@ -553,11 +580,10 @@ body.in-catalog .field-bg { opacity: 1; }
 }
 
 .plate__copy {
-  /* El piso de 460px es el ancho medido a 1440; por debajo de ese viewport
-     manda el 100% y el párrafo ocupa la columna, que es lo que ya hacía.
-     Con la misma pendiente del blob, la medida de lectura queda constante
-     en ~51 caracteres de 1440 a 1920 (L-2, techo ~77). */
-  max-width: min(100%, clamp(460px, 31.95vw, 613.33px));
+  /* 822px medidos en el frame (137:272), eran 460. Por debajo de ese
+     viewport manda el 100% y el párrafo ocupa la columna. A 1440 da 68
+     caracteres, bajo el techo de ~77 de §7. */
+  max-width: min(100%, clamp(822px, 57.09vw, 1096px));
   font-size: var(--pl-copy);
   font-weight: 400;
   line-height: 1.55;
@@ -836,21 +862,32 @@ body:not(.enhanced) .territory__marquee { display: none; }
   font-size: clamp(1.25rem, 2.64vw, 2.75rem);
   line-height: 1.35;
 }
-.territory__zigzag--l { margin-right: auto; text-align: left; }
-.territory__zigzag--r { margin-left: auto; text-align: right; }
+/* El bloque va a un lado, pero su texto va CENTRADO adentro: el frame
+   (184:313 y hermanos) los dibuja como cajas de 398px con `text-center`,
+   posicionadas en x=303 y x=1136. Alinearlos a ras del borde exterior era
+   invención — el zigzag lo hace la posición de la caja, no la alineación. */
+.territory__zigzag--l { margin-right: auto; text-align: center; }
+.territory__zigzag--r { margin-left: auto; text-align: center; }
 
 .territory__word { display: inline-block; white-space: nowrap; }
 .territory__letter { display: inline-block; will-change: transform, filter; }
 
 /* ---------- momentos de énfasis: página propia, escala mayor ---------- */
 .territory__emphasis {
-  text-align: center;
+  /* Alineados al mismo eje que el zigzag, no centrados: §33 les da página
+     propia y mayor escala, pero siguen siendo fragmentos del preámbulo, y
+     §32 pide que TODOS alternen margen con la banda central libre. Centrados
+     invadían justamente esa banda. El ancho es mayor que el 40% del zigzag
+     porque van a más escala y no deben partirse en cuatro renglones. */
+  max-width: 46%;
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 600;
-  font-size: clamp(1.75rem, 3.6vw, 3.75rem);
+  font-size: clamp(31px, 5vw, 96px);   /* 72px a 1440 (184:317), eran 60 */
   line-height: 1.25;
 }
+.territory__emphasis--l { margin-right: auto; text-align: center; }
+.territory__emphasis--r { margin-left: auto; text-align: center; }
 
 /* ---------- título de tramo / nombre de nivel ---------- */
 .territory__stint-title,
@@ -1121,8 +1158,12 @@ body.territory-ascent .territory__center { opacity: 1; }
 /* móvil ≤767 */
 @media (max-width: 767px) {
   .territory__page { padding: var(--sp-3) var(--sp-3); }
-  .territory__zigzag { max-width: 88%; margin: 0 auto; text-align: center; }
-  .territory__zigzag--l, .territory__zigzag--r { margin: 0 auto; text-align: center; }
+  /* §129: en móvil el zigzag colapsa a una columna y la banda central deja
+     de reservarse. El énfasis sigue la misma regla — si no, sus 46% dejaban
+     los dos momentos de la tesis en una tira de 180px. */
+  .territory__zigzag, .territory__emphasis { max-width: 88%; margin: 0 auto; text-align: center; }
+  .territory__zigzag--l, .territory__zigzag--r,
+  .territory__emphasis--l, .territory__emphasis--r { margin: 0 auto; text-align: center; }
   .territory__center { left: 0; width: 100%; }
   .territory__altitude { height: 40%; }
   .territory__altitude-tick-label { display: none; }
@@ -1136,6 +1177,7 @@ body.territory-ascent .territory__center { opacity: 1; }
 /* tablet 768–1023 */
 @media (min-width: 768px) and (max-width: 1023px) {
   .territory__zigzag { max-width: 56%; }
+  .territory__emphasis { max-width: 62%; }
   .territory__compare-grid { grid-template-columns: 1fr; gap: var(--sp-3); }
 }
 /* desktop 1440–1919 */
@@ -1868,8 +1910,10 @@ body.method-js .method [data-reveal].no-anim {
 
   /* tamaño compartido de los bloques "grandes" (Diagrama 01 y la
      presentación de Junior en 3.7) — mismo lado, cuadrados exactos */
-  --v-block: clamp(120px, 16vw, 200px);
-  --v-avatar-small: 64px;
+  /* 192 y 96 medidos en el frame (267:482 y 220:1267). El avatar de perfil
+     estaba en 64: por eso su inicial se veía perdida en el cuadro. */
+  --v-block: clamp(96px, 13.34vw, 256px);        /* 192px a 1440 */
+  --v-avatar-small: clamp(56px, 6.67vw, 128px);  /* 96px a 1440 */
 }
 
 .voices {
@@ -1950,7 +1994,10 @@ body.voices-js .voices [data-reveal].no-anim {
    ============================================================ */
 .voices__opening {
   padding-top: var(--sp-6);
-  max-width: 42rem; /* columna de lectura ~68ch, Spec §5.2 */
+  /* 1229 medidos en el frame (261:294). El 42rem/672px venía del Spec §5.2
+     como "columna de lectura ~68ch", pero el diseño la pone al ancho de
+     página: a 48px, 672 daban 28 caracteres por línea. */
+  max-width: min(100%, clamp(1229px, 85.35vw, 1638.67px));
   margin: 0 auto;
   text-align: center;
 }
@@ -1967,11 +2014,14 @@ body.voices-js .voices [data-reveal].no-anim {
    que .method__term (segundo pico del nodo). */
 .voices__term {
   text-align: center;
-  font-family: var(--t-f-display);
+  /* El frame (261:294) lo deja en Fraunces, dentro del mismo párrafo serif
+     que lo rodea — es un salto de tamaño, no de familia. En Gantari cortaba
+     la frase en dos tipografías a mitad de oración. */
+  font-family: var(--t-f-serif);
   font-style: italic;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
-  font-size: clamp(2.25rem, 6.67vw, 6rem);
+  font-size: clamp(36px, 6.67vw, 128px);   /* 96px a 1440, techo x4/3 */
   line-height: 1.05;
   color: var(--paper);
   margin: var(--sp-4) 0;
@@ -1999,8 +2049,20 @@ body.voices-js .voices [data-reveal].no-anim {
 }
 /* scope de acento por unidad — variables genéricas consumidas por
    los hijos, para no repetir modificadores en cada elemento */
-.voices__id-unit--melisa { --v-accent-fill: var(--v-melisa-fill); --v-accent-ink: var(--v-melisa-ink); }
-.voices__id-unit--juandavid { --v-accent-fill: var(--v-juandavid-fill); --v-accent-ink: var(--v-juandavid-ink); }
+/* El Diagrama 01 NO reusa la paleta de las cabeceras de perfil: el frame le
+   da un par propio, más saturado (267:482 y 267:549), con la inicial en
+   blanco y el caption en el tono claro de la persona. Compartir el token
+   con la cabecera apagaba los dos bloques grandes de la entrada. */
+.voices__id-unit--melisa {
+  --v-accent-fill: #2a22d1;
+  --v-accent-ink: #fff;
+  --v-caption-ink: #c0c1ff;
+}
+.voices__id-unit--juandavid {
+  --v-accent-fill: #86220d;
+  --v-accent-ink: #fff;
+  --v-caption-ink: #ffb4a4;
+}
 
 .voices__id-block {
   width: var(--v-block);
@@ -2013,8 +2075,8 @@ body.voices-js .voices [data-reveal].no-anim {
 .voices__id-initial {
   font-family: var(--t-f-display);
   font-style: italic;
-  font-weight: 800;
-  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  font-size: clamp(36px, 5.56vw, 106.67px);  /* 80px a 1440 (267:484) */
   color: var(--v-accent-ink);
   line-height: 1;
 }
@@ -2022,20 +2084,24 @@ body.voices-js .voices [data-reveal].no-anim {
   margin-top: var(--sp-3);
   font-family: var(--t-f-display);
   font-style: italic;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
-  /* PROVISIONAL — sin datos exactos de Figma aún, ver Spec §5.4 */
-  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
-  color: var(--paper);
+  font-size: clamp(25px, 3.34vw, 64px);  /* 48px a 1440 (267:493) */
+  line-height: 1;                        /* 48 / 48 */
+  color: #e3e3de;
 }
 .voices__id-caption {
   margin-top: var(--sp-2);
   font-family: var(--f-sans);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px: 10 caía bajo el mínimo de §2 */
+  letter-spacing: 0.1em;                   /* 1.1px sobre 11px */
   text-transform: uppercase;
-  opacity: 0.6;
-  line-height: 1.7;
+  /* El frame le da al caption el color de acento de la persona, no un gris
+     con opacidad: #c0c1ff en Melisa (267:495), #ffb4a4 en Juan David. */
+  color: var(--v-caption-ink, var(--v-accent-ink));
+  opacity: 1;
+  line-height: 1.45;
 }
 .voices__id-caption span { display: block; }
 
@@ -2072,10 +2138,13 @@ body.voices-js .voices [data-reveal].no-anim {
   justify-content: center;
 }
 .voices__avatar-small span {
-  font-family: var(--t-f-display);
+  /* Frame 220:1268: la inicial llena el cuadro — 64px sobre 96 de caja, no
+     24. Era el desajuste más grande del nodo (2.7×). */
+  font-family: var(--f-display);
   font-style: italic;
-  font-weight: 800;
-  font-size: 1.5rem;
+  font-weight: 400;
+  font-size: clamp(29px, 4.45vw, 85.33px);  /* 64px a 1440 */
+  line-height: 1;
   color: var(--v-accent-ink);
 }
 .voices__header-reg {
@@ -2088,23 +2157,29 @@ body.voices-js .voices [data-reveal].no-anim {
   opacity: 0.85;
   margin-bottom: var(--sp-1);
 }
+/* El frame (220:1273) lo pone en Plus Jakarta SemiBold itálica 48/40, no en
+   Gantari: misma corrección de familia que ya se hizo en el subtítulo de
+   §3.8. El 2.8vw congelaba en 40px desde los 1429 de viewport. */
 .voices__header-name {
-  font-family: var(--t-f-display);
+  font-family: var(--m-f-sans);
   font-style: italic;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
-  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
-  color: var(--paper);
-  line-height: 1.1;
+  font-size: clamp(25px, 3.34vw, 64px);  /* 48px a 1440 */
+  color: #e3e3de;
+  line-height: 0.85;                     /* 40 / 48 */
 }
 .voices__header-role {
   display: block;
   margin-top: var(--sp-1);
   font-family: var(--f-sans);
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  font-size: clamp(11px, 0.77vw, 14.67px); /* 11px: 10 caía bajo el mínimo de etiqueta de §2 */
+  letter-spacing: 0.1em;                   /* 1.1px sobre 11px */
+  line-height: 1.45;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: #908fa0;
+  opacity: 1;
 }
 
 /* ============================================================
@@ -2113,7 +2188,10 @@ body.voices-js .voices [data-reveal].no-anim {
    ============================================================ */
 .voices__accordion {
   margin-top: var(--sp-4);
-  max-width: 60rem;
+  /* 1229 = de left 104 a right 107 en el frame (220:1276). Estaba en 60rem
+     /960px, otro valor en rem sin origen: el acordeón medía 269px menos que
+     el diseño y por eso su grid de 12 columnas iba tan apretado. */
+  max-width: min(100%, clamp(1229px, 85.35vw, 1638.67px));
 }
 .voices__row {
   border-top: 1px solid var(--t-hairline);
@@ -2158,12 +2236,15 @@ body.voices-js .voices [data-reveal].no-anim {
   outline: none;
 }
 .voices__row-title {
-  font-family: var(--t-f-display);
-  font-style: italic;
+  /* Frame 220:1283: Plus Jakarta Bold 24/32 en versalitas y RECTA, no
+     Gantari itálica. Reemplaza la escala PROVISIONAL del Spec §5.4. */
+  font-family: var(--m-f-sans);
+  font-style: normal;
   font-weight: 700;
-  /* PROVISIONAL — sin datos exactos de Figma aún, ver Spec §5.4 */
-  font-size: clamp(1.125rem, 1.67vw, 1.5rem);
-  color: var(--t-ink);
+  text-transform: uppercase;
+  font-size: clamp(17px, 1.67vw, 32px);  /* 24px a 1440 */
+  line-height: 1.33;                     /* 32 / 24 */
+  color: #e3e3de;
   transition: color 150ms ease;
 }
 
@@ -2231,9 +2312,14 @@ body.voices-js .voices__row-body {
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(28px, 3.34vw, 64px); /* tier 48px, mismo que .voices__serif */
-  font-variation-settings: "opsz" 48;
-  line-height: 1.35;
+  /* 20px / 32.5 medido en el frame (220:1290). Estaba en el tier de 48px
+     —el de la cita grande de §3.8— dentro de una columna de 8 de 12: es el
+     "texto amontonado" que se reportó como bug visual y que en su momento
+     se buscó como problema de fuente o de caché. El CSS entregaba lo que
+     pedía; lo que pedía estaba a más del doble. */
+  font-size: clamp(16px, 1.39vw, 26.67px);
+  font-variation-settings: "opsz" 20;
+  line-height: 1.625;   /* 32.5 / 20 */
   color: var(--t-ink);
 }
 .voices__quote-attr {
@@ -2266,21 +2352,25 @@ body.voices-js .voices__row-body {
 }
 .voices__panel::before { top: -1px; left: -1px; border-top: 1px solid var(--t-hairline-hi); border-left: 1px solid var(--t-hairline-hi); }
 .voices__panel::after { bottom: -1px; right: -1px; border-bottom: 1px solid var(--t-hairline-hi); border-right: 1px solid var(--t-hairline-hi); }
+/* La etiqueta y el texto estaban INVERTIDOS respecto al frame: la etiqueta
+   iba a 10px y el cuerpo a 32, cuando el frame (297:113 / 297:115) pide 20
+   y 16. Dentro del panel la jerarquía se leía al revés. */
 .voices__panel-label {
   display: block;
-  font-family: var(--f-sans);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-family: var(--m-f-sans);
+  font-weight: 700;
+  font-size: clamp(15px, 1.39vw, 26.67px);  /* 20px a 1440 */
+  line-height: 1.2;    /* el frame trae 15 sobre 20, que encimaría renglones */
   text-transform: uppercase;
-  opacity: 0.6;
+  color: #c0c1ff;
   margin-bottom: var(--sp-2);
 }
 .voices__panel-text {
   font-family: var(--m-f-sans);
-  font-weight: 500;
-  font-size: clamp(18px, 2.23vw, 42.67px); /* registro de lectura, rango de .method__small */
-  line-height: 1.5;
-  color: var(--t-ink);
+  font-weight: 400;
+  font-size: clamp(16px, 1.12vw, 21.33px); /* 16px a 1440 */
+  line-height: 1.5;                        /* 24 / 16 */
+  color: #c6c5d6;
 }
 
 /* ---------- fila compuesta "Consejos de oficio" (JD, 4ta fila) ----------
@@ -2321,7 +2411,10 @@ body.voices-js .voices__row-body {
    ============================================================ */
 .voices__hinge {
   margin: 128px auto;
-  max-width: 38rem;
+  /* 1229px medidos en el frame (297:3), centrada como la apertura. El 38rem
+     = 608px era el valor elegido a ojo que CLAUDE.md cita como ejemplo de
+     lo que no se hace: mismo caso que D-01 en Método, y misma corrección. */
+  max-width: min(100%, clamp(1229px, 85.35vw, 1638.67px));
   text-align: center;
   font-family: var(--t-f-serif);
   font-style: italic;
@@ -2516,6 +2609,11 @@ body.voices-js .voices__row-body {
   margin-top: var(--sp-5);
 }
 .voices__method-block .voices__quote-text {
+  /* La "Climax Quote" sí va en el tier de 48 (256:271) — es la única. El
+     font-size se declara acá porque la base bajó a los 20px de las citas
+     de fila, que es de donde salía heredado. */
+  font-size: clamp(28px, 3.34vw, 64px);
+  font-variation-settings: "opsz" 48;
   line-height: 1.1;   /* 52.8 / 48 */
   color: #e4e1ee;
 }
@@ -2532,15 +2630,20 @@ body.voices-js .voices__row-body {
 .voices__outro {
   margin-top: var(--sp-6);
   padding-bottom: var(--sp-3);
-  max-width: 42rem;
+  /* Quinto contenedor del nodo que estaba en rem sin origen. El 42rem/672px
+     con la tipografía subiendo hasta 42.67 daba 31 caracteres por línea a
+     1920: el cierre se leía como una columna angosta de quince renglones.
+     Pasa al registro de prosa de Voces —32/52.8 en 1159—, que es el mismo
+     de .voices__method-body y del párrafo 297:20 del frame. */
+  max-width: min(100%, clamp(1159px, 80.5vw, 1545.33px), 36.2em);
   margin-left: auto;
   margin-right: auto;
   text-align: left;
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(18px, 2.23vw, 42.67px);
-  line-height: 1.5;
-  color: var(--t-ink);
+  font-size: clamp(19px, 2.23vw, 42.67px);  /* 32px a 1440 */
+  line-height: 1.65;                        /* 52.8 / 32 */
+  color: #e4e1ee;
 }
 
 /* ============================================================
