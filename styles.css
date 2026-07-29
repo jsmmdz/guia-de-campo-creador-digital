@@ -1139,8 +1139,39 @@ body.territory-ascent .territory__center { opacity: 1; }
      con las líneas forzadas a opacidad 1 no se veía nada hasta agregar
      esta línea. */
   isolation: isolate;
+  /* El interlineado de 52.8px de DESIGN.md §5 es ABSOLUTO, no un ratio:
+     se aplica igual a texto de 48px (ratio 1.1) y de 32px (1.65). El
+     sitio lo tenía como ratio en cuatro bloques —1.3 · 1.35 · 1.45 ·
+     1.5— que es lo que §5 llama "ambos incorrectos". Fluido con la
+     fórmula de §2 para que siga siendo absoluto en cada ancho, no un
+     número clavado que a 390 daría una interlínea enorme.
+
+     El `max(..., 1.1em)` no es un valor inventado: 1.1 es la relación
+     medida a 1440 (52.8 / 48). Hace falta porque el piso del interlineado
+     (26px) baja más rápido que el piso de la fuente del "tier 48px"
+     (28px), y sin él la bisagra quedaba a 390 con 28px de cuerpo y 26px
+     de interlínea — la interlínea POR DEBAJO del cuerpo, con los
+     renglones encimados. Donde el valor absoluto es el mayor sigue
+     ganando él, que es lo que §5 pide: en el aterrizaje (18px a 390) el
+     max devuelve los 26px, no 19.8.
+
+     El techo es 70.4px = 52.8 × 4/3, la fórmula de §2. Hubo un rodeo acá
+     que conviene dejar escrito: se probó capándolo en 52.8 porque a 1920
+     .method__small daba 32px de cuerpo con 70.4 de interlínea —ratio 2.2
+     donde a 1440 es 1.65—, y la causa era que la tipografía de Método
+     congelaba en el valor de 1440 mientras la interlínea seguía creciendo.
+     La respuesta correcta no era frenar la interlínea sino **destrabar la
+     tipografía**: decisión del usuario 2026-07-28, todo crece hasta 1920.
+     Eso es D-12 unificada. */
+  --m-lh-528: max(clamp(26px, 3.67vw, 70.4px), 1.1em);
   background: var(--depth); /* fallback si algún día se importa un fondo: nunca condición de legibilidad */
-  padding: 0 var(--sp-4) var(--sp-6);
+  /* --page-margin, no --sp-4: son los 105px medidos del frame (DESIGN.md
+     §4). Antes esto daba 40px en el tier base y 64px en un @media de
+     1440–1919 — el query que §3 prohíbe explícitamente, porque dispara
+     EN el ancho donde el diseño es ley. Los 64px son la fila 4 de D-01,
+     Δ−41 contra Figma. Con --page-margin el valor sale de la curva en
+     todo el rango y los dos @media de padding desaparecen. */
+  padding: 0 var(--page-margin) var(--sp-6);
 }
 
 /* ---------- fondo animado "Background Lines" ----------
@@ -1177,7 +1208,7 @@ body.territory-ascent .territory__center { opacity: 1; }
   top: 0;
   height: 100vh;
   height: 100svh; /* progressive enhancement: evita el salto del toolbar dinámico en mobile Safari */
-  margin: 0 calc(-1 * var(--sp-4)) calc(-100vh);
+  margin: 0 calc(-1 * var(--page-margin)) calc(-100vh);
   z-index: -1;
   pointer-events: none;
 }
@@ -1205,9 +1236,9 @@ body.territory-ascent .territory__center { opacity: 1; }
   overflow-x: hidden;
   overflow-y: visible;
   padding: var(--sp-3) 0 var(--sp-2);
-  margin: 0 calc(-1 * var(--sp-4));
-  padding-left: var(--sp-4);
-  padding-right: var(--sp-4);
+  margin: 0 calc(-1 * var(--page-margin));
+  padding-left: var(--page-margin);
+  padding-right: var(--page-margin);
 }
 .method__marquee-rail {
   display: flex;
@@ -1282,7 +1313,18 @@ body.method-js .method [data-reveal].no-anim {
    ============================================================ */
 .method__opening {
   padding-top: var(--sp-6);
-  max-width: 46rem;
+  /* 1229px medidos en Figma (D-01), no 46rem/736px elegidos a ojo. Era
+     la peor fila de la discrepancia, Δ−493: los dos párrafos de apertura
+     rompían en 5 y 4 líneas donde Figma tiene 3 y 3.
+
+     Va en px pelado, NO en min(1229px, --page-col) como en Rutas: acá
+     .method ya tiene `padding: 0 var(--page-margin)`, así que --page-col
+     —que resuelve su `100%` contra la caja de contenido del padre, ya
+     descontada— restaría el margen dos veces. A 1440 daba 1020px en vez
+     de 1229. Es el mismo bug que el comentario de .routes advierte, con
+     los papeles cambiados: allá la sección es full-bleed y el margen lo
+     pone cada bloque; acá lo pone la sección y los bloques no deben. */
+  max-width: 1229px;
   margin: 0 auto;
 }
 .method__serif {
@@ -1295,7 +1337,7 @@ body.method-js .method [data-reveal].no-anim {
      .method__definition p/.method__quote-text, los otros miembros del
      "tier 48px". */
   font-weight: 600;
-  font-size: clamp(1.75rem, 3.34vw, 3rem);
+  font-size: clamp(28px, 3.34vw, 64px);
   line-height: 1.4;
 }
 /* (el segundo .method__serif nunca es hermano adyacente del primero —
@@ -1311,17 +1353,20 @@ body.method-js .method [data-reveal].no-anim {
   margin-top: var(--sp-5);
   text-align: center;
 }
-/* Figma: las 3 líneas comparten tamaño (85px a 1440px), sin escalada
-   progresiva — dato explícito del usuario, no un descuido. */
+/* Las 3 líneas comparten tamaño y no escalan progresivamente. El valor es
+   96px (D-26): el comentario anterior decía 85px atribuyéndolo a un dato
+   explícito del usuario, y el usuario resolvió el 2026-07-28 que manda el
+   Figma. */
 .method__line {
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 600;
-  /* 85px a 1440px (Figma). Fluido: slope 5.91vw (85/1440*100=5.9028,
-     redondeado hacia arriba). Piso 2.25rem/36px: registro grande pero
-     no es "enunciado grande" (.method__term). */
-  font-size: clamp(2.25rem, 5.91vw, 5.3125rem);
-  line-height: 1.3;
+  /* 96px a 1440 — D-26, resuelta por el usuario 2026-07-28 a favor del
+     Figma. El comentario anterior decía 85px citando un "dato explícito
+     del usuario"; el usuario confirmó que manda el frame. Slope 6.67vw,
+     piso 36px y techo 128px = 96 × 4/3 (D-12: todo crece hasta 1920). */
+  font-size: clamp(36px, 6.67vw, 128px);
+  line-height: normal; /* §5 */
 }
 .method__line--2 { margin-top: var(--sp-3); }
 .method__line--3 { margin-top: var(--sp-4); }
@@ -1335,17 +1380,27 @@ body.method-js .method [data-reveal].no-anim {
   font-style: italic;
   font-weight: 800;
   text-transform: uppercase;
-  /* 96px a 1440px (Figma). Fluido: slope 6.67vw (96/1440*100=6.6667,
-     redondeado hacia arriba). Piso 2.25rem/36px: es el tope de la
-     jerarquía ("enunciados grandes"), pero el copy real incluye
-     "INVESTIGACIÓN-CREACIÓN." — una palabra larga con un solo punto de
-     quiebre (el guion); un piso más alto (probado 44px) desbordaba el
-     contenedor en 340-375px, confirmado en navegador real. */
-  font-size: clamp(2.25rem, 6.67vw, 6rem);
-  line-height: 1.05;
+  /* 85px a 1440 (§5) — mismo escalón que EXPLORACIÓN DE RUTAS en el Nodo
+     5. Slope 5.91vw, techo 113.33px = 85 × 4/3.
+
+     Piso 33px: el copy real es "INVESTIGACIÓN-CREACIÓN.", una palabra
+     larga con un solo punto de quiebre (el guion), y un piso más alto
+     (probado 44px) desbordaba el contenedor entre 340 y 375px. */
+  font-size: clamp(33px, 5.91vw, 113.33px);
+  line-height: normal; /* §5 */
   color: var(--paper);
   margin-top: var(--sp-6);
   margin-bottom: var(--sp-6);
+}
+/* `EMERGE DE ÉL` no es el mismo pico que `INVESTIGACIÓN-CREACIÓN.`, aunque
+   compartían clase: D-16, resuelta por el usuario 2026-07-28 — Plus Jakarta
+   Bold a 128px, no Gantari a 85. Es el mismo escalón que la marquesina y que
+   el remate del Nodo 5, y como aquél va recto, sin itálica. */
+.method__term--emerge {
+  font-family: var(--m-f-sans);
+  font-style: normal;
+  font-weight: 700;
+  font-size: clamp(43px, 8.89vw, 170.67px); /* 128px a 1440 */
 }
 
 /* ============================================================
@@ -1368,9 +1423,9 @@ body.method-js .method [data-reveal].no-anim {
      piso 1.75rem/28px — mismo "tier 48px" que .method__serif/
      .method__hinge/.method__quote-text. opsz queda fijo en 48 (eje
      óptico del corte, no interpola con el viewport). */
-  font-size: clamp(1.75rem, 3.34vw, 3rem);
+  font-size: clamp(28px, 3.34vw, 64px);
   font-variation-settings: "opsz" 48;
-  line-height: 1.45;
+  line-height: var(--m-lh-528); /* 52.8px absoluto (§5), era ratio 1.45 = 69.6px a 1440 */
   text-align: left;
 }
 .method__definition p + p { margin-top: var(--sp-2); }
@@ -1455,7 +1510,11 @@ body.method-js .method [data-reveal].no-anim {
 /* ---- 3.10: condiciones, un contenedor, sin flechas ---- */
 .method__cells {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* Cinco, no cuatro (D-14). El diagnóstico anterior decía que faltaba la
+     quinta condición de Frascati; el usuario corrigió el 2026-07-28 que la
+     que faltaba era la TERCERA, `INCIERTO`. Las cinco quedan en el orden
+     del manual: original · novedoso · incierto · sistemático · transferible. */
+  grid-template-columns: repeat(5, 1fr);
   border: 1px solid var(--t-hairline);
   background: var(--t-panel);
 }
@@ -1493,7 +1552,7 @@ body.method-js .method [data-reveal].no-anim {
 .method__inversion { margin-top: var(--sp-6); }
 .method__medium {
   text-align: left;
-  max-width: 38rem;
+  max-width: 1159px; /* Figma (D-01), era 38rem/608px — Δ−551. px pelado: el margen lo pone el padding de .method */
   /* Figma: Gantari itálica → Plus Jakarta Sans (no itálica), Medium
      500, 48px a 1440px. Fluido: slope 3.34vw. Piso 1.25rem/20px — más
      bajo que el resto del "tier 48px" (hinge/serif/definition/
@@ -1514,7 +1573,7 @@ body.method-js .method [data-reveal].no-anim {
    ============================================================ */
 .method__landing { margin-top: var(--sp-6); }
 .method__small {
-  max-width: 38rem;
+  max-width: 1159px; /* Figma (D-01), era 38rem/608px — Δ−551. px pelado: el margen lo pone el padding de .method */
   text-align: left;
   /* Figma: Gantari itálica → Plus Jakarta Sans Medium, no itálica,
      32px a 1440px. Fluido: slope 2.23vw. Piso 1.125rem/18px — techo de
@@ -1522,8 +1581,8 @@ body.method-js .method [data-reveal].no-anim {
   font-family: var(--m-f-sans);
   font-style: normal;
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem);
-  line-height: 1.5;
+  font-size: clamp(18px, 2.23vw, 42.67px);
+  line-height: var(--m-lh-528); /* 52.8px absoluto (§5), era ratio 1.5 = 48px a 1440 */
 }
 .method__small + .method__small { margin-top: var(--sp-3); }
 .method__small strong { color: var(--paper); font-weight: 800; }
@@ -1533,7 +1592,7 @@ body.method-js .method [data-reveal].no-anim {
    ============================================================ */
 .method__hinge {
   margin-top: var(--sp-5);
-  max-width: 38rem;
+  max-width: 1159px; /* Figma (D-01), era 38rem/608px — Δ−551. px pelado: el margen lo pone el padding de .method */
   text-align: left;
   /* Dato de Figma: Gantari itálica 800 → Plus Jakarta Sans Bold, no
      itálica, 48px a 1440px — queda holgado bajo .method__term (96px):
@@ -1547,8 +1606,8 @@ body.method-js .method [data-reveal].no-anim {
   font-style: normal;
   font-weight: 700;
   text-transform: none;
-  font-size: clamp(1.75rem, 3.34vw, 3rem);
-  line-height: 1.3;
+  font-size: clamp(28px, 3.34vw, 64px);
+  line-height: var(--m-lh-528); /* 52.8px absoluto (§5), era ratio 1.3 = 62.4px a 1440 */
   color: var(--paper);
 }
 
@@ -1574,7 +1633,7 @@ body.method-js .method [data-reveal].no-anim {
   font-family: var(--m-f-sans);
   font-style: normal;
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  font-size: clamp(18px, 2.23vw, 42.67px);
   line-height: 1.5;
 }
 .method__card-plate {
@@ -1619,7 +1678,7 @@ body.method-js .method [data-reveal].no-anim {
 .method__quote {
   margin-top: var(--sp-6);
   margin-bottom: var(--sp-6);
-  max-width: 42rem;
+  max-width: 896px; /* Figma (D-01), era 42rem/672px — Δ−224 */
   padding-left: var(--sp-3);
   border-left: 1px solid var(--t-hairline);
 }
@@ -1630,9 +1689,9 @@ body.method-js .method [data-reveal].no-anim {
   /* 48px a 1440px + opsz atado al tamaño, mismo patrón que 3.4. Fluido:
      slope 3.34vw, piso 1.75rem/28px — mismo "tier 48px" que
      .method__serif/.method__hinge/.method__definition p. */
-  font-size: clamp(1.75rem, 3.34vw, 3rem);
+  font-size: clamp(28px, 3.34vw, 64px);
   font-variation-settings: "opsz" 48;
-  line-height: 1.35;
+  line-height: var(--m-lh-528); /* 52.8px absoluto (§5), era ratio 1.35 = 64.8px a 1440 */
   color: var(--t-ink);
 }
 .method__quote-attr {
@@ -1663,7 +1722,7 @@ body.method-js .method [data-reveal].no-anim {
   font-family: var(--m-f-sans);
   font-style: italic;
   font-weight: 500;
-  font-size: clamp(1.75rem, 3.34vw, 3rem);
+  font-size: clamp(28px, 3.34vw, 64px);
   line-height: 1.4;
 }
 
@@ -1673,14 +1732,15 @@ body.method-js .method [data-reveal].no-anim {
 
 /* móvil ≤767 */
 @media (max-width: 767px) {
-  .method { padding-left: var(--sp-3); padding-right: var(--sp-3); }
-  .method__marquee { margin: 0 calc(-1 * var(--sp-3)); padding-left: var(--sp-3); padding-right: var(--sp-3); }
-  .method__bg { margin: 0 calc(-1 * var(--sp-3)) calc(-100vh); }
-  .method__definition,
-  .method__medium,
-  .method__small,
-  .method__hinge,
-  .method__card-teaser { max-width: 100%; }
+  /* Se fueron de acá los tres overrides de padding (.method, .marquee,
+     .bg): --page-margin ya tiene piso de 24px, el mismo --sp-3 que
+     pisaban, así que eran redundantes y además rompían la cascada.
+
+     Y se fue el grupo `max-width: 100%`, que era peor que redundante: con
+     los anchos nuevos en px pelado, 100% de la caja de contenido es
+     exactamente el tope que ya imponen, pero dejarlo escrito es la misma
+     clase de regla muerta que en Territorio mantuvo D-11 abierta durante
+     todo su ciclo de vida. */
 
   /* Diagrama 01: wrap a 2 líneas de 2 chips, conservando las 3
      flechas (Spec §4: "...hace wrap a dos líneas de dos chips
@@ -1704,35 +1764,33 @@ body.method-js .method [data-reveal].no-anim {
   .method__chips :nth-child(7) { grid-column: 3; grid-row: 3; } /* chip4 */
   .method__chip { min-width: 0; }
 
-  /* Diagrama 02: 2×2, y 1 columna bajo 360px */
-  .method__cells { grid-template-columns: repeat(2, 1fr); }
-  .method__cell:nth-child(2) { border-left: 1px solid var(--t-hairline); }
-  .method__cell:nth-child(3) { border-left: none; border-top: 1px solid var(--t-hairline); }
-  .method__cell:nth-child(4) { border-top: 1px solid var(--t-hairline); }
-}
-@media (max-width: 359px) {
+  /* Diagrama 02 a una sola columna en todo el tramo móvil — decisión del
+     usuario 2026-07-28: en móvil el sitio va casi todo a una columna. Antes
+     era 2×2 acá y 1 columna solo bajo 360px, pero con cinco condiciones
+     (D-14) el 2×2 deja una celda huérfana en la última fila. Una columna
+     también evita que `SISTEMÁTICO` y `TRANSFERIBLE`, los dos términos más
+     largos, tengan que partirse. */
   .method__cells { grid-template-columns: 1fr; }
-  .method__cell { border-left: none !important; }
+  .method__cell { border-left: none; }
   .method__cell:not(:first-child) { border-top: 1px solid var(--t-hairline); }
 }
 
-/* tablet 768–1023 */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .method__opening { max-width: 40rem; }
-}
+/* El bloque de tablet quedó vacío: su único contenido era
+   `.method__opening { max-width: 40rem }`, que ahora sale solo de
+   min(1229px, --page-col) — el caso que §3 describe cuando dice que
+   1024–1439 no lleva bloque propio, y que acá vale también para 768. */
 
-/* desktop 1440–1919 */
-@media (min-width: 1440px) and (max-width: 1919px) {
-  .method { padding-left: var(--sp-5); padding-right: var(--sp-5); }
-  .method__marquee { margin: 0 calc(-1 * var(--sp-5)); padding-left: var(--sp-5); padding-right: var(--sp-5); }
-  .method__bg { margin: 0 calc(-1 * var(--sp-5)) calc(-100vh); }
-}
+/* El bloque `1440–1919` se eliminó: era exactamente el
+   `@media (min-width: 1440px)` que DESIGN.md §3 prohíbe —un query que
+   dispara EN el ancho donde el diseño es ley— y su padding de 64px es la
+   cuarta fila de D-01 (Δ−41 contra los 105px de Figma). Ahora los tres
+   selectores salen de --page-margin en todo el rango.
 
-/* pantallas grandes ≥1920 */
+   pantallas grandes ≥1920: solo el tope de ancho. El padding ya no se
+   pisa; --page-margin congela en 140px a 1918 y de ahí en adelante lo que
+   crece son los márgenes, que es la regla de §2. */
 @media (min-width: 1920px) {
-  .method { padding-left: var(--sp-6); padding-right: var(--sp-6); max-width: 1600px; margin: 0 auto; }
-  .method__marquee { margin: 0 calc(-1 * var(--sp-6)); padding-left: var(--sp-6); padding-right: var(--sp-6); }
-  .method__bg { margin: 0 calc(-1 * var(--sp-6)) calc(-100vh); }
+  .method { max-width: 1600px; margin: 0 auto; }
 }
 
 /* ============================================================
@@ -1856,7 +1914,7 @@ body.voices-js .voices [data-reveal].no-anim {
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 600;
-  font-size: clamp(1.75rem, 3.34vw, 3rem); /* tier 48px, mismo que Método */
+  font-size: clamp(28px, 3.34vw, 64px); /* tier 48px, mismo que Método */
   line-height: 1.4;
 }
 .voices__serif + .voices__serif { margin-top: var(--sp-4); }
@@ -2129,7 +2187,7 @@ body.voices-js .voices__row-body {
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(1.75rem, 3.34vw, 3rem); /* tier 48px, mismo que .voices__serif */
+  font-size: clamp(28px, 3.34vw, 64px); /* tier 48px, mismo que .voices__serif */
   font-variation-settings: "opsz" 48;
   line-height: 1.35;
   color: var(--t-ink);
@@ -2176,7 +2234,7 @@ body.voices-js .voices__row-body {
 .voices__panel-text {
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem); /* registro de lectura, rango de .method__small */
+  font-size: clamp(18px, 2.23vw, 42.67px); /* registro de lectura, rango de .method__small */
   line-height: 1.5;
   color: var(--t-ink);
 }
@@ -2207,7 +2265,7 @@ body.voices-js .voices__row-body {
   max-width: 42rem;
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  font-size: clamp(18px, 2.23vw, 42.67px);
   line-height: 1.5;
   color: var(--t-ink);
 }
@@ -2224,7 +2282,7 @@ body.voices-js .voices__row-body {
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 600;
-  font-size: clamp(1.75rem, 3.34vw, 3rem);
+  font-size: clamp(28px, 3.34vw, 64px);
   line-height: 1.4;
   color: var(--paper);
 }
@@ -2251,7 +2309,7 @@ body.voices-js .voices__row-body {
   text-align: left;
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  font-size: clamp(18px, 2.23vw, 42.67px);
   line-height: 1.5;
   color: var(--t-ink);
 }
@@ -2282,7 +2340,7 @@ body.voices-js .voices__row-body {
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 600;
-  font-size: clamp(1.75rem, 3.34vw, 3rem); /* tier 48px */
+  font-size: clamp(28px, 3.34vw, 64px); /* tier 48px */
   line-height: 1.4;
   color: var(--t-ink);
   margin-bottom: var(--sp-3);
@@ -2290,7 +2348,7 @@ body.voices-js .voices__row-body {
 .voices__method-body {
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  font-size: clamp(18px, 2.23vw, 42.67px);
   line-height: 1.5;
   color: var(--t-ink);
   margin-top: var(--sp-3);
@@ -2357,7 +2415,7 @@ body.voices-js .voices__row-body {
   text-align: left;
   font-family: var(--m-f-sans);
   font-weight: 500;
-  font-size: clamp(1.125rem, 2.23vw, 2rem);
+  font-size: clamp(18px, 2.23vw, 42.67px);
   line-height: 1.5;
   color: var(--t-ink);
 }

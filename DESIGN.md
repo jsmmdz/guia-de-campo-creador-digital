@@ -369,7 +369,8 @@ para *derivar* el sistema, no para cerrar un bug que el usuario está viendo.
 
 | | Qué | Estado |
 |---|---|---|
-| D-01 | Método mide la mitad de ancho que Figma | Confirmada, sin implementar |
+| D-01 | Método mide la mitad de ancho que Figma | **Cerrada 2026-07-28: implementada** |
+| D-26 | Los tamaños de `.method__line` y `.method__term` chocan con §5, y el código invoca una decisión del usuario | **Abierta — necesita decisión** |
 | D-02 | Interlineado | **Cerrada por MCP** |
 | D-03 | Margen lateral | **Cerrada por MCP: 105px** |
 | D-04 | `get_metadata` falla | Cerrada: se usa `get_design_context` |
@@ -404,6 +405,66 @@ ninguna medición. Medido a 1440:
 **Consecuencia medida:** los dos párrafos de apertura rompen en **5 y 4
 líneas** en el sitio, donde Figma tiene **3 y 3**. La tipografía coincide
 exacto (48px); el problema es solo de contenedor.
+
+**Cerrada 2026-07-28.** Las cuatro filas implementadas: `.method` pasa a
+`--page-margin` (105px), apertura a 1229px, registro medio/pequeño/bisagra
+a 1159px, cita a 896px. **La apertura ahora rompe en 3 líneas**, como
+Figma. Se eliminaron además el `@media 1440–1919` —el query que §3 prohíbe,
+y de donde salían los 64px de la cuarta fila— y el bloque de tablet, que
+solo contenía un `max-width` que ahora cae solo.
+
+**Los anchos van en px pelado, no en `min(Npx, --page-col)` como en Rutas.**
+Los dos nodos resuelven el margen en lugares opuestos: `.routes` es
+full-bleed y cada bloque pone el suyo; `.method` lo pone la sección con
+`padding: 0 var(--page-margin)`. Meter `--page-col` en los hijos de Método
+restaría el margen dos veces —a 1440 daba 1020px en vez de 1229—, que es
+el mismo bug que el comentario de `.routes` advierte, con los papeles
+cambiados.
+
+### D-02 · Interlineado — implementado en Método 2026-07-28
+
+Los cuatro bloques que §5 fija en **52.8px absolutos** estaban como ratio:
+1.3 (bisagra) · 1.35 (cita) · 1.45 (definición) · 1.5 (aterrizaje). Pasan a
+un token `--m-lh-528` derivado con la fórmula de §2, para que el valor siga
+siendo absoluto en cada ancho en vez de un número clavado.
+
+**Lleva un `max(..., 1.1em)`, y el 1.1 es medido, no elegido:** es la
+relación de §5 a 1440 (52.8 / 48). Sin él, el piso del interlineado (26px)
+baja más rápido que el piso de fuente del tier 48px (28px), y a 390 la
+bisagra quedaba con **28px de cuerpo y 26px de interlínea** — los renglones
+encimados. Donde el absoluto es mayor sigue ganando él: el aterrizaje a
+390 devuelve 26px, no 19.8.
+
+**Verificado:** a 1440 los cuatro dan 52.848px y la apertura rompe en 3
+líneas; a 390 el tier 48 conserva la relación 1.1 y el aterrizaje el
+absoluto. Sin desborde en ninguno de los dos.
+
+### D-26 · Los dos enunciados grandes de Método — **sin resolver**
+
+Aparece al migrar Método y **no se tocó**, porque enfrenta dos fuentes que
+§1 considera legítimas:
+
+| | Qué dice §5 (medido por MCP) | Qué dice el código |
+|---|---|---|
+| `.method__line` (las 3 líneas) | **96px** | **85px**, con un comentario que lo atribuye a *"dato explícito del usuario, no un descuido"* |
+| `.method__term` · `INVESTIGACIÓN-CREACIÓN.` | **85px** | 96px |
+| `.method__term` · `EMERGE DE ÉL` | **96px** | 96px |
+
+Dos problemas distintos:
+
+1. **Los valores parecen cruzados** — los deltas son ±11px exactos y
+   simétricos. Pero el comentario del código invoca una decisión del
+   usuario, así que darlo vuelta sin preguntar sería pisar §1, fuente 3.
+2. **`.method__term` es una sola clase para dos bloques que §5 mide
+   distinto** (85 y 96). No puede estar bien para los dos: hace falta
+   partirla, y al partirla hay que resolver también **D-16** (si
+   `EMERGE DE ÉL` va en Gantari como pide el spec o en Plus Jakarta como
+   mide el Figma).
+
+Queda pendiente además confirmar el **peso** de Gantari en el enunciado de
+85px: el sitio usa 800 y §5 solo dice "Bold" sin número, pero el frame de
+Rutas midió 700 para su elemento del mismo escalón (§11, C-05). El frame de
+Método (`236:3`) se puede remedir para cerrarlo.
 
 ### D-11 · El callout de Territorio — **cerrada 2026-07-28**
 
