@@ -37,9 +37,12 @@
   Figma al construir el nodo (2026-07-26), ya aplicadas, no reabrir sin
   razón nueva:** (1) la bisagra hacia la primera persona (§3.6) usa "Falta
   la mía" (el spec, más reciente) y no "Falta la tuya" (el archivo de
-  Contenido); (2) Juan David usa SIEMPRE una sola inicial "J" (nunca "JD",
-  aunque el archivo de Contenido lo mencione así para su cabecera) — misma
-  inicial en Diagrama 01, avatar chico y en todos lados; (3) el Diagrama 02
+  Contenido) — reconfirmado por el usuario el 2026-07-29, acá gana el spec;
+  (2) ~~Juan David usa SIEMPRE una sola inicial "J" (nunca "JD")~~
+  **revertido el 2026-07-29: Juan David usa "JD"**, como pide el archivo de
+  Contenido, en Diagrama 01 y en el avatar chico. La regla 1 de precedencia
+  del vault le da el texto literal al contenido, y "J" además colisionaba
+  con el bloque de Junior; (3) el Diagrama 02
   usa las etiquetas literales del spec (PLANEACIÓN/ALGORITMO/PSEUDOCÓDIGO/
   DIAGRAMA DE FLUJO/RESULTADO FINAL), mientras el párrafo narrativo debajo
   conserva "Flowchart"/"Código final" tal cual el archivo de Contenido —

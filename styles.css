@@ -747,24 +747,18 @@ body.enhanced .territory__page {
 }
 body.enhanced .territory__page[data-page="0"] { opacity: 1; visibility: visible; }
 
-/* .territory__compare SÍ es flex (columna: label arriba, grid de 3
-   fichas abajo — ver su propia regla más abajo, nunca tuvo grid-template
-   propio). NUNCA en .territory__card/.territory__note: esas dos ya son
+/* NUNCA display:flex en .territory__card/.territory__note: esas dos ya son
    display:grid (grid-template-columns:1fr 1.2fr 1fr, ver sus reglas más
    abajo) para que sus hijos con grid-column:1/-1 ocupen el ancho
    completo — un display:flex acá pisaría ese grid. Bug real encontrado
    en verificación en navegador: una versión anterior de esta regla
-   agregaba display:flex a los 3 selectores para centrar verticalmente,
+   agregaba display:flex a esos selectores para centrar verticalmente,
    y eso convertía nota-de-campo + callout (dos grid-column:1/-1) en dos
    flex items lado a lado en vez de apilados — confirmado inspeccionando
    getBoundingClientRect (125px + 164px de ancho, uno al lado del otro,
    en vez de 100% cada uno apilados). El centrado vertical de ficha/nota
    se resuelve con align-content:center en sus propias reglas grid, sin
    tocar display. */
-body.enhanced .territory__compare {
-  display: flex;
-  align-items: center;
-}
 
 /* páginas de texto crudo: el <p>/<h2> ES la página, centrado vertical
    sin flex/grid sobre el propio elemento (ver comentario arriba). */
@@ -1124,26 +1118,6 @@ body.territory-ascent .territory__center { opacity: 1; }
   line-height: 1.5;
 }
 
-/* ---------- comparativa final ---------- */
-.territory__compare { flex-direction: column; justify-content: center; gap: var(--sp-4); }
-.territory__compare-label {
-  text-align: center;
-  font-family: var(--f-sans);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  opacity: 0.65;
-}
-.territory__compare-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-3);
-}
-.territory__card--compare { display: block; }
-.territory__card--compare .territory__card-panel { padding-top: var(--sp-5); }
-.territory__card--compare .territory__card-rows { margin-top: var(--sp-4); }
-.territory__card--compare .territory__card-row { flex-direction: column; gap: var(--sp-1); }
-.territory__card--compare .territory__card-row dd { text-align: left; }
 
 .territory__outro {
   text-align: center;
@@ -1171,14 +1145,12 @@ body.territory-ascent .territory__center { opacity: 1; }
   .territory__card-row { flex-direction: column; gap: var(--sp-1); }
   .territory__card-row dt { max-width: 100%; }
   .territory__card-row dd { text-align: left; }
-  .territory__compare-grid { grid-template-columns: 1fr; }
   .territory__note-body { padding-left: var(--sp-2); }
 }
 /* tablet 768–1023 */
 @media (min-width: 768px) and (max-width: 1023px) {
   .territory__zigzag { max-width: 56%; }
   .territory__emphasis { max-width: 62%; }
-  .territory__compare-grid { grid-template-columns: 1fr; gap: var(--sp-3); }
 }
 /* desktop 1440–1919 */
 @media (min-width: 1440px) and (max-width: 1919px) {
@@ -2755,7 +2727,15 @@ body.voices-js .voices__row-body {
   position: relative;
   background: var(--void);
   padding: var(--sp-6) 0 0;
-  overflow: hidden; /* el riel del marquee no debe empujar scroll horizontal */
+  /* SIN overflow:hidden acá (sacado 2026-07-29): cualquier overflow
+     != visible en un ancestro rompe position:sticky, que es lo que usa
+     .routes__field-sticky (3.14) para el fondo animado. El riel del
+     marquee (3.1) ya se clippea por su cuenta con overflow-x:hidden en
+     .routes__marquee — esta regla era redundante para ese caso.
+     isolation:isolate: contiene el z-index:-1 de .routes__field DENTRO
+     de este nodo (si no, se escapa detrás del fondo negro de .routes
+     mismo, o detrás de Voces). */
+  isolation: isolate;
 }
 /* Full-bleed a propósito: --page-col ya resta 2×--page-margin de "100%"
    (DESIGN.md §4). Si .routes también tuviera padding lateral, cada
@@ -3217,50 +3197,6 @@ body.routes-js [data-combinator].is-ready + .routes__matrix {
 }
 
 /* ============================================================
-   3.12 — Ruta transversal · Emprendimiento. Tres filas de ficha
-   técnica sin panel — mismo patrón que Territorio, sin fondo ni
-   corchetes (Spec §3.12, propuesta a confirmar en su propia revisión
-   visual).
-   ============================================================ */
-.routes__venture {
-  max-width: min(1159px, var(--page-col));
-  margin: var(--sp-6) auto 0;
-}
-.routes__venture-p {
-  font-family: var(--f-sans);
-  font-weight: 500;
-  font-size: clamp(19px, 2.23vw, 42.67px);
-  line-height: 1.65;
-  color: var(--r-ink-prose);
-}
-.routes__venture-rows { margin-top: var(--sp-4); }
-.routes__venture-row {
-  display: flex;
-  gap: var(--sp-4);
-  padding: var(--sp-3) 0;
-  border-top: 1px solid var(--r-line);
-}
-.routes__venture-row:last-child { border-bottom: 1px solid var(--r-line); }
-.routes__venture-row dt {
-  flex: 0 0 auto;
-  width: 180px;
-  font-family: var(--t-f-display);
-  font-style: italic;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 18px;
-  letter-spacing: 0.04em;
-  color: var(--r-ink-marquee);
-}
-.routes__venture-row dd {
-  flex: 1 1 auto;
-  font-family: var(--f-sans);
-  font-size: 18px;
-  line-height: 1.6;
-  color: var(--r-ink-prose);
-}
-
-/* ============================================================
    3.13 — Cierre del sitio. El aire más largo del nodo (Spec §3.13).
    ============================================================ */
 .routes__outro {
@@ -3294,12 +3230,40 @@ body.routes-js [data-combinator].is-ready + .routes__matrix {
   color: var(--r-ink-prose);
 }
 
-/* 3.14 — fondo reservado, vacío en esta fase */
+/* 3.14 — fondo. .routes__field cubre las ~5000px completas del nodo
+   (inset:0, sin cambios); z-index:-1 para quedar DETRÁS de todo lo
+   demás en .routes — sin esto, al ser position:absolute pintaría por
+   encima del contenido position:relative que ya tiene el nodo
+   (.routes__hinge, .routes__card), tapándolo (el orden de pintado
+   normal pone los elementos posicionados por encima del flujo
+   estático, y entre dos posicionados con z-index:auto/0 gana el que
+   está después en el DOM — acá sería .routes__field, por ser el
+   último). isolation:isolate en .routes (arriba) contiene ese -1
+   dentro del nodo. */
 .routes__field {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
+}
+/* .routes__field-sticky: se pega al viewport (top:0) mientras
+   .routes__field (su padre, tan alto como todo el nodo) sigue
+   cruzando la pantalla — así el fondo se siente presente en todo el
+   scroll de Rutas aunque el canvas real que WebGL redibuja cada
+   frame mida un solo viewport. No es position:fixed (CLAUDE.md lo
+   prohíbe dentro del nodo): el scroll nativo nunca se intercepta,
+   sticky es puro layout, no mecánica de scroll. */
+.routes__field-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.routes__field-sticky canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* ============================================================
@@ -3322,7 +3286,3 @@ body.routes-js [data-combinator].is-ready + .routes__matrix {
      que pasa el área tocable en los cuatro tramos, incluido el de
      tablet donde antes caía a ~31px.
    ============================================================ */
-@media (max-width: 767px) {
-  .routes__venture-row { flex-direction: column; gap: var(--sp-1); }
-  .routes__venture-row dt { width: auto; }
-}

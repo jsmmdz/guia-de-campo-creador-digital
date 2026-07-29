@@ -315,8 +315,12 @@ el Figma.
 Se llevaron al usuario, no hubo respuesta, y se resolvieron con el vault y con
 la medición — sin elegir ningún número a ojo.
 
-- **`.routes__venture` se queda.** `Spec - Nodo 5` §3.12 ya había registrado
-  que el frame no lo dibuja y resuelto que el contenido manda.
+- ~~**`.routes__venture` se queda.** `Spec - Nodo 5` §3.12 ya había registrado
+  que el frame no lo dibuja y resuelto que el contenido manda.~~
+  **Revertido el 2026-07-29: la ruta transversal de Emprendimiento se eliminó
+  del sitio.** El usuario confirmó que ya estaba descartada del contenido
+  hacía tiempo y solo faltaba quitarla del HTML; su texto venía del Spec, no
+  de `Contenido - Nodo 5 Rutas.md`. Se borraron también sus reglas de CSS.
 - **Chip a 50px.** Es lo que declaran 3 de los 4 estados del frame; el 46px
   del chip sin seleccionar es un desliz — un chip no cambia de alto al
   seleccionarse.

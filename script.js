@@ -1653,7 +1653,7 @@ void main() {
         // pedido explícito del usuario, NO comparte el efecto blur del
         // resto del scrollytelling. Entra/sale por scroll normal (sube
         // desde abajo, se va hacia arriba), nunca se desenfoca.
-        page.isCard = el.classList.contains("territory__card") || el.classList.contains("territory__compare");
+        page.isCard = el.classList.contains("territory__card");
         if (el.classList.contains("territory__zigzag")) {
           const letters = splitBlurText(el, { by: "letters", direction: "bottom", distance: 20, blur: 8 });
           page.revealTl = gsap.timeline({ paused: true }).to(letters, { y: 0, filter: "blur(0px)", duration: 0.32, stagger: 0.022, ease: "power2.out" });
@@ -1676,7 +1676,7 @@ void main() {
             gsap.set(callout, { autoAlpha: 0, x: -12 });
             page.revealTl.to(callout, { autoAlpha: 1, x: 0, duration: 0.28, ease: "back.out(1.4)" }, words.length ? ">0.18" : 0);
           }
-        } else if (el.classList.contains("territory__card") || el.classList.contains("territory__compare")) {
+        } else if (el.classList.contains("territory__card")) {
           const panels = Array.from(el.querySelectorAll(".territory__card-panel"));
           gsap.set(panels, { autoAlpha: 0, y: 16, scale: 0.97, transformOrigin: "50% 50%" });
           page.revealTl = gsap.timeline({ paused: true });
@@ -2440,11 +2440,13 @@ void main() {
   /* ============================================================
      NODO 5 · RUTAS
      Sin GSAP, sin ScrollTrigger, sin pin, sin scroll-jacking (Spec §6,
-     regla dura de este nodo). Los únicos mecanismos: el marquee (CSS
+     regla dura de este nodo). Los mecanismos: el marquee (CSS
      @keyframes puro, igual que Método/Voces), el reveal de entrada
-     por bloque (IntersectionObserver binario, una sola vez) y el
+     por bloque (IntersectionObserver binario, una sola vez), el
      combinador (radiogroup con roving tabindex + fundido corto de la
-     tarjeta).
+     tarjeta) y el fondo de 3.14 (WebGL autónomo por tiempo, pausado/
+     reanudado por un IntersectionObserver plano — nunca por scroll,
+     la única librería que este nodo tiene prohibida por nombre).
 
      Distinción clave frente a Voces (Spec §4.5): acá "JS corrió" y
      "el movimiento está activo" son dos señales separadas.
@@ -2588,7 +2590,7 @@ void main() {
         const stateData = combo ? combo[currentState] : null;
         const lineaLabel = lineaLabels[currentLinea];
         const discLabel = discLabels[currentDisciplina];
-        const horizonText = currentState === "hoy" ? "A DIA DE HOY" : "EN 2031";
+        const horizonText = currentState === "hoy" ? "A DÍA DE HOY" : "EN 2031";
 
         function apply() {
           eyebrowEl.textContent = lineaLabel + " × " + discLabel;
@@ -2598,7 +2600,7 @@ void main() {
             descEl.textContent = stateData.desc;
           } else {
             roleEl.textContent = "Todavía no hay una lectura para esta combinación";
-            descEl.textContent = "Elegí otra línea o disciplina — esta cruza no tiene destino curado por ahora.";
+            descEl.textContent = "Elige otra línea o disciplina — esta cruza no tiene destino curado por ahora.";
           }
           cardEl.dataset.state = currentState;
           futureBtn.setAttribute("aria-pressed", currentState === "futuro" ? "true" : "false");
@@ -2675,6 +2677,394 @@ void main() {
       combinator.classList.add("is-ready");
     }
 
+    /* ---------- 3.14: fondo (FloatingLines, WebGL) ----------
+       Portado desde reactbits.dev/backgrounds/floating-lines — misma
+       lógica comentada y reutilizable en RECURSOS/componentes/
+       floating-lines.js (fuera del repo; el source crudo original
+       queda en RECURSOS/docs/FONDO RUTAS.md). Carga Three.js por
+       import() dinámico desde esm.sh, mismo patrón exacto que
+       initGalaxy()/initAsciiText() de Umbral (misma versión pineada,
+       0.160.0 — así el navegador reutiliza la descarga si el lector
+       ya pasó por Umbral en esta sesión).
+
+       Paleta: linesGradient usa --r-accent/--r-ink-marquee (Spec
+       §5.3) en vez del rosa/azul del demo de reactbits — el shader
+       original solo cae en ese rosa/azul cuando NO se le pasa
+       linesGradient (ver background_color() en el fragment shader);
+       pasándolo, lo evita por completo. Guardrails §6: "no introducir
+       colores fuera de §5.3, no crear un acento propio de Rutas" —
+       por eso ninguno nuevo, solo los dos lavanda que el nodo ya usa.
+
+       Interactividad: decisión del usuario 2026-07-29, "reactivo al
+       mouse pero solo en PC y laptop" — pointerFxOK (definida arriba,
+       = !mobileMQ.matches) es exactamente esa condición y ya la usan
+       Galaxy y ASCIIText para lo mismo, así que se reusa tal cual en
+       vez de inventar un segundo criterio. El loop de tiempo completo
+       también se congela en móvil/tablet después del primer frame —
+       mismo criterio que animateGalaxy, no solo el mouse: es el
+       shader más caro por píxel del sitio (tres grupos de líneas en
+       loop, cada uno con trig por iteración) sobre un canvas de un
+       viewport entero.
+
+       El contenedor (.routes__field-sticky) tiene pointer-events:none
+       heredado de .routes__field — por eso el listener va en
+       `document`, no en el contenedor (mismo motivo que initGalaxy),
+       con las coordenadas acotadas a los límites del contenedor antes
+       de mapearlas a la textura (mismo cuidado que dejó anotado el
+       error #11 del ASCII text: sin acotar, un shader pensado para
+       pantalla completa extrapola raro apenas el cursor sale de la
+       franja sticky). */
+    function initRoutesField(ctn) {
+      if (!ctn) return Promise.resolve(null);
+      return import("https://esm.sh/three@0.160.0")
+        .then(({ Clock, Mesh, OrthographicCamera, PlaneGeometry, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer }) => {
+          const vertexShader = `
+precision highp float;
+
+void main() {
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+          const fragmentShader = `
+precision highp float;
+
+uniform float iTime;
+uniform vec3  iResolution;
+uniform float animationSpeed;
+
+uniform bool enableTop;
+uniform bool enableMiddle;
+uniform bool enableBottom;
+
+uniform int topLineCount;
+uniform int middleLineCount;
+uniform int bottomLineCount;
+
+uniform float topLineDistance;
+uniform float middleLineDistance;
+uniform float bottomLineDistance;
+
+uniform vec3 topWavePosition;
+uniform vec3 middleWavePosition;
+uniform vec3 bottomWavePosition;
+
+uniform vec2 iMouse;
+uniform bool interactive;
+uniform float bendRadius;
+uniform float bendStrength;
+uniform float bendInfluence;
+
+uniform bool parallax;
+uniform float parallaxStrength;
+uniform vec2 parallaxOffset;
+
+uniform vec3 lineGradient[8];
+uniform int lineGradientCount;
+
+const vec3 BLACK = vec3(0.0);
+const vec3 PINK  = vec3(233.0, 71.0, 245.0) / 255.0;
+const vec3 BLUE  = vec3(47.0,  75.0, 162.0) / 255.0;
+
+mat2 rotate(float r) {
+  return mat2(cos(r), sin(r), -sin(r), cos(r));
+}
+
+vec3 background_color(vec2 uv) {
+  vec3 col = vec3(0.0);
+
+  float y = sin(uv.x - 0.2) * 0.3 - 0.1;
+  float m = uv.y - y;
+
+  col += mix(BLUE, BLACK, smoothstep(0.0, 1.0, abs(m)));
+  col += mix(PINK, BLACK, smoothstep(0.0, 1.0, abs(m - 0.8)));
+  return col * 0.5;
+}
+
+vec3 getLineColor(float t, vec3 baseColor) {
+  if (lineGradientCount <= 0) {
+    return baseColor;
+  }
+
+  vec3 gradientColor;
+
+  if (lineGradientCount == 1) {
+    gradientColor = lineGradient[0];
+  } else {
+    float clampedT = clamp(t, 0.0, 0.9999);
+    float scaled = clampedT * float(lineGradientCount - 1);
+    int idx = int(floor(scaled));
+    float f = fract(scaled);
+    int idx2 = min(idx + 1, lineGradientCount - 1);
+
+    vec3 c1 = lineGradient[idx];
+    vec3 c2 = lineGradient[idx2];
+
+    gradientColor = mix(c1, c2, f);
+  }
+
+  return gradientColor * 0.5;
+}
+
+  float wave(vec2 uv, float offset, vec2 screenUv, vec2 mouseUv, bool shouldBend) {
+  float time = iTime * animationSpeed;
+
+  float x_offset   = offset;
+  float x_movement = time * 0.1;
+  float amp        = sin(offset + time * 0.2) * 0.3;
+  float y          = sin(uv.x + x_offset + x_movement) * amp;
+
+  if (shouldBend) {
+    vec2 d = screenUv - mouseUv;
+    float influence = exp(-dot(d, d) * bendRadius);
+    float bendOffset = (mouseUv.y - screenUv.y) * influence * bendStrength * bendInfluence;
+    y += bendOffset;
+  }
+
+  float m = uv.y - y;
+  return 0.0175 / max(abs(m) + 0.01, 1e-3) + 0.01;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 baseUv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
+  baseUv.y *= -1.0;
+
+  if (parallax) {
+    baseUv += parallaxOffset;
+  }
+
+  vec3 col = vec3(0.0);
+
+  vec3 b = lineGradientCount > 0 ? vec3(0.0) : background_color(baseUv);
+
+  vec2 mouseUv = vec2(0.0);
+  if (interactive) {
+    mouseUv = (2.0 * iMouse - iResolution.xy) / iResolution.y;
+    mouseUv.y *= -1.0;
+  }
+
+  if (enableBottom) {
+    for (int i = 0; i < bottomLineCount; ++i) {
+      float fi = float(i);
+      float t = fi / max(float(bottomLineCount - 1), 1.0);
+      vec3 lineCol = getLineColor(t, b);
+
+      float angle = bottomWavePosition.z * log(length(baseUv) + 1.0);
+      vec2 ruv = baseUv * rotate(angle);
+      col += lineCol * wave(
+        ruv + vec2(bottomLineDistance * fi + bottomWavePosition.x, bottomWavePosition.y),
+        1.5 + 0.2 * fi,
+        baseUv,
+        mouseUv,
+        interactive
+      ) * 0.2;
+    }
+  }
+
+  if (enableMiddle) {
+    for (int i = 0; i < middleLineCount; ++i) {
+      float fi = float(i);
+      float t = fi / max(float(middleLineCount - 1), 1.0);
+      vec3 lineCol = getLineColor(t, b);
+
+      float angle = middleWavePosition.z * log(length(baseUv) + 1.0);
+      vec2 ruv = baseUv * rotate(angle);
+      col += lineCol * wave(
+        ruv + vec2(middleLineDistance * fi + middleWavePosition.x, middleWavePosition.y),
+        2.0 + 0.15 * fi,
+        baseUv,
+        mouseUv,
+        interactive
+      );
+    }
+  }
+
+  if (enableTop) {
+    for (int i = 0; i < topLineCount; ++i) {
+      float fi = float(i);
+      float t = fi / max(float(topLineCount - 1), 1.0);
+      vec3 lineCol = getLineColor(t, b);
+
+      float angle = topWavePosition.z * log(length(baseUv) + 1.0);
+      vec2 ruv = baseUv * rotate(angle);
+      ruv.x *= -1.0;
+      col += lineCol * wave(
+        ruv + vec2(topLineDistance * fi + topWavePosition.x, topWavePosition.y),
+        1.0 + 0.2 * fi,
+        baseUv,
+        mouseUv,
+        interactive
+      ) * 0.1;
+    }
+  }
+
+  fragColor = vec4(col, 1.0);
+}
+
+void main() {
+  vec4 color = vec4(0.0);
+  mainImage(color, gl_FragCoord.xy);
+  gl_FragColor = color;
+}
+`;
+
+          // valores elegidos para este sitio — no universales, se
+          // tantearon a ojo sobre el nodo real (mismo criterio que ya
+          // deja anotado galaxy.js para su propio cfg).
+          const cfg = {
+            linesGradient: ["#c1c1ff", "#e1dfff"],
+            lineCount: 5,
+            lineDistance: 6,
+            animationSpeed: 0.4,
+            bendRadius: 6,
+            bendStrength: -1.2,
+            mouseDamping: 0.06,
+            parallaxStrength: 0.12,
+          };
+
+          function hexToVec3(hex) {
+            const v = hex.replace("#", "");
+            return new Vector3(
+              parseInt(v.slice(0, 2), 16) / 255,
+              parseInt(v.slice(2, 4), 16) / 255,
+              parseInt(v.slice(4, 6), 16) / 255
+            );
+          }
+
+          const scene = new Scene();
+          const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+          camera.position.z = 1;
+
+          const renderer = new WebGLRenderer({ antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.domElement.style.width = "100%";
+          renderer.domElement.style.height = "100%";
+          ctn.appendChild(renderer.domElement);
+
+          const uniforms = {
+            iTime: { value: 0 },
+            iResolution: { value: new Vector3(1, 1, 1) },
+            animationSpeed: { value: cfg.animationSpeed },
+
+            enableTop: { value: true },
+            enableMiddle: { value: true },
+            enableBottom: { value: true },
+
+            topLineCount: { value: cfg.lineCount },
+            middleLineCount: { value: cfg.lineCount },
+            bottomLineCount: { value: cfg.lineCount },
+
+            topLineDistance: { value: cfg.lineDistance * 0.01 },
+            middleLineDistance: { value: cfg.lineDistance * 0.01 },
+            bottomLineDistance: { value: cfg.lineDistance * 0.01 },
+
+            topWavePosition: { value: new Vector3(10.0, 0.5, -0.4) },
+            middleWavePosition: { value: new Vector3(5.0, 0.0, 0.2) },
+            bottomWavePosition: { value: new Vector3(2.0, -0.7, -1) },
+
+            iMouse: { value: new Vector2(-1000, -1000) },
+            interactive: { value: pointerFxOK },
+            bendRadius: { value: cfg.bendRadius },
+            bendStrength: { value: cfg.bendStrength },
+            bendInfluence: { value: 0 },
+
+            parallax: { value: pointerFxOK },
+            parallaxStrength: { value: cfg.parallaxStrength },
+            parallaxOffset: { value: new Vector2(0, 0) },
+
+            lineGradient: {
+              value: Array.from({ length: 8 }, () => new Vector3(1, 1, 1)),
+            },
+            lineGradientCount: { value: cfg.linesGradient.length },
+          };
+          cfg.linesGradient.forEach((hex, i) => {
+            const c = hexToVec3(hex);
+            uniforms.lineGradient.value[i].set(c.x, c.y, c.z);
+          });
+
+          const material = new ShaderMaterial({ uniforms, vertexShader, fragmentShader });
+          const mesh = new Mesh(new PlaneGeometry(2, 2), material);
+          scene.add(mesh);
+
+          function resize() {
+            const width = ctn.clientWidth || 1;
+            const height = ctn.clientHeight || 1;
+            renderer.setSize(width, height, false);
+            uniforms.iResolution.value.set(renderer.domElement.width, renderer.domElement.height, 1);
+          }
+          let fieldResizeTimer = null;
+          window.addEventListener("resize", () => {
+            clearTimeout(fieldResizeTimer);
+            fieldResizeTimer = setTimeout(resize, 200);
+          });
+          resize();
+
+          const targetMouse = new Vector2(-1000, -1000);
+          const currentMouse = new Vector2(-1000, -1000);
+          let targetInfluence = 0;
+          let currentInfluence = 0;
+          const targetParallax = new Vector2(0, 0);
+          const currentParallax = new Vector2(0, 0);
+
+          // en móvil/tablet, un frame y queda quieto — mismo criterio
+          // (y misma condición, !mobileMQ.matches) que animateGalaxy.
+          const animateField = !mobileMQ.matches;
+          const clock = new Clock();
+          let rafId = null;
+          function update() {
+            rafId = animateField ? requestAnimationFrame(update) : null;
+            uniforms.iTime.value = clock.getElapsedTime();
+
+            if (pointerFxOK) {
+              currentMouse.lerp(targetMouse, cfg.mouseDamping);
+              uniforms.iMouse.value.copy(currentMouse);
+              currentInfluence += (targetInfluence - currentInfluence) * cfg.mouseDamping;
+              uniforms.bendInfluence.value = currentInfluence;
+              currentParallax.lerp(targetParallax, cfg.mouseDamping);
+              uniforms.parallaxOffset.value.copy(currentParallax);
+            }
+
+            renderer.render(scene, camera);
+          }
+          rafId = requestAnimationFrame(update);
+
+          if (pointerFxOK) {
+            document.addEventListener("mousemove", (e) => {
+              const rect = renderer.domElement.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              const inside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+              targetInfluence = inside ? 1.0 : 0.0;
+              if (!inside) return;
+              const dpr = renderer.getPixelRatio();
+              targetMouse.set(x * dpr, (rect.height - y) * dpr);
+              targetParallax.set(
+                ((x - rect.width / 2) / rect.width) * cfg.parallaxStrength,
+                -((y - rect.height / 2) / rect.height) * cfg.parallaxStrength
+              );
+            });
+          }
+
+          return {
+            pause() {
+              if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+              }
+            },
+            resume() {
+              if (animateField && rafId === null) rafId = requestAnimationFrame(update);
+            },
+          };
+        })
+        .catch(() => {
+          // sin conexión al CDN de Three.js: .routes__field queda vacío,
+          // el negro plano de .routes de fondo — el nodo ya está
+          // diseñado para verse completo y correcto sin él (Spec §3.14).
+          return null;
+        });
+    }
+
     // El combinador se arma SIEMPRE que el script corre — es
     // interacción, no animación, y sigue funcionando con ?static=1
     // (Spec §4.5, a diferencia del acordeón de Voces).
@@ -2685,6 +3075,30 @@ void main() {
       document.body.classList.add("routes-motion");
       initMarquee(root);
       initReveal(root);
+
+      // fondo: mismo criterio que Galaxy/ASCIIText en Umbral — se
+      // salta en conexión limitada (isConstrained), y se pausa/reanuda
+      // con la visibilidad de .routes en vez de dejarlo renderizando
+      // para siempre una vez que el lector ya se fue de Rutas.
+      if (!isConstrained) {
+        const fieldCtn = root.querySelector(".routes__field-sticky");
+        let fieldHandle = null;
+        let fieldVisible = false;
+        initRoutesField(fieldCtn).then((handle) => {
+          fieldHandle = handle;
+          if (handle && !fieldVisible) handle.pause();
+        });
+        const fieldObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              fieldVisible = entry.isIntersecting;
+              if (fieldHandle) fieldVisible ? fieldHandle.resume() : fieldHandle.pause();
+            });
+          },
+          { threshold: 0 }
+        );
+        fieldObserver.observe(root);
+      }
     }
     // Sin JS: sin body.routes-js, la armadura CSS no aplica y la
     // ficha técnica de las 30 combinaciones queda visible de corrido,

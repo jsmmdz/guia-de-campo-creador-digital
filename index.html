@@ -36,7 +36,7 @@
      combinador es Plus Jakarta Bold Italic (Spec §5.4), peso que
      ningún nodo anterior necesitaba. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500;1,700&display=swap" />
-<link rel="stylesheet" href="styles.css?v=48" />
+<link rel="stylesheet" href="styles.css?v=50" />
 </head>
 <body>
 
@@ -247,16 +247,19 @@
          §Preámbulo, uno por página y alternando lado (Spec v2 §32 y §104).
          Se corrigieron tres cosas contra el contenido cerrado:
          · Se eliminó "Ya viste los tres niveles del territorio…", que no
-           existe en el contenido ni en el frame: el preámbulo abre en "El
-           mapa que estás pisando ahora…".
+           existe en el contenido ni en el frame.
          · "Hasta que… / el software se adoptó… / el territorio existe…" eran
            un solo párrafo; el contenido los separa en tres fragmentos.
-         · "Pero no se entiende parado en un solo punto / hay que recorrerlo
-           de punta a punta" eran uno; son dos.
+         · "El territorio existe. Tiene nombre. Pero no se entiende parado en
+           un solo punto." va en UNA sola página y con puntos, no con comas
+           (decisión del usuario, gana el frame 184:325 sobre el contenido).
+         El fragmento de apertura sigue al frame, no al contenido: dice "por
+         recorrer", no "pisando" — decisión explícita del usuario el
+         2026-07-29, ya volcada al contenido del vault.
          Los dos momentos de énfasis también alternan lado: §33 les da página
          propia y mayor escala, pero siguen siendo fragmentos del preámbulo,
          y el frame los dibuja uno a cada lado — no centrados. -->
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">El mapa que estás pisando ahora no lo dibujó nadie todavía del todo.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">El mapa que estás por recorrer ahora todavía no lo dibujó nadie del todo.</p>
 
     <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Durante años fueron dos mundos que casi no funcionaban juntos.</p>
 
@@ -306,10 +309,10 @@
 
     <div class="territory__page territory__note" data-page="6">
       <p class="territory__note-label">Nota de campo</p>
-      <p class="territory__note-body">Llegar al Suelo es fácil; quedarse depende de una regla no escrita. Acá no hay asignación de proyectos — se generan conversación por conversación, tratando a cualquier persona como un cliente en potencia, aunque todavía no lo sepa. El ingreso sigue el mismo ritmo irregular — hay meses de sobra y otros, como enero o diciembre, en que el mercado simplemente se apaga, sin que haya manera de forzarlo desde acá abajo.</p>
+      <p class="territory__note-body">Llegar al Suelo es fácil; quedarse depende de una regla no escrita. Acá no hay asignación de proyectos — se generan conversación por conversación, tratando a cualquier persona como un cliente en potencia, aunque todavía no lo sepa.</p>
       <aside class="territory__callout">
         <p class="territory__callout-title">Se multiplican por recomendación:</p>
-        <p class="territory__callout-body">Quien contrata una vez habla de ese trabajo con otras cinco personas, y así se arma, lento, la red que reemplaza al departamento de ventas que este nivel nunca tiene.</p>
+        <p class="territory__callout-body">Quien contrata una vez habla de ese trabajo con otras cinco personas, y así se arma, lento, la red que reemplaza al departamento de ventas que este nivel nunca tiene. El ingreso sigue el mismo ritmo irregular — hay meses de sobra y otros, como enero o diciembre, en que el mercado simplemente se apaga, sin que haya manera de forzarlo desde acá abajo.</p>
       </aside>
     </div>
   </div>
@@ -397,59 +400,15 @@
     </div>
   </div>
 
-  <!-- ---------- Cierre ---------- -->
-  <div class="territory__stint territory__stint--close" data-stint="close" data-pages="2">
+  <!-- ---------- Cierre ----------
+       La comparativa "Los tres niveles, de un vistazo" se eliminó el
+       2026-07-29 por decisión del usuario: §2.4 ya se había removido del
+       contenido cerrado (queda su hueco entre Cima y el Remate), y sus tres
+       tarjetas recortaban las fichas técnicas con texto que no existe en el
+       vault. El cierre queda con una sola página: el remate a Método. -->
+  <div class="territory__stint territory__stint--close" data-stint="close" data-pages="1">
 
-    <div class="territory__page territory__compare" data-page="0">
-      <p class="territory__compare-label">Los tres niveles, de un vistazo</p>
-      <div class="territory__compare-grid">
-
-        <div class="territory__card territory__card--compare">
-          <div class="territory__card-panel">
-            <p class="territory__card-label">Suelo</p>
-            <p class="territory__card-stamp">DAT_FRM_01</p>
-            <dl class="territory__card-rows">
-              <div class="territory__card-row"><dt>Quién</dt><dd>Freelancers individuales — diseño, edición, programación, integración de IA</dd></div>
-              <div class="territory__card-row"><dt>Campo de acción</dt><dd>Un libro, una revista, un videoclip, una prenda en 3D — proyectos puntuales, del tamaño que una persona sola puede sostener</dd></div>
-              <div class="territory__card-row"><dt>Qué deciden</dt><dd>No deciden precios ni reglas de plataforma — pero sí pueden originar una estética o técnica que después adopta toda la industria</dd></div>
-              <div class="territory__card-row"><dt>Ejemplos de fricción</dt><dd>En plataformas como Workana, hasta un tercio de la jornada se va en tareas no pagadas.</dd></div>
-              <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>De la plataforma — su algoritmo, su sistema de calificación, sus cambios de reglas sin aviso</dd></div>
-            </dl>
-          </div>
-        </div>
-
-        <div class="territory__card territory__card--compare">
-          <div class="territory__card-panel">
-            <p class="territory__card-label">Ladera</p>
-            <p class="territory__card-stamp">DAT_FRM_02</p>
-            <dl class="territory__card-rows">
-              <div class="territory__card-row"><dt>Quién</dt><dd>Estudios, agencias, productoras pequeñas y medianas</dd></div>
-              <div class="territory__card-row"><dt>Campo de acción</dt><dd>Producciones y campañas completas — una película, una colección de ropa, una campaña publicitaria entera</dd></div>
-              <div class="territory__card-row"><dt>Qué deciden</dt><dd>Qué tendencia del Suelo se vuelve campaña real, y la dirección creativa de las marcas que contratan sus servicios</dd></div>
-              <div class="territory__card-row"><dt>Ejemplos de fricción</dt><dd>Una agencia puede perderlo todo si el proveedor de una herramienta clave cambia el precio o la discontinúa</dd></div>
-              <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>Qué herramientas licencian las empresas, qué motor priorizan Unity y Blender o qué modelo de IA se vuelve el estándar este año</dd></div>
-            </dl>
-          </div>
-        </div>
-
-        <div class="territory__card territory__card--compare">
-          <div class="territory__card-panel">
-            <p class="territory__card-label">Cima</p>
-            <p class="territory__card-stamp">DAT_FRM_03</p>
-            <dl class="territory__card-rows">
-              <div class="territory__card-row"><dt>Quién</dt><dd>Anthropic, OpenAI, Google, Microsoft y equivalentes</dd></div>
-              <div class="territory__card-row"><dt>Campo de acción</dt><dd>Ningún producto puntual — la infraestructura misma sobre la que el Suelo y la Ladera producen lo suyo</dd></div>
-              <div class="territory__card-row"><dt>Qué deciden</dt><dd>La infraestructura — qué modelo de IA es estándar, qué términos rigen, cuánto cuesta el acceso</dd></div>
-              <div class="territory__card-row"><dt>Dato clave</dt><dd>El poder que en el Suelo parece un algoritmo anónimo tiene, acá, nombre propio</dd></div>
-              <div class="territory__card-row"><dt>De qué sigue dependiendo</dt><dd>De reguladores, mercados de capital y la cadena de chips y energía — de nada que esté dentro de este mismo territorio</dd></div>
-            </dl>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <p class="territory__page territory__outro" data-page="1">Pero un mapa no explica cómo se trabaja dentro de él. Si vas a habitar este terreno, cruzando lo creativo y lo técnico a la vez, hace falta algo más que ubicación — hace falta un método propio para producir algo ahí. De eso se trata lo que sigue.</p>
+    <p class="territory__page territory__outro" data-page="0">Pero un mapa no explica cómo se trabaja dentro de él. Si vas a habitar este terreno, cruzando lo creativo y lo técnico a la vez, hace falta algo más que ubicación — hace falta un método propio para producir algo ahí. De eso se trata lo que sigue.</p>
   </div>
 
 </section>
@@ -557,9 +516,9 @@
 
   <p class="method__hinge" data-reveal>¿Cómo se sabe si algo realmente cruzó la línea, o si fue solo trabajo bien hecho?</p>
 
-  <p class="method__small method__landing--frascati" data-reveal>El Manual de Frascati, el documento de la OCDE que define qué cuenta como investigación, exige que un proceso cumpla, <strong>a la vez</strong>, cuatro condiciones.</p>
+  <p class="method__small method__landing--frascati" data-reveal>El Manual de Frascati, el documento de la OCDE que define qué cuenta como investigación, exige que un proceso cumpla, <strong>a la vez</strong>, cinco condiciones.</p>
 
-  <!-- Diagrama 02: las cuatro condiciones. Sin flechas, sin conectores,
+  <!-- Diagrama 02: las cinco condiciones. Sin flechas, sin conectores,
        sin numeración grande: describe condiciones concurrentes, no un
        proceso. Un único contenedor con filete compartido por las 4
        celdas — si se ve igual al Diagrama 01, está mal. -->
@@ -592,7 +551,7 @@
        click, sin ícono +/−, sin hover. El contenido real del caso
        queda fuera del DOM, no oculto con CSS (ver CLAUDE.md §Pendiente). -->
   <div class="method__card" data-reveal>
-    <p class="method__card-teaser">Un caso real que cumple las cuatro condiciones a la vez — los stickers de fruta de Makro.</p>
+    <p class="method__card-teaser">Un caso real que cumple las cinco condiciones a la vez — los stickers de fruta de Makro.</p>
     <div class="method__card-plate">
       <span>PRÓXIMAMENTE</span>
     </div>
@@ -650,11 +609,13 @@
       </p>
     </div>
     <div class="voices__id-unit voices__id-unit--juandavid" data-reveal>
-      <!-- Discrepancia #2: inicial única "J" (no "JD") en TODOS los
-           usos de Juan David, incluido este diagrama — spec exige la
-           misma inicial que el avatar chico, y la captura de Figma
-           muestra un solo bloque "J". -->
-      <div class="voices__id-block"><span class="voices__id-initial">J</span></div>
+      <!-- Iniciales "JD" en TODOS los usos de Juan David, como pide el
+           contenido cerrado ("Avatar: bloque terracota oscuro, iniciales
+           'JD'"). Revertido el 2026-07-29 por decisión del usuario: antes
+           decía "J", siguiendo el spec y la captura de Figma, pero la regla
+           1 del vault le da el texto literal al contenido. Además "J"
+           colisionaba con el bloque de Junior, más abajo. -->
+      <div class="voices__id-block"><span class="voices__id-initial">JD</span></div>
       <p class="voices__id-name">JUAN DAVID ARISTIZÁBAL</p>
       <p class="voices__id-caption">
         <span>Animador 3D y director creativo</span>
@@ -718,7 +679,7 @@
               </blockquote>
               <div class="voices__panel">
                 <span class="voices__panel-label">Por qué importa</span>
-                <p class="voices__panel-text">Un encargo comercial también puede ser investigación, si le hacés seguimiento y dejás registro. La diferencia no está en si te pagan, está en si aprendés algo transferible.</p>
+                <p class="voices__panel-text">Un encargo comercial también puede ser investigación, si le haces seguimiento y dejas registro. La diferencia no está en si te pagan, está en si aprendes algo transferible.</p>
               </div>
             </div>
           </div>
@@ -741,7 +702,7 @@
               </blockquote>
               <div class="voices__panel">
                 <span class="voices__panel-label">Por qué importa</span>
-                <p class="voices__panel-text">Cruzar disciplinas no te resta foco — es, muchas veces, de donde sale lo nuevo. Si venís de varias formaciones, esa mezcla ya es un punto a favor.</p>
+                <p class="voices__panel-text">Cruzar disciplinas no te resta foco — es, muchas veces, de donde sale lo nuevo. Si vienes de varias formaciones, esa mezcla ya es un punto a favor.</p>
               </div>
             </div>
           </div>
@@ -804,7 +765,7 @@
        ============================================================ -->
   <section class="voices__profile voices__profile--juandavid">
     <header class="voices__profile-header" data-reveal>
-      <div class="voices__avatar-small"><span>J</span></div>
+      <div class="voices__avatar-small"><span>JD</span></div>
       <div>
         <span class="voices__header-reg">Entrevista N.02</span>
         <p class="voices__header-name">Juan David Aristizábal</p>
@@ -853,7 +814,7 @@
               </blockquote>
               <div class="voices__panel">
                 <span class="voices__panel-label">Por qué importa</span>
-                <p class="voices__panel-text">Perder margen creativo por el cliente no es fracaso tuyo — es la norma del oficio. Lo que sí depende de vos es dónde poner el límite antes de que el resultado se resienta.</p>
+                <p class="voices__panel-text">Perder margen creativo por el cliente no es fracaso tuyo — es la norma del oficio. Lo que sí depende de ti es dónde poner el límite antes de que el resultado se resienta.</p>
               </div>
             </div>
           </div>
@@ -906,7 +867,7 @@
                 </blockquote>
                 <div class="voices__panel">
                   <span class="voices__panel-label">Por qué importa</span>
-                  <p class="voices__panel-text">Elegir con quién trabajás pesa tanto como qué proyecto elegís — la amistad no es el criterio, la objetividad sí. Un equipo grande no rinde más; uno chico y claro, sí.</p>
+                  <p class="voices__panel-text">Elegir con quién trabajas pesa tanto como qué proyecto eliges — la amistad no es el criterio, la objetividad sí. Un equipo grande no rinde más; uno chico y claro, sí.</p>
                 </div>
               </div>
               <div class="voices__area">
@@ -917,7 +878,7 @@
                 </blockquote>
                 <div class="voices__panel">
                   <span class="voices__panel-label">Por qué importa</span>
-                  <p class="voices__panel-text">Negociar no es debilidad — es matemática. Si no sabés dónde está tu piso, cualquier cliente te puede arrastrar por debajo de él sin que te des cuenta.</p>
+                  <p class="voices__panel-text">Negociar no es debilidad — es matemática. Si no sabes dónde está tu piso, cualquier cliente te puede arrastrar por debajo de él sin que te des cuenta.</p>
                 </div>
               </div>
               <div class="voices__area">
@@ -1133,7 +1094,7 @@
        ============================================================ -->
   <section class="routes__hinge">
     <div class="routes__hinge-rule" aria-hidden="true"></div>
-    <p class="routes__hinge-text" data-reveal>Perfil respondió qué sabés hacer hoy.<br />Territorio respondió dónde se vende eso hoy.<br />Voces mostró a dos personas que ya lo viven, cada una desde su lugar.</p>
+    <p class="routes__hinge-text" data-reveal>Perfil respondió qué sabes hacer hoy.<br />Territorio respondió dónde se vende eso hoy.<br />Voces mostró a dos personas que ya lo viven, cada una desde su lugar.</p>
   </section>
 
   <!-- ============================================================
@@ -1144,7 +1105,7 @@
   <section class="routes__hero">
     <p class="routes__hero-line" data-reveal>Queda una sola pregunta,</p>
     <p class="routes__hero-line" data-reveal>y es la única que mira hacia adelante:</p>
-    <p class="routes__hero-line" data-reveal>desde acá, ¿hacia dónde puedés ir tu?</p>
+    <p class="routes__hero-line" data-reveal>desde acá, ¿hacia dónde puedes ir tú?</p>
   </section>
 
   <!-- ============================================================
@@ -1164,7 +1125,7 @@
     <p class="routes__landing-p" data-reveal>Esta Guía no te va a entregar una sola ruta correcta — te da los ingredientes.</p>
     <p class="routes__landing-p" data-reveal>Por un lado, las cinco líneas temáticas del programa:</p>
     <p class="routes__landing-p routes__landing-p--list" data-reveal>Estudio, Lenguaje, Contexto, Estética, Usuarios.</p>
-    <p class="routes__landing-p" data-reveal>Por el otro, las seis disciplinas que ya viste en el Catálogo.<br />Elije una de cada una y mirá qué destino profesional aparece.<br />Después, si quierés, preguntale al futuro.</p>
+    <p class="routes__landing-p" data-reveal>Por el otro, las seis disciplinas que ya viste en el Catálogo.<br />Elige una de cada una y mira qué destino profesional aparece.<br />Después, si quieres, pregúntale al futuro.</p>
   </section>
 
   <!-- ============================================================
@@ -1178,7 +1139,7 @@
     <!-- 3.6 — selector de línea temática -->
     <div class="routes__selector">
       <div class="routes__rule" aria-hidden="true"></div>
-      <p class="routes__selector-label" id="routes-linea-label">ELIJE UNA LÍNEA TEMÁTICA // EJE X</p>
+      <p class="routes__selector-label" id="routes-linea-label">ELIGE UNA LÍNEA TEMÁTICA // EJE X</p>
       <div class="routes__chips" role="radiogroup" aria-labelledby="routes-linea-label" data-chip-row="linea">
         <button type="button" class="routes__chip" role="radio" aria-checked="false" tabindex="-1" data-linea="estudio">ESTUDIO</button>
         <button type="button" class="routes__chip" role="radio" aria-checked="true" tabindex="0" data-linea="lenguaje">LENGUAJE</button>
@@ -1193,7 +1154,7 @@
          reconciliar hex). -->
     <div class="routes__selector">
       <div class="routes__rule" aria-hidden="true"></div>
-      <p class="routes__selector-label" id="routes-disciplina-label">ELIJE UNA DISCIPLINA // EJE Y</p>
+      <p class="routes__selector-label" id="routes-disciplina-label">ELIGE UNA DISCIPLINA // EJE Y</p>
       <div class="routes__chips" role="radiogroup" aria-labelledby="routes-disciplina-label" data-chip-row="disciplina">
         <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-1)" role="radio" aria-checked="false" tabindex="-1" data-disciplina="uxui">UX/UI</button>
         <button type="button" class="routes__chip routes__chip--spec" style="--r-spec: var(--spec-2); --r-spec-ink: #ffffff" role="radio" aria-checked="false" tabindex="-1" data-disciplina="3d">3D PRODUCTION</button>
@@ -1212,7 +1173,7 @@
         <span class="routes__card-square" aria-hidden="true"></span>
         <span data-card-eyebrow>LENGUAJE × SOFTWARE DEV</span>
       </p>
-      <p class="routes__card-horizon" data-card-horizon>A DIA DE HOY</p>
+      <p class="routes__card-horizon" data-card-horizon>A DÍA DE HOY</p>
       <p class="routes__card-role" data-card-role>Frontend developer</p>
       <p class="routes__card-desc" data-card-desc>escribe componentes en TypeScript y React, corrige bugs reportados en producción y revisa pull requests del equipo cada mañana.</p>
     </div>
@@ -1419,28 +1380,11 @@
     </table>
   </section>
 
-  <!-- ============================================================
-       3.12 — Ruta transversal · Emprendimiento. El frame no lo
-       dibuja (Spec §3.12); tratamiento propuesto: tres filas de
-       ficha técnica sin panel, mismo patrón que Territorio sin fondo.
-       ============================================================ -->
-  <section class="routes__venture">
-    <p class="routes__venture-p" data-reveal>No pertenece a ninguna línea ni a ninguna disciplina — aplica sin importar qué combinación elegiste arriba, y en cinco años va a pesar tanto como el dominio técnico específico de cualquiera de ellas.</p>
-    <dl class="routes__venture-rows" data-reveal>
-      <div class="routes__venture-row">
-        <dt>Portafolio</dt>
-        <dd>Pocos proyectos completos, con roles y resultados reales, pesan más que muchos ejercicios sueltos que nunca se conectan entre sí.</dd>
-      </div>
-      <div class="routes__venture-row">
-        <dt>Precios</dt>
-        <dd>Cobrar por presupuesto mensual, no por proyecto suelto, da margen para negociar sin regalar el trabajo.</dd>
-      </div>
-      <div class="routes__venture-row">
-        <dt>Pitch</dt>
-        <dd>Vender una idea es una habilidad tan entrenable como cualquier herramienta técnica — no un talento con el que se nace.</dd>
-      </div>
-    </dl>
-  </section>
+  <!-- 3.12 — Ruta transversal · Emprendimiento: ELIMINADA el 2026-07-29 por
+       decisión del usuario. Se había descartado del contenido hacía tiempo y
+       solo faltaba quitarla del sitio. Su texto nunca estuvo en
+       `Contenido - Nodo 5 Rutas.md` — venía del Spec §3.12. El nodo pasa
+       directo de la ficha de 30 combinaciones al cierre del sitio. -->
 
   <!-- ============================================================
        3.13 — Cierre del sitio. El aire más largo del nodo, por
@@ -1452,8 +1396,16 @@
        un pico propio de 128px (DESIGN.md §11, C-01). -->
   <p class="routes__closer" data-reveal>El resto lo combina quien la use.</p>
 
-  <!-- 3.14 — fondo reservado, vacío en esta fase (Spec §3.14) -->
-  <div class="routes__field" aria-hidden="true"></div>
+  <!-- 3.14 — fondo (Spec §3.14). .routes__field cubre el nodo completo
+       (inset:0 sobre .routes, como antes); adentro, .routes__field-sticky
+       se pega al viewport mientras dura ese scroll, así el WebGL nunca
+       renderiza más que un viewport por frame aunque se sienta presente
+       en todo el nodo. Decisión 2026-07-29 (integración FloatingLines de
+       reactbits, ver RECURSOS/docs/FONDO RUTAS.md). El canvas lo inserta
+       initRoutesField() en script.js. -->
+  <div class="routes__field" aria-hidden="true">
+    <div class="routes__field-sticky"></div>
+  </div>
 
 </section>
 
@@ -1474,7 +1426,7 @@
 ></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=57"></script>
+<script src="script.js?v=59"></script>
 
 </body>
 </html>

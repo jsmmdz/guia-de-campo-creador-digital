@@ -14,8 +14,10 @@
   propia dentro del IIFE para no chocar con el Catálogo). Cada nivel repite
   la misma estructura: nombre → intro narrativa en zigzag → frase de cierre
   → ficha técnica (panel completo, nunca campo por campo) → nota de campo
-  (+ callout en Suelo/Ladera, Cima no tiene). Cierra con una comparativa de
-  las 3 fichas juntas y un remate. **Primera versión construida en una
+  (+ callout en Suelo/Ladera, Cima no tiene). Cierra con un remate y nada
+  más: la comparativa de las 3 fichas juntas **se eliminó el 2026-07-29** —
+  §2.4 ya no existía en el contenido cerrado y sus tarjetas recortaban las
+  fichas con texto que no estaba en el vault. **Primera versión construida en una
   sesión de agentes en paralelo (workflows) siguiendo al pie de la letra
   los specs del vault y evitando los errores ya documentados de un intento
   anterior** (`Spec - Nodo 2 Territorio (correcciones de
@@ -44,8 +46,7 @@
   "texto que se lee"; la ficha es una "lectura de instrumento" y entra/sale
   con scroll normal — sube desde abajo, se va hacia arriba, siempre nítida
   (`page.isCard` en `initTerritory()`, ver `CARD_TRAVEL` en
-  `applyStintProgress()`). Aplica también a la comparativa final, que
-  reutiliza el mismo marcado de ficha.
+  `applyStintProgress()`).
 - **Territorio — título de tramo y nombre de nivel van arriba, no en el
   centro vertical de la pantalla.** El resto del texto narrativo
   (zigzag/énfasis/cierre/remate) sigue centrado verticalmente; pedido

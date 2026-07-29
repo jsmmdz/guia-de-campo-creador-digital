@@ -9,7 +9,7 @@
   qué es la investigación-creación, explicado sin jerga académica: doce
   bloques en columna fija (marquee → apertura narrativa → término →
   definición → Diagrama 01 contraste metodológico → inversión → aterrizaje
-  → pregunta bisagra → Diagrama 02 las cuatro condiciones de Frascati →
+  → pregunta bisagra → Diagrama 02 las cinco condiciones de Frascati →
   tarjeta Makro (`PRÓXIMAMENTE`) → cita destacada de Melisa Ballesteros →
   remate). **El nodo más simple del sitio a propósito** (ver Ruta Técnica
   del vault, §Advertencia de alcance): a partir de acá no hay
