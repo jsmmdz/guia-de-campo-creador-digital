@@ -3388,58 +3388,30 @@ html:not(.is-preloading) .preloader {
 }
 
 /* ============================================================
-   TEXT HOVER EFFECT — títulos huecos con revelado arcoíris
+   TEXT HOVER EFFECT — borde interno revelado por el cursor
    ============================================================
-   Puerto de ui.aceternity.com/components/text-hover-effect
-   ("as seen on x.ai"), desde el prototipo vanilla que ya estaba
-   validado en PRUEBAS/. El original es React + framer-motion; acá
-   es SVG plano + GSAP, sin CLI de shadcn (este repo no tiene
-   Next/Tailwind).
+   Puerto de ui.aceternity.com/components/text-hover-effect. En el
+   original el arcoíris vive en el STROKE y el texto es hueco. Acá
+   la letra va RELLENA —el hueco dejaba un remate feo en los
+   ángulos— y el revelado se aplica sobre un borde interno grueso.
 
-   Se aplica a seis títulos (ver initTextHover en script.js).
-
-   PRINCIPIO: el <h2> real NO se toca. Sigue en el DOM con su copy,
-   su semántica y su CSS —el mismo clamp() medido contra Figma, la
-   misma familia, los mismos saltos de línea—, solo se le vuelve el
-   color transparente. El SVG es una capa superpuesta que calca la
-   posición real de cada línea. Nada de tipografía se re-declara acá,
-   así que el responsive de DESIGN.md sigue mandando y esto no puede
-   desincronizarse de él.
-
-   Sin JS: no se agrega .is-th-on, el título se ve sólido como
-   siempre. Sin GSAP: el trazo de entrada no corre pero el contorno
-   ya está dibujado por defecto (mismo criterio que el error #8).
-
-   TRES PERILLAS, y son valores de diseño sin origen en Figma —este
-   componente no existe en el archivo. Puestas acá juntas a propósito
-   para que se ajusten en un solo lugar:
+   El armado del SVG está en initTextHover() (script.js), incluido
+   el rodeo del stroke al doble recortado por clipPath, que es la
+   única forma de conseguir un borde interno: SVG no implementa
+   stroke-alignment. Este bloque solo pinta.
    ============================================================ */
-
-:root {
-  /* Grosor del contorno. El pedido fue "que parezca un borde de
-     extrabold", y el stroke crece HACIA ADENTRO (ver el clip-path en
-     script.js), así que este valor es el grosor visible real. En em,
-     para que escale con el clamp() de cada título. */
-  --th-stroke: 0.055em;
-  /* Opacidad del contorno en reposo. El color lo hereda de cada
-     título (script.js lo captura antes de transparentar), así que
-     Rutas conserva su tinta y el resto el suyo. */
-  --th-rest: 0.55;
-  /* Opacidad del contorno extra que suma el hover — 0.7 en el original. */
-  --th-hover: 0.7;
-}
 
 .th-host {
   position: relative;
 }
 
 /* Solo cuando JS ya montó la capa: el texto real deja de verse pero
-   sigue ocupando su sitio y sigue siendo seleccionable y legible por
-   lectores de pantalla. El text-shadow se apaga aparte — el sello del
-   Nodo 0 lo lleva, y sobre un texto transparente quedaría flotando. */
+   sigue ocupando su sitio, seleccionable y legible por lectores de
+   pantalla. El SVG que lo calca va aria-hidden.
+   El text-shadow NO se toca: el sello del Nodo 0 lo lleva y, como el
+   glifo sigue relleno en el SVG, la sombra se sigue leyendo bien. */
 .th-host.is-th-on {
   color: transparent;
-  text-shadow: none;
 }
 
 .th-svg {
@@ -3451,38 +3423,62 @@ html:not(.is-preloading) .preloader {
   pointer-events: none; /* el mousemove lo escucha el host, no el SVG */
 }
 
-.th-layer {
-  fill: transparent;
-  stroke-width: var(--th-stroke);
+:root {
+  /* Grosor VISIBLE del borde interno. El grupo se pinta al doble y el
+     clipPath descarta la mitad de afuera, así que este es el valor
+     final. En em para que escale con el clamp() de cada título.
+     Valor de diseño sin origen en Figma: este componente no existe en
+     el archivo. Es la perilla principal. */
+  --th-edge: 0.05em;
+  /* Cuánto se nota el borde en reposo, antes de que llegue el cursor.
+     En 0 la letra se ve exactamente como siempre y el borde solo
+     aparece bajo el foco. */
+  --th-rest: 0.22;
 }
 
-/* (1) trazo de entrada — visible siempre. Su stroke-dashoffset por
-   defecto es 0 (ya dibujado): si GSAP no carga, el título se ve. */
-.th-draw {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 0;
+.th-layer {
+  stroke-width: var(--th-edge);
+  /* sin esto los ángulos agudos de los glifos escupen picos: era
+     justo el remate feo que motivó pasar de hueco a relleno */
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* el grupo va al doble y el clipPath se come la mitad de afuera */
+.th-edge {
+  stroke-width: calc(var(--th-edge) * 2);
+}
+
+.th-edge-rest {
   opacity: var(--th-rest);
 }
 
-/* (2) contorno que suma el hover, encima del anterior */
-.th-outline {
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-
-.th-host.is-th-hovered .th-outline {
-  opacity: var(--th-hover);
-}
-
-/* (3) revelado arcoíris — recortado por el mask que sigue al cursor.
-   En táctil no hay hover: script.js deja .is-th-hovered puesta y
-   barre el mask en bucle (animación autónoma, no atada al scroll —
-   permitido por CLAUDE.md §sin scroll-jacking). */
-.th-reveal {
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-
-.th-host.is-th-hovered .th-reveal {
+/* el arcoíris: siempre presente, pero el mask radial que sigue al
+   cursor solo lo deja ver alrededor del puntero. En reposo el mask
+   está aparcado fuera de la caja (cx = -9999 en script.js). */
+.th-edge-reveal {
   opacity: 1;
+}
+
+/* ---- marquesinas: el foco barre solo ----
+   Los nombres de sección (TERRITORIO., MÉTODO., VOCES., RUTAS.) no
+   pueden usar el cursor: se mueven, y la de Territorio tiene
+   pointer-events:none. Lo que se anima es el rectángulo del mask, con
+   un transform — no el atributo cx desde JS, que a 54 palabras serían
+   54 escrituras por frame. --th-run (el recorrido) lo calcula
+   build() según el ancho de cada palabra, y --th-i es su índice
+   dentro de la pista, que desfasa el arranque para que el brillo
+   parezca recorrer la banda en vez de destellar toda junta. */
+.th-mask-rect {
+  animation: th-sweep 2.4s linear infinite;
+  animation-delay: calc(var(--th-i, 0) * -0.26s);
+}
+
+@keyframes th-sweep {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--th-run, 100%));
+  }
 }
