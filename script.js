@@ -3431,11 +3431,387 @@ void main() {
     // con el combinador (sin listeners) simplemente inerte (Spec §4.5).
   }
 
+  /* ============================================================
+     TEXT HOVER EFFECT — títulos huecos con revelado arcoíris
+     ============================================================
+     Puerto de ui.aceternity.com/components/text-hover-effect, desde el
+     prototipo ya validado en PRUEBAS/Prototipo - Aceternity Text Hover
+     Effect. Tres capas de <text> apiladas: el trazo de entrada (visible
+     siempre), el contorno que suma el hover, y el revelado arcoíris
+     recortado por un mask radial que sigue al cursor.
+
+     Lo que NO hace, y es lo importante: no re-declara tipografía. El
+     <h2> original se queda intacto haciendo el layout con su clamp()
+     medido contra Figma; acá solo se lee su geometría ya renderizada
+     (getClientRects línea por línea) y se calca encima. Por eso
+     funciona en los cinco breakpoints sin un solo valor nuevo, y por
+     eso mover un tamaño en DESIGN.md lo sigue moviendo también acá.
+
+     El stroke crece HACIA ADENTRO ("que parezca un borde de
+     extrabold"): SVG no implementa stroke-alignment, así que se pinta
+     al doble de grosor y se recorta con un clipPath del mismo texto —
+     la mitad de afuera se descarta y queda solo la de adentro. ==== */
+  function initTextHover() {
+    // Los seis títulos elegidos. `.method__term` cubre dos:
+    // INVESTIGACIÓN-CREACIÓN y EMERGE DE ÉL (que también la lleva).
+    const SELECTORS = [
+      ".threshold__seal h2",
+      ".method__term",
+      ".voices__term",
+      ".routes__term",
+      ".method__card-plate span",
+    ];
+
+    const SVGNS = "http://www.w3.org/2000/svg";
+    // (hover: hover) y no el corte de 1023px de mobileMQ: lo que decide
+    // acá es si existe un puntero que pueda pasar por encima, no el
+    // ancho. Un portátil táctil angosto tiene hover; una tablet grande no.
+    const hoverOK = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    let uid = 0;
+    const instances = [];
+
+    function node(name, attrs) {
+      const n = document.createElementNS(SVGNS, name);
+      for (const key in attrs) n.setAttribute(key, attrs[key]);
+      return n;
+    }
+
+    /* ---------- geometría real de cada línea renderizada ----------
+       Recorre carácter por carácter con un Range y corta cuando el
+       borde superior salta: eso detecta tanto los <br> explícitos como
+       los saltos por reflow. Hace falta porque SVG <text> no hace wrap
+       — cada línea necesita su propio <text> ya posicionado. El costo
+       es despreciable: seis títulos cortos, solo al montar y al
+       cambiar el tamaño de la ventana. */
+    function measureLines(host) {
+      const hostRect = host.getBoundingClientRect();
+      const walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      const spans = []; // {node, from, to} — un renglón renderizado cada uno
+      let textNode;
+
+      while ((textNode = walker.nextNode())) {
+        const value = textNode.nodeValue;
+        if (!value.trim()) continue;
+        let start = 0;
+        let prevTop = null;
+        for (let i = 0; i < value.length; i++) {
+          range.setStart(textNode, i);
+          range.setEnd(textNode, i + 1);
+          const r = range.getBoundingClientRect();
+          if (!r.width && !r.height) continue; // espacio colapsado
+          if (prevTop !== null && Math.abs(r.top - prevTop) > 1) {
+            spans.push({ node: textNode, from: start, to: i });
+            start = i;
+          }
+          prevTop = r.top;
+        }
+        spans.push({ node: textNode, from: start, to: value.length });
+      }
+
+      const lines = [];
+      // De atrás para adelante: la sonda parte el nodo de texto al
+      // insertarse, y recorrer en reversa deja intactos los offsets de
+      // los renglones que todavía no se midieron.
+      for (let k = spans.length - 1; k >= 0; k--) {
+        const s = spans[k];
+        const raw = s.node.nodeValue.slice(s.from, s.to);
+        if (!raw.trim()) continue;
+
+        range.setStart(s.node, s.from);
+        range.setEnd(s.node, s.to);
+        const r = range.getBoundingClientRect();
+        if (!r.width && !r.height) continue;
+
+        /* Línea base exacta, sin métricas de fuente ni suposiciones.
+           Un inline-block vacío alinea su borde INFERIOR con la línea
+           base del renglón que lo contiene — así que basta insertarlo
+           al inicio del renglón y leer su `bottom`. Es la única forma
+           de acertar sin depender de line-height: los títulos van de
+           `normal` a 1.02, y con line-height menor que la caja de
+           fuente el texto se desborda del renglón y cualquier cálculo
+           basado en el alto de la caja se corre (era el desfase de
+           7-14px que dejaba dominant-baseline:middle). */
+        const probe = document.createElement("span");
+        probe.style.cssText =
+          "display:inline-block;width:0;height:0;overflow:hidden;padding:0;margin:0;border:0";
+        const at = range.cloneRange();
+        at.collapse(true);
+        at.insertNode(probe);
+        const baseline = probe.getBoundingClientRect().bottom;
+        probe.remove();
+
+        lines.push({
+          text: raw.trim(),
+          // horizontal: el rect del Range sí es ajustado a los glifos,
+          // así que su centro acierta el text-align sin leerlo
+          cx: (r.left + r.right) / 2 - hostRect.left,
+          baseline: baseline - hostRect.top,
+        });
+      }
+
+      host.normalize(); // rejunta los nodos que partió cada sonda
+      return lines.reverse();
+    }
+
+    function build(host, state) {
+      const old = host.querySelector(":scope > .th-svg");
+      if (old) old.remove();
+
+      // medir SIEMPRE con el texto visible: si .is-th-on ya está puesta
+      // el color es transparent, lo cual no afecta la métrica, pero sí
+      // afectaría si alguna vez se pasara a display/visibility
+      host.classList.remove("is-th-on");
+      const cs = getComputedStyle(host);
+      const lines = measureLines(host);
+      // getBoundingClientRect y no offsetWidth: fraccionario y exacto, y
+      // sobre todo el mismo sistema de medida que usan las líneas
+      const box = host.getBoundingClientRect();
+      const w = box.width;
+      const h = box.height;
+      if (!lines.length || !w || !h) return false;
+
+      // el color del contorno es el que YA tenía el título — así Rutas
+      // conserva --r-ink-marquee y el resto su propia tinta, sin que
+      // este módulo decida ningún color
+      const ink = cs.color;
+      const upper = cs.textTransform === "uppercase";
+      const id = ++uid;
+
+      /* SIN viewBox, a propósito. Con uno, las coordenadas son relativas
+         a un tamaño congelado en el momento del montaje: si la caja del
+         título cambia después —y cambia, por los pin spacers de
+         ScrollTrigger y por la container query de PRÓXIMAMENTE— el SVG
+         escala y el texto sale deformado. Sin viewBox una unidad de
+         usuario es un píxel CSS y nada se estira nunca; si la caja
+         cambia, el calco queda corrido hasta que el ResizeObserver lo
+         reconstruye, que es un fallo mucho más benigno. */
+      const svg = node("svg", {
+        class: "th-svg",
+        "aria-hidden": "true",
+        focusable: "false",
+      });
+
+      const defs = node("defs", {});
+
+      // paleta del componente original, verbatim
+      const grad = node("linearGradient", {
+        id: "thGrad" + id,
+        gradientUnits: "userSpaceOnUse",
+        x1: "0",
+        y1: "0",
+        x2: w,
+        y2: "0",
+      });
+      [
+        ["0%", "#eab308"],
+        ["25%", "#ef4444"],
+        ["50%", "#3b82f6"],
+        ["75%", "#06b6d4"],
+        ["100%", "#8b5cf6"],
+      ].forEach((s) => grad.appendChild(node("stop", { offset: s[0], "stop-color": s[1] })));
+      defs.appendChild(grad);
+
+      const revealGrad = node("radialGradient", {
+        id: "thReveal" + id,
+        gradientUnits: "userSpaceOnUse",
+        r: Math.max(w, h) * 0.25,
+        cx: w / 2,
+        cy: h / 2,
+      });
+      revealGrad.appendChild(node("stop", { offset: "0%", "stop-color": "white" }));
+      revealGrad.appendChild(node("stop", { offset: "100%", "stop-color": "black" }));
+      defs.appendChild(revealGrad);
+
+      const mask = node("mask", { id: "thMask" + id });
+      mask.appendChild(
+        node("rect", { x: 0, y: 0, width: w, height: h, fill: "url(#thReveal" + id + ")" })
+      );
+      defs.appendChild(mask);
+
+      // clipPath con el mismo texto: recorta la mitad exterior del
+      // stroke y deja el grosor creciendo solo hacia el centro
+      const clip = node("clipPath", { id: "thClip" + id });
+
+      function textNodeFor(line, cls) {
+        // y = línea base real medida con la sonda; sin dominant-baseline,
+        // o sea "alphabetic", que es exactamente lo que mide la sonda
+        const t = node("text", {
+          x: line.cx,
+          y: line.baseline,
+          "text-anchor": "middle",
+        });
+        if (cls) t.setAttribute("class", "th-layer " + cls);
+        // las propiedades de fuente se copian del título real ya
+        // resuelto — no se declaran, se leen
+        t.style.fontFamily = cs.fontFamily;
+        t.style.fontStyle = cs.fontStyle;
+        t.style.fontWeight = cs.fontWeight;
+        t.style.fontSize = cs.fontSize;
+        t.style.letterSpacing = cs.letterSpacing;
+        t.textContent = upper ? line.text.toLocaleUpperCase("es") : line.text;
+        return t;
+      }
+
+      lines.forEach((line) => clip.appendChild(textNodeFor(line, null)));
+      defs.appendChild(clip);
+      svg.appendChild(defs);
+
+      // el doble de grosor, recortado a la silueta: queda el interior
+      const group = node("g", { "clip-path": "url(#thClip" + id + ")" });
+      group.style.strokeWidth = "calc(var(--th-stroke) * 2)";
+
+      lines.forEach((line) => {
+        const draw = textNodeFor(line, "th-draw");
+        draw.style.stroke = ink;
+        group.appendChild(draw);
+      });
+      lines.forEach((line) => {
+        const outline = textNodeFor(line, "th-outline");
+        outline.style.stroke = ink;
+        group.appendChild(outline);
+      });
+      lines.forEach((line) => {
+        const reveal = textNodeFor(line, "th-reveal");
+        reveal.style.stroke = "url(#thGrad" + id + ")";
+        reveal.setAttribute("mask", "url(#thMask" + id + ")");
+        group.appendChild(reveal);
+      });
+
+      svg.appendChild(group);
+      host.appendChild(svg);
+      host.classList.add("is-th-on");
+
+      state.svg = svg;
+      state.revealGrad = revealGrad;
+      state.w = w;
+      state.h = h;
+      state.draws = svg.querySelectorAll(".th-draw");
+      return true;
+    }
+
+    function mount(host) {
+      host.classList.add("th-host");
+      const state = { host: host, sweep: null, visible: false };
+      if (!build(host, state)) return;
+      instances.push(state);
+
+      if (hoverOK) {
+        host.addEventListener("mouseenter", () => host.classList.add("is-th-hovered"));
+        host.addEventListener("mouseleave", () => host.classList.remove("is-th-hovered"));
+        host.addEventListener("mousemove", (e) => {
+          if (!state.revealGrad) return;
+          const rect = host.getBoundingClientRect();
+          state.revealGrad.setAttribute("cx", e.clientX - rect.left);
+          state.revealGrad.setAttribute("cy", e.clientY - rect.top);
+        });
+      } else if (motionOK) {
+        // Táctil: no hay hover que disparar el revelado, así que el
+        // círculo barre el título solo. Es animación autónoma —un loop
+        // independiente del scroll—, expresamente permitida por
+        // CLAUDE.md §sin scroll-jacking, que prohíbe manejar el scroll,
+        // no animar.
+        host.classList.add("is-th-hovered");
+        startSweep(state);
+      }
+
+      // el barrido no corre mientras el título está fuera de pantalla:
+      // mismo criterio que el fondo de Rutas, no dejar un loop vivo para
+      // siempre una vez que el lector ya pasó de largo
+      if (!hoverOK && motionOK) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              state.visible = entry.isIntersecting;
+              if (!state.sweep) return;
+              entry.isIntersecting ? state.sweep.play() : state.sweep.pause();
+            });
+          },
+          { threshold: 0 }
+        );
+        io.observe(host);
+      }
+    }
+
+    function startSweep(state) {
+      if (typeof gsap === "undefined" || !state.revealGrad) return;
+      if (state.sweep) state.sweep.kill();
+      state.sweep = gsap.fromTo(
+        state.revealGrad,
+        { attr: { cx: -state.w * 0.15 } },
+        {
+          attr: { cx: state.w * 1.15 },
+          duration: 3.2,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+          paused: !state.visible,
+        }
+      );
+    }
+
+    // trazo de entrada: una sola vez, sin loop. Con ?static=1 se salta
+    // y el contorno queda dibujado desde el principio (CSS por defecto).
+    function drawIn(state) {
+      if (!motionOK || typeof gsap === "undefined" || !state.draws) return;
+      gsap.fromTo(
+        state.draws,
+        { strokeDashoffset: 1000 },
+        { strokeDashoffset: 0, duration: 4, ease: "power2.inOut" }
+      );
+    }
+
+    SELECTORS.forEach((sel) => document.querySelectorAll(sel).forEach(mount));
+    instances.forEach(drawIn);
+
+    function rebuild(state) {
+      if (state.sweep) state.sweep.kill();
+      state.sweep = null;
+      if (build(state.host, state) && !hoverOK && motionOK) startSweep(state);
+    }
+
+    /* ResizeObserver por título, no solo el resize de ventana: la caja de
+       estos títulos cambia por cosas que no son la ventana. Los pin
+       spacers de ScrollTrigger reacomodan el ancho al refrescar, y
+       PRÓXIMAMENTE se dimensiona con container query, así que su
+       font-size depende del ancho REAL de la tarjeta. Con solo el
+       listener de window el calco quedaba estirado y con el tamaño de
+       fuente corrido — que es justo lo que apareció al medirlo. */
+    if (typeof ResizeObserver !== "undefined") {
+      instances.forEach((state) => {
+        let first = true;
+        const ro = new ResizeObserver(() => {
+          if (first) {
+            first = false; // el disparo inicial es el montaje, no un cambio
+            return;
+          }
+          clearTimeout(state.roTimer);
+          state.roTimer = setTimeout(() => rebuild(state), 150);
+        });
+        ro.observe(state.host);
+      });
+    }
+
+    // El resize de ventana igual hace falta: un salto de breakpoint puede
+    // cambiar el clamp() o el punto de corte de una palabra sin que la
+    // caja del título cambie de tamaño.
+    let thResize = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(thResize);
+      thResize = setTimeout(() => instances.forEach(rebuild), 200);
+    });
+  }
+
   initTerritory();
   initMethod();
   initVoices();
   initRoutes();
   initLenis();
+  // después de las fuentes: las métricas de línea dependen de la
+  // tipografía real, medir con la de respaldo daría posiciones que
+  // saltarían al resolver el swap
+  document.fonts.ready.then(initTextHover);
 
   /* ---------- precarga real: lo que el preloader está esperando ----------
      Va al final a propósito: necesita EDGE_FEEDS y ensureEdgeFeedLoading,
