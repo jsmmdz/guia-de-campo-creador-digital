@@ -71,6 +71,7 @@ otros). Por nodo hay hasta tres archivos —`Spec -`, `Ruta Tecnica -` y
 | [docs/flujo-de-trabajo.md](docs/flujo-de-trabajo.md) | Al empezar cualquier sesión de trabajo real |
 | [docs/arquitectura.md](docs/arquitectura.md) | Stack, CDN, estructura de carpetas, peso y carga de assets |
 | [docs/errores-corregidos.md](docs/errores-corregidos.md) | Antes de tocar CSS o JS. Los 26 bugs ya resueltos, con su regla |
+| `docs/correcciones-figma-catalogo-territorio-metodo.md` (local, no está en GitHub — ver `.gitignore`) | Al corregir Catálogo/Territorio/Método tras la auditoría contra Figma del 2026-07-30. Lista cerrada de hallazgos confirmados, un error a la vez. Si no existe en tu checkout, no se generó todavía en esta máquina |
 | [docs/nodo-0-umbral.md](docs/nodo-0-umbral.md) | Galaxy, texto ASCII de "Digital", órbita de íconos, 5 pilares |
 | [docs/nodo-1-catalogo.md](docs/nodo-1-catalogo.md) | Scroll-jacking con pin, blobs SVG, secuencias de frames por edge |
 | [docs/nodo-2-territorio.md](docs/nodo-2-territorio.md) | 5 ScrollTrigger pineados, fichas técnicas, indicador de altitud |

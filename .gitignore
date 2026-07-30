@@ -13,3 +13,7 @@ assets/disciplinas/VIDEOS/
 # config local de Claude Code — launch.json SÍ se versiona (define el server
 # de preview del repo, puerto 4174); los settings locales no
 .claude/settings.local.json
+
+# notas de sesión, locales — hallazgos de una auditoría puntual, no
+# documentación del proyecto en sí; no se suben a GitHub
+docs/correcciones-figma-catalogo-territorio-metodo.md
