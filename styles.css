@@ -3286,3 +3286,103 @@ body.routes-js [data-combinator].is-ready + .routes__matrix {
      que pasa el área tocable en los cuatro tramos, incluido el de
      tablet donde antes caía a ~31px.
    ============================================================ */
+
+/* ============================================================
+   PRELOADER — dos momentos, sin salida anticipada
+   ============================================================
+   Portes de 21st.dev a CSS plano (el sitio no tiene build, ni
+   React, ni Tailwind):
+
+   - Momento 1 · shader: @designali-in/shader-animation. El
+     original monta Three.js solo para dibujar un quad a pantalla
+     completa; acá el canvas lo maneja WebGL crudo desde script.js
+     con el MISMO fragment shader, así que este bloque solo lo
+     posiciona. Sumar ~600KB de librería a la pantalla que existe
+     para evitar esperas habría sido contraproducente.
+   - Momento 2 · puntos: @paceui/dot-loader. Las clases de Tailwind
+     del original traducidas literal — grid-cols-7 → 7 columnas,
+     rounded-sm → 2px, bg-white/15 → 15% de opacidad, [&.active]
+     → .is-active. Lo único que cambia es la escala: el original
+     mide 6px de punto y 2px de gap (h-1.5/gap-0.5), pensado para
+     un widget en línea; a pantalla completa la retícula entera
+     medía 54px, casi invisible. Va al DOBLE exacto (12/4), que
+     conserva la proporción del componente en vez de inventar una.
+
+   El overlay se cierra desde script.js cuando terminaron los 310
+   frames del catálogo, los 8 íconos de la órbita y las fuentes.
+   ============================================================ */
+
+/* el scroll queda bloqueado mientras carga — se pone en <html> desde
+   JS apenas arranca, no acá, para que un fallo de JS nunca deje la
+   página trabada sin poder scrollear */
+html.is-preloading,
+html.is-preloading body {
+  overflow: hidden;
+  height: 100%;
+}
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999; /* el máximo del resto del sitio es 40 */
+  display: grid;
+  place-items: center;
+  background: var(--void);
+  /* la transición de salida la dispara .is-done; el overlay se saca
+     del árbol recién al terminar (transitionend en script.js) */
+  opacity: 1;
+  transition: opacity 600ms ease;
+}
+
+.preloader.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* sin JS no hay preloader posible: el overlay se esconde solo, o el
+   sitio quedaría detrás de un rectángulo negro para siempre */
+html:not(.is-preloading) .preloader {
+  display: none;
+}
+
+.preloader__shader {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* el momento 1 dura 3s y cede al momento 2 con un cruce corto */
+  opacity: 1;
+  transition: opacity 500ms ease;
+}
+
+.preloader.is-phase-2 .preloader__shader {
+  opacity: 0;
+}
+
+/* ---- momento 2: dot-loader 7×7 ---- */
+
+.preloader__dots {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 12px);
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.preloader.is-phase-2 .preloader__dots {
+  opacity: 1;
+}
+
+.preloader__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.15);
+  transition: background-color 120ms linear;
+}
+
+.preloader__dot.is-active {
+  background: var(--paper);
+}

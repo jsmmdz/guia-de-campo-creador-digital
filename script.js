@@ -60,6 +60,330 @@
   // texto). En laptop+ sigue reaccionando como antes.
   const pointerFxOK = !mobileMQ.matches;
 
+  /* ============================================================
+     PRELOADER — dos momentos, sin salida anticipada
+     ============================================================
+     Por qué existe: los 310 frames WebP del catálogo (5 edges × 62,
+     ~27MB) se cargaban perezosamente por proximidad —±1 edge, ver
+     ensureEdgeFeedLoading()—, así que bajar rápido llegaba al Nodo 1
+     antes que sus frames y dejaba el blob SVG en vez del video. Acá
+     se cargan los cinco edges completos antes de soltar el sitio.
+
+     Momento 1 · shader WebGL, 3s, una pasada completa.
+     Momento 2 · dot-loader 7×7, loopea hasta que termina la carga.
+
+     Va acá arriba, ANTES del guard de `typeof gsap === "undefined"`,
+     por dos motivos: el shader tiene que arrancar en el primer frame
+     posible, y si el CDN de GSAP se cae el guard hace `return` — si
+     el preloader viviera después, ese return dejaría el sitio detrás
+     de un rectángulo negro para siempre. El guard lo libera a mano.
+
+     El preloader corre igual con ?static=1: no es decoración
+     opcional, es la precarga. ============================================ */
+
+  const preloaderEl = document.getElementById("preloader");
+
+  // se reasigna abajo si el preloader existe; si no, es un no-op y el
+  // resto del script no tiene que preguntar nada
+  let releasePreloader = () => {};
+  // los assets se piden desde el final del IIFE (necesitan EDGE_FEEDS /
+  // ensureEdgeFeedLoading, declarados mucho más abajo); el momento 2 no
+  // puede cerrar hasta que esta promesa resuelva
+  let assetsReady = Promise.resolve();
+  let signalAssetsReady = () => {};
+
+  if (preloaderEl) {
+    document.documentElement.classList.add("is-preloading");
+    // al recargar, el navegador restaura la posición de scroll anterior:
+    // sin esto la persona sale del preloader en mitad del Nodo 3
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+
+    assetsReady = new Promise((resolve) => {
+      signalAssetsReady = resolve;
+    });
+
+    /* ---------- momento 1: shader ----------
+       Portado de 21st.dev/r/designali-in/shader-animation. El original
+       usa Three.js exclusivamente para poner un PlaneGeometry(2,2) con
+       un ShaderMaterial delante de una cámara ortográfica — es decir,
+       un quad a pantalla completa. Acá es WebGL crudo y el fragment
+       shader está copiado LITERAL, así que la salida es la misma; lo
+       que se ahorra son los ~600KB de Three.js, que en esta pantalla
+       en particular retrasarían justo lo que venimos a evitar.
+
+       El vertex shader del original (`gl_Position = vec4(position,
+       1.0)` sobre el plano de Three) se reemplaza por un triángulo
+       único sobredimensionado que cubre todo el clip space: mismo
+       resultado, sin geometría que subir. */
+    function initPreloaderShader(canvas) {
+      let gl = null;
+      try {
+        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      } catch (e) {
+        gl = null;
+      }
+      // sin WebGL el momento 1 queda en negro los 3s y el momento 2
+      // entra igual — la carga nunca depende del shader
+      if (!gl) return null;
+
+      const vertexShader = `
+        attribute vec2 aPos;
+        void main() {
+          gl_Position = vec4( aPos, 0.0, 1.0 );
+        }
+      `;
+
+      // literal del componente de 21st.dev, sin un carácter cambiado
+      const fragmentShader = `
+        #define TWO_PI 6.2831853072
+        #define PI 3.14159265359
+
+        precision highp float;
+        uniform vec2 resolution;
+        uniform float time;
+
+        void main(void) {
+          vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+          float t = time*0.05;
+          float lineWidth = 0.002;
+
+          vec3 color = vec3(0.0);
+          for(int j = 0; j < 3; j++){
+            for(int i=0; i < 5; i++){
+              color[j] += lineWidth*float(i*i) / abs(fract(t - 0.01*float(j)+float(i)*0.01)*5.0 - length(uv) + mod(uv.x+uv.y, 0.2));
+            }
+          }
+
+          gl_FragColor = vec4(color[0],color[1],color[2],1.0);
+        }
+      `;
+
+      function compile(type, src) {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+          gl.deleteShader(sh);
+          return null;
+        }
+        return sh;
+      }
+
+      const vs = compile(gl.VERTEX_SHADER, vertexShader);
+      const fs = compile(gl.FRAGMENT_SHADER, fragmentShader);
+      if (!vs || !fs) return null;
+
+      const program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null;
+      gl.useProgram(program);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const aPos = gl.getAttribLocation(program, "aPos");
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      const uTime = gl.getUniformLocation(program, "time");
+      const uResolution = gl.getUniformLocation(program, "resolution");
+
+      // el original hace setPixelRatio(devicePixelRatio) + setSize(w,h) y
+      // pasa domElement.width al uniform, o sea el tamaño del drawing
+      // buffer (ya multiplicado por dpr) — se replica igual
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = Math.floor(canvas.clientWidth * dpr);
+        const h = Math.floor(canvas.clientHeight * dpr);
+        if (canvas.width === w && canvas.height === h) return;
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+        gl.uniform2f(uResolution, w, h);
+      }
+      resize();
+      window.addEventListener("resize", resize, false);
+
+      return {
+        render(time) {
+          resize();
+          gl.uniform1f(uTime, time);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        },
+        dispose() {
+          window.removeEventListener("resize", resize);
+          gl.deleteProgram(program);
+          gl.deleteBuffer(buf);
+          gl.deleteShader(vs);
+          gl.deleteShader(fs);
+        },
+      };
+    }
+
+    // Retraso en negro antes de encender el shader: el primer frame se veía
+    // con un fallo leve. Es tiempo muerto a propósito, no un fade — el
+    // overlay ya es negro, así que no hay nada que animar acá.
+    const PHASE_0_MS = 1000;
+
+    const PHASE_1_MS = 3000;
+    // Una pasada COMPLETA del shader en esos 3s, a pedido explícito.
+    // El 20 no es a ojo: el shader anima con `fract(t - ...)`, que tiene
+    // periodo 1 en t, y t = time*0.05 — o sea que el ciclo se cierra
+    // cuando `time` avanza exactamente 1/0.05 = 20. El original sumaba
+    // 0.05 por frame (≈6.7s de ciclo a 60fps); acá `time` se deriva del
+    // tiempo real transcurrido en vez del conteo de frames, así que la
+    // pasada dura 3s parejos aunque el equipo renderice a 30 o a 120.
+    const SHADER_CYCLE = 20;
+
+    // Fase de arranque = el punto MÁS OSCURO del ciclo, no el 1.0 del
+    // original. Esto no es cosmético, arregla un bug visible: el ciclo no
+    // es simétrico. Midiendo el brillo medio cada 0.5 a lo largo del
+    // periodo, decae suave desde el pico (118 en time=2.5) hasta 3.66 en
+    // time=19, y de ahí se RE-ENCIENDE de golpe — 21.3, 49.8, 66, 81.9 —
+    // para cerrar donde empezó. Arrancando en 1.0 esa rampa final caía
+    // justo sobre el cruce al momento 2 y se leía como si la animación
+    // volviera a dispararse a medias por encima de los puntos.
+    // Arrancando en 19.0 la pasada sigue siendo completa (el periodo es
+    // 20, así que 19 → 39 ≡ 19 cierra igual) pero la forma queda
+    // negro → florece → se apaga, que además entrega el relevo en negro.
+    const SHADER_TIME_0 = 19.0;
+
+    const shader = initPreloaderShader(preloaderEl.querySelector(".preloader__shader"));
+    let t0 = 0; // se fija al arrancar el shader, no al cargar la página
+    let rafId = 0;
+
+    // El AVANCE de fase va por reloj, no por frames. requestAnimationFrame
+    // no dispara en una pestaña en segundo plano (ni con el viewport en
+    // 0×0), así que encadenar startPhase2() al último rAF dejaba el
+    // preloader clavado en el momento 1 hasta el watchdog si alguien abría
+    // el sitio en una pestaña que no estaba mirando. El rAF ahora solo
+    // pinta: si no corre, no se ve el shader, pero la secuencia avanza.
+    function phase1Frame(now) {
+      const elapsed = Math.min(now - t0, PHASE_1_MS);
+      if (shader) shader.render(SHADER_TIME_0 + (elapsed / PHASE_1_MS) * SHADER_CYCLE);
+      if (elapsed < PHASE_1_MS) rafId = requestAnimationFrame(phase1Frame);
+    }
+
+    // Los 3s de la pasada cuentan desde que el shader enciende, no desde
+    // que carga la página: el retraso se suma, no se come parte del ciclo.
+    setTimeout(() => {
+      t0 = performance.now();
+      rafId = requestAnimationFrame(phase1Frame);
+    }, PHASE_0_MS);
+    setTimeout(startPhase2, PHASE_0_MS + PHASE_1_MS);
+
+    /* ---------- momento 2: dot-loader ----------
+       Portado de 21st.dev/r/paceui/dot-loader. La lógica del original
+       es un setInterval que recorre `frames` y togglea la clase active
+       en los 49 puntos; se traduce tal cual, sin React. `game` es el
+       patrón del demo, sin cambios. */
+    const DOT_FRAMES = [
+      [14, 7, 0, 8, 6, 13, 20],
+      [14, 7, 13, 20, 16, 27, 21],
+      [14, 20, 27, 21, 34, 24, 28],
+      [27, 21, 34, 28, 41, 32, 35],
+      [34, 28, 41, 35, 48, 40, 42],
+      [34, 28, 41, 35, 48, 42, 46],
+      [34, 28, 41, 35, 48, 42, 38],
+      [34, 28, 41, 35, 48, 30, 21],
+      [34, 28, 41, 48, 21, 22, 14],
+      [34, 28, 41, 21, 14, 16, 27],
+      [34, 28, 21, 14, 10, 20, 27],
+      [28, 21, 14, 4, 13, 20, 27],
+      [28, 21, 14, 12, 6, 13, 20],
+      [28, 21, 14, 6, 13, 20, 11],
+      [28, 21, 14, 6, 13, 20, 10],
+      [14, 6, 13, 20, 9, 7, 21],
+    ];
+    const DOT_DURATION = 100; // ms por frame, default del componente
+
+    const dotsRoot = preloaderEl.querySelector(".preloader__dots");
+    const dots = [];
+    if (dotsRoot) {
+      for (let i = 0; i < 49; i++) {
+        const dot = document.createElement("div");
+        dot.className = "preloader__dot";
+        dotsRoot.appendChild(dot);
+        dots.push(dot);
+      }
+    }
+
+    let dotTimer = null;
+
+    function startPhase2() {
+      // cancelar antes de dispose(): con el rAF todavía en cola, el
+      // siguiente frame llamaría render() sobre un programa ya borrado
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      if (shader) shader.dispose();
+      preloaderEl.classList.add("is-phase-2");
+
+      let frameIdx = 0;
+      let cyclesDone = 0;
+      dotTimer = setInterval(() => {
+        const frame = DOT_FRAMES[frameIdx];
+        dots.forEach((dot, i) => dot.classList.toggle("is-active", frame.indexOf(i) !== -1));
+        frameIdx++;
+        if (frameIdx >= DOT_FRAMES.length) {
+          frameIdx = 0;
+          cyclesDone++;
+        }
+      }, DOT_DURATION);
+
+      // el momento 2 cierra cuando terminó la carga, pero nunca antes de
+      // una pasada completa del patrón: con todo en caché (recarga en
+      // local) la carga resuelve en milisegundos y los puntos aparecían
+      // como un parpadeo sucio entre el shader y el sitio
+      const fullCycle = new Promise((resolve) => {
+        const check = setInterval(() => {
+          if (cyclesDone >= 1) {
+            clearInterval(check);
+            resolve();
+          }
+        }, DOT_DURATION);
+      });
+
+      Promise.all([assetsReady, fullCycle]).then(finish);
+    }
+
+    function finish() {
+      if (dotTimer) clearInterval(dotTimer);
+      preloaderEl.classList.add("is-done");
+      const done = () => {
+        document.documentElement.classList.remove("is-preloading");
+        preloaderEl.remove();
+        window.scrollTo(0, 0);
+        // el sitio se midió entero detrás de un <html> con overflow
+        // hidden: sin este refresh los ScrollTrigger arrancan con las
+        // posiciones equivocadas (error #7 del catálogo de errores, en
+        // otra forma)
+        if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh();
+      };
+      preloaderEl.addEventListener("transitionend", done, { once: true });
+      // red de seguridad si el transitionend no llega (pestaña en
+      // segundo plano no compositea, así que la transición no dispara)
+      setTimeout(done, 900);
+    }
+
+    releasePreloader = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (dotTimer) clearInterval(dotTimer);
+      document.documentElement.classList.remove("is-preloading");
+      preloaderEl.remove();
+    };
+
+    // Watchdog. NO es un botón de saltar —el usuario pidió explícitamente
+    // que no se pueda saltar—, es manejo de error: si un asset queda
+    // colgado sin resolver ni fallar (proxy que no cierra la conexión,
+    // por ejemplo), la alternativa sería una pantalla negra permanente.
+    setTimeout(() => {
+      if (document.documentElement.classList.contains("is-preloading")) finish();
+    }, 45000);
+  }
+
   /* ---------- especímenes (íconos): reservan espacio, aparecen al resolver ---------- */
 
   document.querySelectorAll(".specimen-chip__frame img").forEach((img) => {
@@ -73,7 +397,13 @@
 
   /* ---------- sin GSAP (falla de red): el contenido ya es legible tal cual ---------- */
 
-  if (typeof gsap === "undefined") return;
+  if (typeof gsap === "undefined") {
+    // el preloader se libera a mano: sin GSAP no hay nada que precargar
+    // para el catálogo (se queda en su disposición estática) y dejar el
+    // overlay puesto escondería el sitio entero detrás de un negro
+    releasePreloader();
+    return;
+  }
 
   // solo ahora, con GSAP confirmado, pasamos al layout animado — si el CDN
   // falla, el body nunca queda con "enhanced" puesto y el contenido sigue
@@ -3110,4 +3440,36 @@ void main() {
   initVoices();
   initRoutes();
   initLenis();
+
+  /* ---------- precarga real: lo que el preloader está esperando ----------
+     Va al final a propósito: necesita EDGE_FEEDS y ensureEdgeFeedLoading,
+     que se declaran junto al catálogo. Reusa esa misma función en vez de
+     tener su propio loader, así los frames caen en edgeFeedState —el
+     caché que scrubEdgeFeed() ya consulta— y no se descargan dos veces.
+     Efecto secundario buscado: cuando la persona llegue al Nodo 1, los
+     cinco edges ya están en el mapa y ensureEdgeFeedLoading() sale por
+     su guard de "ya cargado" sin pedir nada. */
+  (function preloadEverything() {
+    const tasks = [];
+
+    // 1. los 310 frames del catálogo (5 edges × 62) — el motivo de todo esto
+    for (let i = 0; i < EDGE_FEEDS.length; i++) tasks.push(ensureEdgeFeedLoading(i));
+
+    // 2. los 8 íconos de la órbita del Nodo 0: son lo primero que se ve
+    document.querySelectorAll(".specimen-chip__frame img").forEach((img) => {
+      if (img.complete && img.naturalWidth > 0) return;
+      tasks.push(
+        new Promise((resolve) => {
+          img.addEventListener("load", resolve, { once: true });
+          // un ícono roto no puede trabar la entrada al sitio
+          img.addEventListener("error", resolve, { once: true });
+        })
+      );
+    });
+
+    // 3. las 5 familias tipográficas — si entran después, el texto salta
+    tasks.push(document.fonts.ready);
+
+    Promise.all(tasks).then(signalAssetsReady, signalAssetsReady);
+  })();
 })();
