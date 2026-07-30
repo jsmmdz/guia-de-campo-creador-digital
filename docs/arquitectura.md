@@ -69,25 +69,30 @@ assets/
 ## Optimización de carga (móviles de gama media / datos móviles)
 
 - **Assets de `assets/disciplinas/frames/` y `assets/home/` recomprimidos a
-  WebP** (antes PNG): 214MB → ~28MB. Los frames de edge se recortan además
-  a 720×720 (cuadrado) en vez de 1280×720 — coincide con el
-  `object-fit:cover` real de `.hero-canvas`, no se pierde nada que el
-  cliente no recortara ya. Calidad `libwebp -quality 95` (elegida por el
-  usuario tras comparar contra q78/q95/lossless — a q78 el ahorro era
-  mayor pero con suavizado perceptible en zoom; a q95 es indistinguible
-  del original). Pipeline (recomprime los PNG ya extraídos por chromakey,
-  no rehace la extracción desde los `.mp4`):
+  WebP** (antes PNG): 214MB → ~18MB para los frames de edge. Las fotos de
+  `home` usan `libwebp -quality 95` (elegida por el usuario tras comparar
+  contra q78/q95/lossless — a q78 el ahorro era mayor pero con suavizado
+  perceptible en zoom; a q95 es indistinguible del original).
+
+  **Frames de edge: 1280×720 completo, q85.** No se recortan. El recorte
+  cuadrado a 720×720 que tuvieron antes se justificaba diciendo que
+  coincidía con el `object-fit:cover` de `.hero-canvas` y que no se perdía
+  nada — era falso: los elementos que flotan alrededor del blob viven en
+  los 280px de cada costado y salían visiblemente cortados. q85 compensa
+  el área extra (18MB, menos que los 28MB del set cuadrado a q95).
+  Extracción en una pasada desde el `.mp4`, sin PNG intermedio:
   ```
-  # frames de edge (por archivo, ver assets/disciplinas/frames/<edge>/NNNN.png)
-  ffmpeg -i NNNN.png -vf "scale=720:720:force_original_aspect_ratio=increase,crop=720:720" \
-    -c:v libwebp -lossless 0 -quality 95 -compression_level 6 NNNN.webp
+  # verde 0x4CED46 (edges 01-02, 02-03, 03-04) · azul 0x214FF6 (04-05, 05-06)
+  ffmpeg -i "VIDEOS/<clip>.mp4" -vf "chromakey=<key>:0.15:0.05,format=rgba" \
+    -r 12 -start_number 0 -c:v libwebp -lossless 0 -quality 85 \
+    -compression_level 6 "frames/<edge>/%04d.webp"
 
   # fotos de home (por archivo, preserva aspect-ratio real 1122:1402)
   ffmpeg -i tool.png -vf "scale=340:-1" \
     -c:v libwebp -lossless 0 -quality 95 -compression_level 6 tool.webp
   ```
-  Si se regeneran frames nuevos desde los `.mp4` (chromakey), correr este
-  segundo paso sobre el PNG recién extraído antes de commitear.
+  Los colores de croma están medidos del fondo real de cada clip, no
+  supuestos. El mapeo edge → clip está en `docs/nodo-1-catalogo.md`.
 - **`initGalaxy`/`initAsciiText` no se llaman con conexión realmente
   limitada** (`script.js`, `isConstrained` cerca de `motionOK`/`mobileMQ`):
   `navigator.connection.saveData` o `effectiveType` en `slow-2g`/`2g` —

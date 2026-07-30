@@ -1686,11 +1686,13 @@ void main() {
      el cruce entre la tarjeta i y la i+1; con 6 especímenes hay 5 edges
      posibles. Cada carpeta tiene N frames 0000.webp..NNNN.webp: extraídos
      con ffmpeg (chromakey + -r 12) a partir de los clips con fondo
-     verde/azul, y recomprimidos a WebP (recorte cuadrado 720×720 + q95) —
-     el PNG crudo pesaba ~192MB para los 5 edges, inviable en datos
-     móviles; el recorte a cuadrado coincide con el object-fit:cover real
-     de .hero-canvas, no se pierde nada que ya no se recortara en el
-     cliente. ---------- */
+     verde/azul, en WebP 1280×720 completo a q85 (18MB los 5 edges; el PNG
+     crudo pesaba ~192MB, inviable en datos móviles). Antes se recortaban a
+     720×720 cuadrado creyendo que coincidía con el object-fit:cover de
+     .hero-canvas y que no se perdía nada: sí se perdía —los elementos que
+     flotan alrededor del blob viven en los 280px de cada costado y salían
+     cortados en pantalla. .hero-canvas ahora se dibuja a 16:9 desbordando
+     su host. ---------- */
 
   // count viene de la extracción real con ffmpeg (62 frames a 12fps en los
   // 5 edges ya producidos con croma limpio — los 5 posibles están cubiertos).

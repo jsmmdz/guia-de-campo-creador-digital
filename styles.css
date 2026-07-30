@@ -418,7 +418,7 @@ body:not(.enhanced) .specimen-chip__frame { transform: none; }
   font-size: clamp(42px, 8.3vw, 108px);
   line-height: 1.02;
   text-transform: uppercase;
-  text-shadow: 0 0 28px rgba(61, 58, 224, 0.5), 2px 2px 0 rgba(27, 25, 168, 0.85);
+  text-shadow: 2px 2px 0 rgba(27, 25, 168, 0.85);
 }
 
 /* móvil ≤767 */
@@ -664,12 +664,49 @@ body.in-catalog .catalog__hero { opacity: 1; }
 
 .hero-canvas {
   position: absolute;
-  inset: 8%;
-  width: 84%; height: 84%;
-  border-radius: 50%;
-  object-fit: cover;
+  /* Los frames son 1280×720 completos (antes se recortaban a 720×720 al
+     extraerlos, y ese recorte cortaba los elementos flotantes del clip).
+     El canvas se dibuja a 16:9 DESBORDANDO el host a izquierda y derecha:
+     su alto iguala el lado del cuadrado, así que el cuadro central de
+     720×720 sigue midiendo --pl-blob y el blob conserva su tamaño medido
+     en Figma; lo que sobra son los satélites, que ahora entran enteros.
+     1280/720 = 177.78%. El host tiene overflow visible, no recorta.
+     Sin border-radius: el círculo cortaba las esquinas de los frames. */
+  inset: auto;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: 177.7778%;
+  object-fit: contain;
   opacity: 0;
   transition: opacity 0.5s ease;
+
+  /* Desvanecido del borde del fotograma. Recortar ya no corta nada, pero
+     el límite del frame sigue siendo un corte recto: lo que toca el borde
+     (satélites que entran o salen de cuadro) aparece y desaparece en seco.
+     Estas dos rampas de alfa —una horizontal, una vertical, intersecadas—
+     lo difuminan hacia fuera en los cuatro lados.
+     Dos perillas, ambas decisión de diseño explícita y sin origen en
+     Figma —este desvanecido no existe en el archivo—:
+     · --hero-feather: dónde termina la rampa, o sea cuánto dura el
+       degradado. Subirlo suaviza más.
+     · --hero-trim: banda exterior totalmente transparente, antes de que
+       la rampa arranque. Se come ese borde del fotograma en seco, para
+       que el arranque del degradado no coincida con el filo del frame
+       (que es lo que se seguía notando con la rampa sola). */
+  --hero-feather: 10%;
+  --hero-trim: 3%;
+  -webkit-mask-image:
+    linear-gradient(to right,  transparent var(--hero-trim), #000 var(--hero-feather), #000 calc(100% - var(--hero-feather)), transparent calc(100% - var(--hero-trim))),
+    linear-gradient(to bottom, transparent var(--hero-trim), #000 var(--hero-feather), #000 calc(100% - var(--hero-feather)), transparent calc(100% - var(--hero-trim)));
+  mask-image:
+    linear-gradient(to right,  transparent var(--hero-trim), #000 var(--hero-feather), #000 calc(100% - var(--hero-feather)), transparent calc(100% - var(--hero-trim))),
+    linear-gradient(to bottom, transparent var(--hero-trim), #000 var(--hero-feather), #000 calc(100% - var(--hero-feather)), transparent calc(100% - var(--hero-trim)));
+  /* intersect: el alfa final es el producto de las dos rampas, así que las
+     esquinas se desvanecen en ambos ejes en vez de sumarse a opaco. */
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 }
 .catalog__hero.has-feed .hero-canvas { opacity: 1; }
 
@@ -3408,10 +3445,14 @@ html:not(.is-preloading) .preloader {
 /* Solo cuando JS ya montó la capa: el texto real deja de verse pero
    sigue ocupando su sitio, seleccionable y legible por lectores de
    pantalla. El SVG que lo calca va aria-hidden.
-   El text-shadow NO se toca: el sello del Nodo 0 lo lleva y, como el
-   glifo sigue relleno en el SVG, la sombra se sigue leyendo bien. */
+   El text-shadow SÍ se apaga: sobre texto transparente la sombra
+   sigue pintando el glifo, y como el SVG que lo calca no cae en el
+   mismo sitio se leía como una segunda palabra azul corrida detrás
+   (visible en el sello del Nodo 0). El valor queda declarado en cada
+   título para el fallback sin JS. */
 .th-host.is-th-on {
   color: transparent;
+  text-shadow: none;
 }
 
 .th-svg {

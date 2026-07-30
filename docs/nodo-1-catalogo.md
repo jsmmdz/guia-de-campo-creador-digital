@@ -52,15 +52,17 @@
   (recorte por croma verde/azul, no `video.currentTime` — técnica portada
   de `RECURSOS/blobsite/index.html`, sin latencia de seek, scrub fluido en
   ambas direcciones). Con 6 tarjetas hay 5 edges posibles, los 5 cubiertos:
-  `01-02` (UX/UI→3D), `02-03` (3D→Software), `03-04` (Software→Game),
-  `04-05` (Game→Multimedia, croma azul — el blob de Multimedia ya es
-  verde-amarillento, `--spec-5`, choca con croma verde), `05-06`
-  (Multimedia→IA, croma azul por el mismo motivo). Convención:
+  `01-02` (UX/UI→3D, `UX.UI A 3D.mp4`), `02-03` (3D→Software,
+  `3D A SOFTWARE.mp4`), `03-04` (Software→Game, `SOFTWARE A GAME.mp4`),
+  `04-05` (Game→Multimedia, `GAME A MEDIA.mp4`, croma azul — el blob de
+  Multimedia ya es verde-amarillento, `--spec-5`, choca con croma verde),
+  `05-06` (Multimedia→IA, `MEDIA A IA.mp4`, croma azul por el mismo
+  motivo). Los tres primeros usan croma verde. Colores medidos del fondo
+  real: verde `0x4CED46`, azul `0x214FF6`. `TRANSICION 0 A UX-UI (1).mp4`
+  no se usa (sería el edge 0→01, que no existe). Convención:
   `assets/disciplinas/frames/<edge>/0000.webp`…`NNNN.webp`, 62 frames cada
-  uno (clips de ~5s, extraídos a 12fps con `ffmpeg -i clip.mp4 -vf
-  "chromakey=<color>:0.15:0.05,format=rgba" -r 12 -start_number 0
-  frames/<edge>/%04d.png`, recomprimidos después a WebP 720×720 — comando
-  exacto en "Optimización de carga"). `has-feed` es solo-agregar: una vez
+  uno (clips de ~5s a 12fps), **1280×720 completo, sin recortar** —
+  comando exacto en `docs/arquitectura.md`, "Optimización de carga". `has-feed` es solo-agregar: una vez
   que una tarjeta muestra video real se queda así para siempre, el blob
   nunca vuelve (coincide con el flujo del sitio de referencia). Se activa
   ON en ambas tarjetas del edge activo, toggleado en `applyProgress()`,
