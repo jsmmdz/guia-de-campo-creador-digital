@@ -17,3 +17,7 @@ assets/disciplinas/VIDEOS/
 # notas de sesión, locales — hallazgos de una auditoría puntual, no
 # documentación del proyecto en sí; no se suben a GitHub
 docs/correcciones-figma-catalogo-territorio-metodo.md
+
+# config local de Obsidian sobre docs/ — es del editor, no del proyecto, y
+# workspace.json cambia cada vez que se abre o mueve un panel
+docs/.obsidian/
