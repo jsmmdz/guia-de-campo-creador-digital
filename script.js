@@ -2930,6 +2930,18 @@ void main() {
           }
           cardEl.dataset.state = currentState;
           futureBtn.setAttribute("aria-pressed", currentState === "futuro" ? "true" : "false");
+
+          /* El fondo (§3.14) también sigue el estado: azules en HOY,
+             rojos en FUTURO. Va por evento y no llamando al handle
+             directo porque el combinador se arma SIEMPRE y de forma
+             síncrona, mientras el campo carga Three.js por import()
+             dinámico y puede no existir nunca (?static=1, conexión
+             limitada, CDN caído). El evento no le importa a nadie si no
+             hay quien escuche — el acoplamiento al revés obligaría al
+             combinador a conocer un handle que quizá no llega. */
+          document.dispatchEvent(
+            new CustomEvent("routes:state", { detail: { state: currentState } })
+          );
         }
 
         if (!animate || !motionOK) { apply(); return; }
@@ -3238,10 +3250,30 @@ void main() {
           // tantearon a ojo sobre el nodo real (mismo criterio que ya
           // deja anotado galaxy.js para su propio cfg).
           const cfg = {
-            linesGradient: ["#c1c1ff", "#e1dfff"],
+            // Dos paletas, no una: el campo sigue el estado de la
+            // tarjeta (HOY azul / FUTURO rojo) — hex dados por el
+            // usuario 2026-07-29, ver DESIGN.md §11 D-26. Reemplazan al
+            // gradiente lavanda #c1c1ff→#e1dfff original, que a plena
+            // luminosidad competía con el texto blanco del nodo. Los
+            // seis son oscuros y opacos a propósito: el shader además
+            // los multiplica por 0.5 en getLineColor() y acumula
+            // aditivamente, así que en pantalla quedan más apagados que
+            // el hex.
+            linesGradientHoy: ["#1d0037", "#00302b", "#001227"],
+            linesGradientFuturo: ["#370000", "#301e00", "#270000"],
+            // el fundido entre paletas al pulsar el botón de futuro.
+            // 190ms es el mismo tiempo que ya usa el swap de texto de
+            // la tarjeta (render() → is-swapping), para que el fondo y
+            // la ficha cambien juntos y no en dos tiempos.
+            paletteFadeMs: 190,
             lineCount: 5,
             lineDistance: 6,
-            animationSpeed: 0.4,
+            // ×1.5 sobre el 0.4 original — decisión del usuario
+            // 2026-07-29. animationSpeed escala LOS DOS términos de
+            // wave(): el desplazamiento horizontal (time * 0.1) y la
+            // oscilación de amplitud (time * 0.2), que era exactamente
+            // lo pedido (ambos ×1.5, no uno solo).
+            animationSpeed: 0.6,
             bendRadius: 6,
             bendStrength: -1.2,
             mouseDamping: 0.06,
@@ -3301,12 +3333,30 @@ void main() {
             lineGradient: {
               value: Array.from({ length: 8 }, () => new Vector3(1, 1, 1)),
             },
-            lineGradientCount: { value: cfg.linesGradient.length },
+            lineGradientCount: { value: cfg.linesGradientHoy.length },
           };
-          cfg.linesGradient.forEach((hex, i) => {
-            const c = hexToVec3(hex);
-            uniforms.lineGradient.value[i].set(c.x, c.y, c.z);
-          });
+
+          /* Las dos paletas precalculadas a Vector3 una sola vez, y el
+             fundido resuelto en JS (no en el shader): mezclar tres
+             paradas por frame en la CPU es más barato que pasar dos
+             arrays de 8 y un mix al fragment shader, que corre por
+             píxel. El shader queda idéntico al portado de reactbits —
+             no se le toca ni una línea. */
+          const paletteHoy = cfg.linesGradientHoy.map(hexToVec3);
+          const paletteFuturo = cfg.linesGradientFuturo.map(hexToVec3);
+
+          // 0 = HOY (azules), 1 = FUTURO (rojos).
+          let paletteTarget = 0;
+          let paletteCurrent = 0;
+
+          function writePalette() {
+            for (let i = 0; i < paletteHoy.length; i++) {
+              uniforms.lineGradient.value[i]
+                .copy(paletteHoy[i])
+                .lerp(paletteFuturo[i], paletteCurrent);
+            }
+          }
+          writePalette();
 
           const material = new ShaderMaterial({ uniforms, vertexShader, fragmentShader });
           const mesh = new Mesh(new PlaneGeometry(2, 2), material);
@@ -3337,9 +3387,26 @@ void main() {
           const animateField = !mobileMQ.matches;
           const clock = new Clock();
           let rafId = null;
+          let lastElapsed = 0;
           function update() {
             rafId = animateField ? requestAnimationFrame(update) : null;
-            uniforms.iTime.value = clock.getElapsedTime();
+            const elapsed = clock.getElapsedTime();
+            // delta propio en vez de clock.getDelta(): getElapsedTime()
+            // ya consumió el delta interno del Clock, así que llamar a
+            // getDelta() después devuelve ~0. Se acota a 100ms para que
+            // volver de una pestaña en segundo plano (donde el rAF se
+            // congela y el reloj no) no salte el fundido de golpe.
+            const dt = Math.min(elapsed - lastElapsed, 0.1);
+            lastElapsed = elapsed;
+            uniforms.iTime.value = elapsed;
+
+            if (paletteCurrent !== paletteTarget) {
+              const step = dt / (cfg.paletteFadeMs / 1000);
+              paletteCurrent = paletteTarget > paletteCurrent
+                ? Math.min(paletteCurrent + step, paletteTarget)
+                : Math.max(paletteCurrent - step, paletteTarget);
+              writePalette();
+            }
 
             if (pointerFxOK) {
               currentMouse.lerp(targetMouse, cfg.mouseDamping);
@@ -3372,6 +3439,19 @@ void main() {
           }
 
           return {
+            /* "hoy" | "futuro" — lo llama el combinador cuando la
+               tarjeta cambia de estado. En móvil/tablet animateField es
+               false (el loop se detuvo tras el primer frame), así que
+               ahí no hay fundido posible: se salta al color final y se
+               pide UN frame suelto. Sin esto el botón de futuro no
+               cambiaría el fondo en móvil. */
+            setState(state) {
+              paletteTarget = state === "futuro" ? 1 : 0;
+              if (animateField) return;
+              paletteCurrent = paletteTarget;
+              writePalette();
+              renderer.render(scene, camera);
+            },
             pause() {
               if (rafId !== null) {
                 cancelAnimationFrame(rafId);
@@ -3412,7 +3492,19 @@ void main() {
         let fieldVisible = false;
         initRoutesField(fieldCtn).then((handle) => {
           fieldHandle = handle;
-          if (handle && !fieldVisible) handle.pause();
+          if (!handle) return;
+          // El primer render del combinador ya pasó (initCombinator es
+          // síncrono y corre arriba), así que su evento se emitió antes
+          // de que existiera este listener: el estado inicial se lee del
+          // DOM en vez de esperar el siguiente clic. Normalmente es
+          // "hoy", pero así también aguanta que el HTML arranque en
+          // "futuro" sin quedar el fondo azul contra una ficha roja.
+          const card = root.querySelector(".routes__card");
+          handle.setState(card && card.dataset.state === "futuro" ? "futuro" : "hoy");
+          document.addEventListener("routes:state", (e) => {
+            if (fieldHandle) fieldHandle.setState(e.detail.state);
+          });
+          if (!fieldVisible) handle.pause();
         });
         const fieldObserver = new IntersectionObserver(
           (entries) => {
