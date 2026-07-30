@@ -223,11 +223,12 @@
       };
     }
 
-    // Retraso en negro antes de encender el shader: el primer frame se veía
-    // con un fallo leve. Es tiempo muerto a propósito, no un fade — el
-    // overlay ya es negro, así que no hay nada que animar acá.
-    const PHASE_0_MS = 1000;
-
+    // Hubo un retraso de 1s en negro acá, puesto porque el shader mostraba
+    // un fallo al encender. Se retiró: la causa era la fase de arranque
+    // (ver SHADER_TIME_0 más abajo), no la falta de margen — el ciclo
+    // empezaba en 81 de brillo medio, de golpe. Arrancando en el punto
+    // oscuro enciende desde el negro del propio overlay y el retraso
+    // dejó de aportar nada más que un segundo de espera.
     const PHASE_1_MS = 3000;
     // Una pasada COMPLETA del shader en esos 3s, a pedido explícito.
     // El 20 no es a ojo: el shader anima con `fract(t - ...)`, que tiene
@@ -252,7 +253,7 @@
     const SHADER_TIME_0 = 19.0;
 
     const shader = initPreloaderShader(preloaderEl.querySelector(".preloader__shader"));
-    let t0 = 0; // se fija al arrancar el shader, no al cargar la página
+    const t0 = performance.now();
     let rafId = 0;
 
     // El AVANCE de fase va por reloj, no por frames. requestAnimationFrame
@@ -267,13 +268,8 @@
       if (elapsed < PHASE_1_MS) rafId = requestAnimationFrame(phase1Frame);
     }
 
-    // Los 3s de la pasada cuentan desde que el shader enciende, no desde
-    // que carga la página: el retraso se suma, no se come parte del ciclo.
-    setTimeout(() => {
-      t0 = performance.now();
-      rafId = requestAnimationFrame(phase1Frame);
-    }, PHASE_0_MS);
-    setTimeout(startPhase2, PHASE_0_MS + PHASE_1_MS);
+    rafId = requestAnimationFrame(phase1Frame);
+    setTimeout(startPhase2, PHASE_1_MS);
 
     /* ---------- momento 2: dot-loader ----------
        Portado de 21st.dev/r/paceui/dot-loader. La lógica del original
