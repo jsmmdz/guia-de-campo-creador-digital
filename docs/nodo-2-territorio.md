@@ -76,12 +76,19 @@
 ## Pendiente
 
 - **Territorio — varios puntos abiertos, ninguno bloqueante:**
-  - No confirmado contra las capturas reales de Figma (el conector no
-    estaba autorizado en la sesión que lo construyó) — jerarquía, escala
-    exacta y sobre todo el acento secundario `#c9803d` siguen
-    "provisional", tal como ya lo marcaba el spec del vault.
-    Comparar apenas se pueda y ajustar `--t-accent` en `styles.css` si
-    corresponde.
+  - Parcialmente confirmado contra las capturas de Figma. **El acento ya
+    no es provisional**: medido pixel a pixel sobre
+    `IMAGENES/frames figma/nodo 2 (1).png`, `--t-accent` pasó de `#c9803d`
+    (estimado a ojo) a **`#f2842b`**, el mismo naranja en los labels de la
+    ficha y en el callout. Se sumó **`--t-lilac: #c0c1ff`** para el título
+    "FICHA TÉCNICA", token propio y no `--signal-hi` (ese es global del
+    sitio y lo usan otros nodos). La ficha se reconcilió en la Fase 2 de
+    correcciones (hallazgo F4): labels en naranja pleno sin la opacidad que
+    los apagaba, título de 15px a 38px (cap-height de 28px en el frame), y
+    la columna de valores topada al 50% del panel, centrada. Lo que sigue
+    sin confirmar es el resto de la jerarquía y escala del nodo — y queda
+    una decisión abierta: en el frame "FICHA TÉCNICA" se ve **recta**,
+    mientras el código la tiene en itálica.
     - Corrección de layout ya reportada por el usuario y aplicada durante
       la depuración: la ficha técnica no debía compartir el efecto blur
       del scrollytelling narrativo (ver Decisiones de diseño), y los

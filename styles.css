@@ -740,7 +740,18 @@ body.catalog-enhanced .plate { flex: 0 0 100vw; width: 100vw; }
 :root {
   --t-ink: #f2f1ec;
   --t-panel: #0d0d10;
-  --t-accent: #c9803d; /* provisional — sin confirmar contra Figma, ver CLAUDE.md */
+  /* F4: ya NO es provisional. Medido pixel a pixel sobre
+     `IMAGENES/frames figma/nodo 2 (1).png` (1440×7725): el naranja plano
+     sale #F2842B tanto en los labels de la ficha (961 px puros en las 3
+     primeras filas, 593 en las de abajo) como en el callout "Se
+     multiplican por recomendación" (3861 px puros). Un solo naranja para
+     todo el nodo, no dos. El viejo #c9803d era una estimación a ojo. */
+  --t-accent: #f2842b;
+  /* Lila del título "FICHA TÉCNICA" — #C0C1FF medido en el mismo frame
+     (2864 px puros). Token propio y no --signal-hi (#3d3ae0): ese es
+     global del sitio y lo usan otros nodos, además de ser un índigo
+     saturado, no este lila claro. */
+  --t-lilac: #c0c1ff;
   --t-hairline: rgba(242, 241, 236, 0.12);
   --t-hairline-hi: rgba(242, 241, 236, 0.15);
 
@@ -816,6 +827,18 @@ body.enhanced .territory__level-name {
   top: var(--sp-6);
   bottom: auto;
   transform: none;
+}
+/* F2: "Desde el suelo_hasta la cima." es el remate narrativo del preámbulo,
+   no un título de tramo. La regla de arriba lo dejaba pegado al tope, encima
+   del marquee (top:var(--sp-4), §850) y del label fijo del registro. Vuelve
+   al centro vertical como el resto del texto narrativo — misma
+   especificidad (2 clases) que la regla anterior, gana por orden de
+   aparición. El anclaje arriba sigue vigente para .territory__level-name
+   (Suelo/Ladera/Cima), que es lo que el pedido del usuario cubría. */
+body.enhanced .territory__stint-title--narrative {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
 }
 body:not(.enhanced) .territory__stint { height: auto; overflow: visible; }
 body:not(.enhanced) .territory__page { min-height: 60vh; display: flex; align-items: center; }
@@ -1058,9 +1081,13 @@ body.territory-ascent .territory__center { opacity: 1; }
   font-style: italic;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 15px;
+  /* F4 — escala medida en el frame: la letra F de "FICHA TÉCNICA" mide 28px
+     de altura de mayúscula (x:132..169, y:5730..5757), que en Gantari
+     (cap-height ≈ 0.73em) da ~38px de font-size. Eran 15px, y a esa escala
+     no se leía como título del panel sino como otro dato más. */
+  font-size: 38px;
   letter-spacing: 0.04em;
-  color: var(--signal-hi);
+  color: var(--t-lilac); /* F4 — era --signal-hi (índigo global), el frame lo pinta lila */
 }
 .territory__card-stamp {
   position: absolute;
@@ -1071,7 +1098,11 @@ body.territory-ascent .territory__center { opacity: 1; }
   letter-spacing: 0.2em;
   opacity: 0.55;
 }
-.territory__card-rows { margin-top: var(--sp-5); }
+/* F4 — el título pasó de 15px a 38px y necesita su aire. El valor sale del
+   frame: del borde superior del panel (y=5677) al primer filete de fila
+   (y=5782) hay 105px. Con el padding-top del panel en --sp-3 (24px), eso
+   deja 81px de margen → --sp-5 + --sp-2 = 80px, 1px de diferencia. Eran 64. */
+.territory__card-rows { margin-top: calc(var(--sp-5) + var(--sp-2)); }
 .territory__card-row {
   display: flex;
   justify-content: space-between;
@@ -1089,12 +1120,27 @@ body.territory-ascent .territory__center { opacity: 1; }
   text-transform: uppercase;
   font-size: 13px;
   letter-spacing: 0.16em;
-  opacity: 0.7;
+  /* F4 — el label es el elemento que diferencia la lectura de instrumento
+     de su contenido: va en naranja pleno. El opacity:0.7 anterior lo
+     apagaba contra el valor en blanco y era justo lo que dejaba la ficha
+     monocromática; el color plano ya aporta la jerarquía, la opacidad
+     sobraba. */
+  color: var(--t-accent);
 }
 .territory__card-row dd {
-  flex: 1 1 auto;
+  /* F4 — pedido explícito del usuario: la columna de valores NUNCA pasa la
+     mitad de la tarjeta; si el texto no cabe, baja de renglón (2, 3 o 4).
+     El frame coincide: el valor más ancho mide 565px sobre un panel de
+     1242px (45,5%), nunca llega a la mitad. `flex: 0 1 50%` en vez de
+     `1 1 auto` es lo que impide que crezca; min-width:0 sigue haciendo
+     falta para que sí pueda encoger. */
+  flex: 0 1 50%;
+  max-width: 50%;
   min-width: 0; /* si no, un flex item con texto largo no encoge por debajo de su ancho intrínseco y desborda — visto en verificación real en mobile (flex-direction:column) */
-  text-align: right;
+  /* Centrado, no al ras derecho: en el frame los 3 bloques de valor
+     comparten eje central (x≈919) mientras sus bordes derechos varían
+     (1201 / 1185 / 1087) — o sea están centrados dentro de su columna. */
+  text-align: center;
   font-family: var(--t-f-display);
   font-weight: 400;
   font-size: 13px;
@@ -1181,7 +1227,11 @@ body.territory-ascent .territory__center { opacity: 1; }
   .territory__card, .territory__note { grid-template-columns: 1fr; }
   .territory__card-row { flex-direction: column; gap: var(--sp-1); }
   .territory__card-row dt { max-width: 100%; }
-  .territory__card-row dd { text-align: left; }
+  /* La fila acá es flex-direction:column, así que el `flex: 0 1 50%` del
+     tier base pasaría a medir ALTO en vez de ancho y el `max-width:50%`
+     dejaría el valor en una tira de media pantalla. En una sola columna la
+     regla "no pasar la mitad" no aplica: no hay dos columnas que repartir. */
+  .territory__card-row dd { flex: 0 1 auto; max-width: 100%; text-align: left; }
   .territory__note-body { padding-left: var(--sp-2); }
 }
 /* tablet 768–1023 */

@@ -3631,11 +3631,38 @@ void main() {
           text: raw.trim(),
           cx: (r.left + r.right) / 2 - hostRect.left,
           baseline: baseline - hostRect.top,
+          top: r.top - hostRect.top,
         });
       }
 
       host.normalize(); // rejunta los nodos que partió cada sonda
-      return lines.reverse();
+      lines.reverse();
+
+      /* La sonda solo es confiable en el PRIMER renglón, y hay que
+         corregir los demás a partir de él.
+
+         Por qué: la sonda es un inline-block de ancho 0 insertado en el
+         arranque del renglón, pero un corte por reflow ocurre en una
+         oportunidad de salto —después de un guion o de un espacio— y ese
+         punto es el FINAL del renglón anterior. Un elemento de ancho cero
+         insertado ahí se queda pegado a ese renglón anterior, no baja al
+         siguiente. Resultado: todos los renglones a partir del segundo
+         devolvían la línea base del primero, los <text> del SVG salían con
+         la misma `y` y el título se calcaba encima de sí mismo. Se veía en
+         los dos únicos títulos que envuelven en 2 renglones —Método y
+         Voces, ambos con "INVESTIGACIÓN-CREACIÓN."— y no en los de un
+         renglón, donde la sonda va al offset 0 y ahí sí cae bien.
+
+         El primer renglón sí es de fiar (offset 0 = arranque real), así que
+         de él sale la distancia del borde superior del renglón a su línea
+         base, y esa distancia se reaplica a todos. Es exacto porque los
+         renglones de un mismo título comparten fuente y line-height, y para
+         un título de un solo renglón da idéntico a antes. */
+      if (lines.length > 1) {
+        const ascent = lines[0].baseline - lines[0].top;
+        for (let i = 1; i < lines.length; i++) lines[i].baseline = lines[i].top + ascent;
+      }
+      return lines;
     }
 
     function build(host, state) {
