@@ -36,7 +36,7 @@
      combinador es Plus Jakarta Bold Italic (Spec §5.4), peso que
      ningún nodo anterior necesitaba. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500;1,700&display=swap" />
-<link rel="stylesheet" href="styles.css?v=68" />
+<link rel="stylesheet" href="styles.css?v=75" />
 </head>
 <body>
 
@@ -170,6 +170,13 @@
       en ningún lado hasta que el frame del Catálogo se pudo medir.
       Los títulos van en UNA línea, como el frame (73:693 y hermanos) — por
       eso ya no llevan <br>.
+
+      F1 (2026-07-30): el copy NO es un párrafo corrido. La referencia del
+      prototipo lo muestra con la primera frase en su propio renglón y el
+      resto envolviendo natural, todo centrado — el `text-align:center` ya
+      lo pone `.plate` §526; lo que faltaba era el corte. Va como <br>
+      después del primer punto, no como dos <p>: es un solo bloque de
+      texto con un renglón forzado, sin espacio de párrafo entre medio.
     -->
 
     <article class="plate" data-name="UX/UI Design" style="--c: var(--spec-1)">
@@ -177,7 +184,7 @@
         <h3 class="plate__title">UX/UI Design</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Diseñarás pantallas y experiencias centradas en las personas. Crearás interfaces intuitivas que guíen al usuario de forma natural, clara y sin esfuerzo.</p>
+      <p class="plate__copy">Diseñarás pantallas y experiencias centradas en las personas.<br>Crearás interfaces intuitivas que guíen al usuario de forma natural, clara y sin esfuerzo.</p>
     </article>
 
     <article class="plate" data-name="3D Production" style="--c: var(--spec-2)">
@@ -185,7 +192,7 @@
         <h3 class="plate__title">3D Production</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Darás vida a mundos tridimensionales. Crearás escenarios y objetos virtuales que sumerjan al espectador en nuevas realidades visuales e historias inmersivas.</p>
+      <p class="plate__copy">Darás vida a mundos tridimensionales.<br>Crearás escenarios y objetos virtuales que sumerjan al espectador en nuevas realidades visuales e historias inmersivas.</p>
     </article>
 
     <article class="plate" data-name="Software Dev" style="--c: var(--spec-3)">
@@ -193,7 +200,7 @@
         <h3 class="plate__title">Software Dev</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Programarás el motor invisible que hace funcionar la web. Construirás la lógica interna que sostiene cualquier plataforma digital para que sea rápida y segura.</p>
+      <p class="plate__copy">Programarás el motor invisible que hace funcionar la web.<br>Construirás la lógica interna que sostiene cualquier plataforma digital para que sea rápida y segura.</p>
     </article>
 
     <article class="plate" data-name="Game Engineering" style="--c: var(--spec-4)">
@@ -201,7 +208,7 @@
         <h3 class="plate__title">Game Engineering</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Crearás las reglas y mecánicas de la interactividad. Diseñarás la lógica de los videojuegos para convertir al espectador en el verdadero protagonista.</p>
+      <p class="plate__copy">Crearás las reglas y mecánicas de la interactividad.<br>Diseñarás la lógica de los videojuegos para convertir al espectador en el verdadero protagonista.</p>
     </article>
 
     <article class="plate" data-name="Multimedia Artist" style="--c: var(--spec-5)">
@@ -209,7 +216,7 @@
         <h3 class="plate__title">Multimedia Artist</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Producirás piezas visuales y audiovisuales impactantes. Unirás el diseño con estrategias digitales para que tu contenido destaque, atrape a la audiencia y domine las redes.</p>
+      <p class="plate__copy">Producirás piezas visuales y audiovisuales impactantes.<br>Unirás el diseño con estrategias digitales para que tu contenido destaque, atrape a la audiencia y domine las redes.</p>
     </article>
 
     <article class="plate" data-name="AI Technologist" style="--c: var(--spec-6)">
@@ -217,7 +224,7 @@
         <h3 class="plate__title">AI Technologist</h3>
       </div>
       <div class="plate__viewport" aria-hidden="true"></div>
-      <p class="plate__copy">Usarás la inteligencia artificial como tu mejor aliada. Aprenderás a guiar estas herramientas para potenciar tus ideas, manteniendo siempre tu visión humana como filtro principal.</p>
+      <p class="plate__copy">Usarás la inteligencia artificial como tu mejor aliada.<br>Aprenderás a guiar estas herramientas para potenciar tus ideas, manteniendo siempre tu visión humana como filtro principal.</p>
     </article>
 
   </div>
@@ -309,19 +316,28 @@
   </div>
 
   <!-- ---------- Suelo ---------- -->
-  <div class="territory__stint territory__stint--level" data-stint="suelo" data-pages="7" data-order="0" data-altitude="0" data-stamp="DAT_FRM_01">
+  <div class="territory__stint territory__stint--level" data-stint="suelo" data-pages="9" data-order="0" data-altitude="0" data-stamp="DAT_FRM_01">
 
     <h2 class="territory__page territory__level-name" data-page="0"><span class="territory__level-eyebrow">Altitud 0</span>Suelo</h2>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Este es el nivel que pisas primero. Aquí conviven freelancers de todo tipo: el que diseña, el que edita, el que programa, el que arma prompts e integra IA para un cliente — cada uno solo, trabajando desde su casa, sin pasar por ninguna empresa.</p>
+    <!-- F3: los 5 fragmentos de la intro narrativa son 5 páginas, no 3. El
+         sitio fusionaba los tres primeros en un solo párrafo. Fragmentación
+         literal de `Contenido - Nodo 2 Territorio.md` §2.1 (un bloque del
+         vault = una página), confirmada contra `nodo 2 (1).png`, que los
+         dibuja como 5 cajas alternando izquierda/derecha. -->
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Este es el nivel que pisas primero. Aquí conviven freelancers de todo tipo:</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Para llegar aquí no necesitas casi nada: un portafolio armado, una cuenta en una plataforma freelance y la disposición a cobrar por tu trabajo sin que nadie más lo respalde.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">el que diseña, el que edita, el que programa, el que arma prompts e integra IA para un cliente</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Es la entrada más baja de todo el territorio, cualquiera puede pisarla.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Cada uno solo, trabajando desde su casa, sin pasar por ninguna empresa.</p>
 
-    <p class="territory__page territory__closing-line" data-page="4">El Suelo es el nivel de calle. Aquí aprendes el oficio, pero no es donde se ponen las reglas.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="4">Para llegar aquí no necesitas casi nada: un portafolio armado, una cuenta en una plataforma freelance y la disposición a cobrar por tu trabajo sin que nadie más lo respalde.</p>
 
-    <div class="territory__page territory__card" data-page="5">
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="5">Es la entrada más baja de todo el territorio, cualquiera puede pisarla.</p>
+
+    <p class="territory__page territory__closing-line" data-page="6">El Suelo es el nivel de calle. Aquí aprendes el oficio, pero no es donde se ponen las reglas.</p>
+
+    <div class="territory__page territory__card" data-page="7">
       <div class="territory__card-panel">
         <p class="territory__card-label">Ficha técnica</p>
         <p class="territory__card-stamp">DAT_FRM_01</p>
@@ -335,7 +351,7 @@
       </div>
     </div>
 
-    <div class="territory__page territory__note" data-page="6">
+    <div class="territory__page territory__note" data-page="8">
       <p class="territory__note-label">Nota de campo</p>
       <p class="territory__note-body">Llegar al Suelo es fácil; quedarse depende de una regla no escrita. Acá no hay asignación de proyectos — se generan conversación por conversación, tratando a cualquier persona como un cliente en potencia, aunque todavía no lo sepa.</p>
       <aside class="territory__callout">
@@ -346,19 +362,26 @@
   </div>
 
   <!-- ---------- Ladera ---------- -->
-  <div class="territory__stint territory__stint--level" data-stint="ladera" data-pages="7" data-order="1" data-altitude="0.5" data-stamp="DAT_FRM_02">
+  <div class="territory__stint territory__stint--level" data-stint="ladera" data-pages="9" data-order="1" data-altitude="0.5" data-stamp="DAT_FRM_02">
 
     <h2 class="territory__page territory__level-name" data-page="0"><span class="territory__level-eyebrow">Altitud 1</span>Ladera</h2>
 
+    <!-- F3: mismo caso que Suelo — 5 fragmentos, no 3. Fragmentación literal
+         de `Contenido - Nodo 2 Territorio.md` §2.2, confirmada contra
+         `nodo 2 (2).png`. -->
     <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Subir un nivel significa dejar de trabajar solo.</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Aquí viven los estudios, las agencias, las productoras pequeñas y medianas — equipos que agrupan varias personas bajo un mismo nombre y firman contratos más grandes de los que firmarías solo en el Suelo.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Aquí viven los estudios, las agencias, las productoras pequeñas y medianas</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">Para llegar aquí ya no te alcanza un portafolio: necesitas una estructura formal detrás — un registro, un equipo, la capacidad de responder legalmente por lo que entregas.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">equipos que agrupan varias personas bajo un mismo nombre y firman contratos más grandes de los que firmarías solo en el Suelo.</p>
 
-    <p class="territory__page territory__closing-line" data-page="4">La Ladera tiene más estructura que el Suelo, pero todavía mira hacia arriba para saber por dónde seguir subiendo.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="4">Para llegar aquí ya no te alcanza un portafolio: necesitas una estructura formal detrás</p>
 
-    <div class="territory__page territory__card" data-page="5">
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="5">un registro, un equipo, la capacidad de responder legalmente por lo que entregas.</p>
+
+    <p class="territory__page territory__closing-line" data-page="6">La Ladera tiene más estructura que el Suelo, pero todavía mira hacia arriba para saber por dónde seguir subiendo.</p>
+
+    <div class="territory__page territory__card" data-page="7">
       <div class="territory__card-panel">
         <p class="territory__card-label">Ficha técnica</p>
         <p class="territory__card-stamp">DAT_FRM_02</p>
@@ -372,9 +395,17 @@
       </div>
     </div>
 
-    <div class="territory__page territory__note" data-page="6">
+    <div class="territory__page territory__note" data-page="8">
       <p class="territory__note-label">Nota de campo</p>
-      <p class="territory__note-body">En la Ladera cambia también qué tan propio es el flujo de trabajo: en el Suelo cada quien elige sus herramientas; acá el equipo entero queda montado sobre las que decidió el estudio. Esas herramientas caducan más rápido que cualquier contrato.</p>
+      <!-- F6: el frame `nodo 2 (2).png` parte el cuerpo en 3 párrafos con un
+           salto de 52px (medido: pitch de renglón 53, hueco 104 = 53+51, los
+           dos saltos iguales). El vault lo tiene como un bloque continuo, así
+           que esto NO agrega páginas — sigue siendo una sola territory__page. -->
+      <div class="territory__note-body">
+        <p>En la Ladera cambia también qué tan propio es el flujo de trabajo:</p>
+        <p>en el Suelo cada quien elige sus herramientas; acá el equipo entero queda montado sobre las que decidió el estudio.</p>
+        <p>Esas herramientas caducan más rápido que cualquier contrato.</p>
+      </div>
       <aside class="territory__callout">
         <p class="territory__callout-title">No es una posibilidad abstracta:</p>
         <p class="territory__callout-body">Herramientas de IA que hace apenas cuatro años eran el estándar para generar páginas web, como Black Box, ya quedaron en desuso, y todo el flujo montado sobre ellas tocó rehacerlo desde cero.</p>
@@ -383,7 +414,13 @@
   </div>
 
   <!-- ---------- Cima ----------
-       9 páginas, no 7: el spec (3.2.c) pide dos momentos de énfasis con
+       F3: 13 páginas. Las 9 anteriores fusionaban los fragmentos 1-3 de la
+       intro en una sola página (13 renglones, no entraba en un viewport de
+       900) y los fragmentos 7-9 en otra. `Contenido - Nodo 2 Territorio.md`
+       §2.3 los separa, y `nodo 2 (3).png` los dibuja como cajas propias
+       alternando izq/der/izq/der · los dos énfasis al centro · izq/der/izq.
+       Lo de abajo sigue vigente:
+       el spec (3.2.c) pide dos momentos de énfasis con
        página propia CADA UNA ("no hay un plan," / "ni un ascenso posible
        desde abajo.") — sumados a los 3 fragmentos de intro que ya piden
        Suelo/Ladera, no entran en el conteo orientativo de 7 páginas de
@@ -392,23 +429,31 @@
        casi por página"). Ese conteo está marcado ahí como orientativo, no
        como contrato — se prioriza la regla estructural (énfasis con
        página propia) sobre el número. -->
-  <div class="territory__stint territory__stint--level" data-stint="cima" data-pages="9" data-order="2" data-altitude="1" data-stamp="DAT_FRM_03">
+  <div class="territory__stint territory__stint--level" data-stint="cima" data-pages="13" data-order="2" data-altitude="1" data-stamp="DAT_FRM_03">
 
     <h2 class="territory__page territory__level-name" data-page="0"><span class="territory__level-eyebrow">Altitud 2</span>Cima</h2>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Desde aquí se ve todo lo demás. La Cima la ocupan los gigantes — Anthropic, OpenAI, Google, Microsoft — compañías que no solo participan en el territorio: construyen el terreno mismo sobre el que caminan todos los demás niveles.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="1">Desde aquí se ve todo lo demás. La Cima la ocupan los gigantes</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">Para llegar aquí no te sirve lo que usaste en el Suelo o en la Ladera —</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="2">— Anthropic, OpenAI, Google, Microsoft —</p>
 
-    <p class="territory__page territory__emphasis" data-page="3">no hay un plan,</p>
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="3">compañías que no solo participan en el territorio: construyen el terreno mismo sobre el que caminan todos los demás niveles.</p>
 
-    <p class="territory__page territory__emphasis" data-page="4">ni un ascenso posible desde abajo.</p>
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="4">Para llegar aquí no te sirve lo que usaste en el Suelo o en la Ladera</p>
 
-    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="5">Lo que hace falta no es más trabajo ni más contratos: es controlar la infraestructura que usan todos los niveles de abajo. La mayoría del territorio no llega nunca, ni falta que hace.</p>
+    <p class="territory__page territory__emphasis" data-page="5">no hay un plan,</p>
 
-    <p class="territory__page territory__closing-line" data-page="6">Pero entender que este nivel existe, y que las reglas de abajo se escriben arriba, cambia cómo lees todo lo demás.</p>
+    <p class="territory__page territory__emphasis" data-page="6">ni un ascenso posible desde abajo.</p>
 
-    <div class="territory__page territory__card" data-page="7">
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="7">Lo que hace falta no es más trabajo ni más contratos:</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--r" data-page="8">es controlar la infraestructura que usan todos los niveles de abajo.</p>
+
+    <p class="territory__page territory__zigzag territory__zigzag--l" data-page="9">La mayoría del territorio no llega nunca, ni falta que hace.</p>
+
+    <p class="territory__page territory__closing-line" data-page="10">Pero entender que este nivel existe, y que las reglas de abajo se escriben arriba, cambia cómo lees todo lo demás.</p>
+
+    <div class="territory__page territory__card" data-page="11">
       <div class="territory__card-panel">
         <p class="territory__card-label">Ficha técnica</p>
         <p class="territory__card-stamp">DAT_FRM_03</p>
@@ -422,9 +467,17 @@
       </div>
     </div>
 
-    <div class="territory__page territory__note" data-page="8">
+    <div class="territory__page territory__note" data-page="12">
       <p class="territory__note-label">Nota de campo</p>
-      <p class="territory__note-body">Ese poder también depende de cuánto decide invertir cada país en investigación — un dato que no se nota caminando por el Suelo o la Ladera, pero que fija cuánto puede llegar a construirse desde acá. Alemania destina el 9% de su PIB a investigación; Colombia, menos del 1%. La distancia entre esos dos números explica, en parte, por qué la infraestructura que domina este nivel casi nunca nace en países como este.</p>
+      <!-- F6: mismos 3 párrafos que Ladera, cortados donde los corta
+           `nodo 2 (3).png`. El frame mete un renglón vacío de más en el
+           primer salto (158 en vez de 105) — slop de autoría, no un segundo
+           valor de diseño: se usa el 52px uniforme de Ladera. -->
+      <div class="territory__note-body">
+        <p>Ese poder también depende de cuánto decide invertir cada país en investigación — un dato que no se nota caminando por el Suelo o la Ladera, pero que fija cuánto puede llegar a construirse desde acá.</p>
+        <p>Alemania destina el 9% de su PIB a investigación;</p>
+        <p>Colombia, menos del 1%. La distancia entre esos dos números explica, en parte, por qué la infraestructura que domina este nivel casi nunca nace en países como este.</p>
+      </div>
     </div>
   </div>
 
@@ -586,11 +639,19 @@
   </div>
 
   <blockquote class="method__quote" data-reveal>
-    <p class="method__quote-text">“La investigación es más pasión que conocimiento; el conocimiento se produce en ese proceso pasional que tenemos con lo que nos interesa.”</p>
+    <!-- F8: no era espaciado. El frame (`nodo 3 metodo.png`, slice final)
+         dibuja la cita en 5 renglones de pitch UNIFORME 52px — sin huecos de
+         párrafo — cortando por cláusula tras "conocimiento;" y tras
+         "se produce". El resto lo envuelve la caja de 896px sola. -->
+    <p class="method__quote-text">“La investigación es más pasión que conocimiento;<br>el conocimiento se produce<br>en ese proceso pasional que tenemos con lo que nos interesa.”</p>
     <cite class="method__quote-attr">— Melisa Ballesteros Mejía</cite>
   </blockquote>
 
-  <p class="method__outro" data-reveal>Es la misma idea detrás de esa línea de Ratatouille: no es que cualquiera pueda ser un gran cocinero — es que un gran cocinero puede estar en cualquier parte.</p>
+  <!-- F8: mismo caso que la cita — 4 renglones de pitch uniforme (~61px),
+       cortados tras "Ratatouille:" y tras "cocinero". El frame suprime los
+       guiones largos; el vault manda en el texto literal (00 - Indice.md),
+       así que se conservan y solo se calca el corte. -->
+  <p class="method__outro" data-reveal>Es la misma idea detrás de esa línea de Ratatouille:<br>no es que cualquiera pueda ser un gran cocinero —<br>es que un gran cocinero puede estar en cualquier parte.</p>
 
 </section>
 
@@ -1454,7 +1515,7 @@
 ></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="script.js?v=74"></script>
+<script src="script.js?v=75"></script>
 
 </body>
 </html>

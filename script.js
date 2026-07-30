@@ -1996,7 +1996,16 @@ void main() {
           page.revealTl = gsap.timeline({ paused: true }).to(letters, { y: 0, filter: "blur(0px)", duration: 0.38, stagger: 0.028, ease: "power2.out" });
         } else if (el.classList.contains("territory__note")) {
           const body = el.querySelector(".territory__note-body");
-          const words = body ? splitBlurText(body, { by: "words", direction: "bottom", distance: 16, blur: 6 }) : [];
+          // F6: Ladera y Cima parten el cuerpo en <p> (el frame los separa con
+          // 52px); Suelo lo deja como un <p> suelto. splitBlurText solo mira
+          // los TEXT_NODE hijos DIRECTOS, así que con párrafos anidados hay
+          // que llamarlo por párrafo o la nota se queda sin palabras y sin
+          // reveal.
+          const chunks = body ? Array.from(body.querySelectorAll("p")) : [];
+          const sources = chunks.length ? chunks : body ? [body] : [];
+          const words = sources.flatMap((src) =>
+            splitBlurText(src, { by: "words", direction: "bottom", distance: 16, blur: 6 })
+          );
           page.revealTl = gsap.timeline({ paused: true });
           if (words.length) page.revealTl.to(words, { y: 0, filter: "blur(0px)", duration: 0.26, stagger: 0.045, ease: "power2.out" });
           const callout = el.querySelector(".territory__callout");

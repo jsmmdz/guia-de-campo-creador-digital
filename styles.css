@@ -908,8 +908,22 @@ body:not(.enhanced) .territory__marquee { display: none; }
    NUNCA grid-column acá (ver CLAUDE.md error #1: un elemento que es su
    propia página no es ítem de ninguna grilla ajena) — se resuelve con
    max-width + margin auto asimétrico, dejando la banda central libre. */
+/* F3: la caja medía 40% (576px a 1440, 448 de contenido tras el padding de
+   .territory__page) y arrancaba en el padding de la página (64px). El frame
+   la dibuja de 398px arrancando en x=104 — medido píxel a píxel sobre
+   `nodo 2 (1).png`: la tinta de los fragmentos cae entre 328 y 394px de
+   ancho, con centros en x=303 y x=1137 (simétricos: 1440-1137=303). Con la
+   caja 12% más ancha y 40px más adentro, un fragmento que en Figma son 3
+   renglones cortos entra acá en 1 o 2 largos y se lee como párrafo de
+   libro, no como fragmento suelto. Slope y techo por DESIGN.md §2
+   (398→27.64vw/530px · 104→7.23vw/138px), con min() y techo en px porque
+   `vw` puro desborda por la barra de scroll (§2, último bloque).
+   El padding horizontal pasa a 0 acá: la separación del borde ahora la da
+   margin-inline, que es lo que el frame mide. El vertical no se toca. */
 .territory__zigzag {
-  max-width: 40%;
+  max-width: min(27.64vw, 530px);
+  padding-inline: 0;
+  margin-inline: min(7.23vw, 138px);
   font-family: var(--t-f-serif);
   font-style: italic;
   font-weight: 400;
@@ -942,6 +956,29 @@ body:not(.enhanced) .territory__marquee { display: none; }
 }
 .territory__emphasis--l { margin-right: auto; text-align: center; }
 .territory__emphasis--r { margin-left: auto; text-align: center; }
+
+/* F5: los DOS énfasis de Cima ("no hay un plan," / "ni un ascenso posible
+   desde abajo.") no llevan --l ni --r y caían a la izquierda con el 46% del
+   tier base. En `nodo 2 (3).png` están centrados y ocupan el ancho completo
+   de la caja de texto: la tinta va de x=472 a 974 (centro 723) y de x=167 a
+   1293 (centro 730), contra un centro de página de 720 — el segundo mide
+   1127px, muy por encima de los 662 que da el 46%, así que centrarlo sin
+   ensancharlo lo partiría en dos renglones que el frame no tiene.
+   1232px es el ancho de columna del frame (104px de margen a cada lado, el
+   mismo que la ficha técnica y el zigzag ya usan). Slope y techo por
+   DESIGN.md §2: 1232/1440 → 85.56vw, techo 1232×4/3 = 1643px — que a 1920
+   deja justo los 138px de margen del techo del zigzag, o sea el sistema
+   cierra solo.
+   Acotado a ≥1024 a propósito: móvil (88% centrado, §1221) y tablet (62%)
+   ya tienen su propia regla y esta las pisaría por especificidad. */
+@media (min-width: 1024px) {
+  .territory__emphasis:not(.territory__emphasis--l):not(.territory__emphasis--r) {
+    max-width: min(85.56vw, 1643px);
+    padding-inline: 0;
+    margin-inline: auto;
+    text-align: center;
+  }
+}
 
 /* ---------- título de tramo / nombre de nivel ---------- */
 .territory__stint-title,
@@ -1084,8 +1121,11 @@ body.territory-ascent .territory__center { opacity: 1; }
   /* F4 — escala medida en el frame: la letra F de "FICHA TÉCNICA" mide 28px
      de altura de mayúscula (x:132..169, y:5730..5757), que en Gantari
      (cap-height ≈ 0.73em) da ~38px de font-size. Eran 15px, y a esa escala
-     no se leía como título del panel sino como otro dato más. */
-  font-size: 38px;
+     no se leía como título del panel sino como otro dato más.
+     Legibilidad — el 38px del frame pasa por la fórmula de DESIGN.md §2 en
+     vez de quedar fijo: slope 38/1440 = 2.64vw, techo 38×4/3 = 50.67px,
+     piso 2.7×38^0.57 ≈ 22px. A 1440 sigue devolviendo el literal medido. */
+  font-size: clamp(22px, 2.64vw, 50.67px);
   letter-spacing: 0.04em;
   color: var(--t-lilac); /* F4 — era --signal-hi (índigo global), el frame lo pinta lila */
 }
@@ -1094,7 +1134,9 @@ body.territory-ascent .territory__center { opacity: 1; }
   top: var(--sp-2);
   right: var(--sp-3);
   font-family: var(--f-sans);
-  font-size: 10px;
+  /* Legibilidad — 10px fijos quedaban por debajo del mínimo de etiqueta que
+     fija DESIGN.md §2 (11px). Sube al tier tabulado de 12px. */
+  font-size: clamp(11px, 0.84vw, 16px);
   letter-spacing: 0.2em;
   opacity: 0.55;
 }
@@ -1118,7 +1160,10 @@ body.territory-ascent .territory__center { opacity: 1; }
   font-style: italic;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 13px;
+  /* Legibilidad — el label de la ficha era 13px fijos, un valor que no está
+     en la escala de DESIGN.md §2 y que a esta distancia de lectura no se
+     leía. Sube al tier tabulado de 20px: clamp(15px, 1.39vw, 26.67px). */
+  font-size: clamp(15px, 1.39vw, 26.67px);
   letter-spacing: 0.16em;
   /* F4 — el label es el elemento que diferencia la lectura de instrumento
      de su contenido: va en naranja pleno. El opacity:0.7 anterior lo
@@ -1143,7 +1188,10 @@ body.territory-ascent .territory__center { opacity: 1; }
   text-align: center;
   font-family: var(--t-f-display);
   font-weight: 400;
-  font-size: 13px;
+  /* Legibilidad — mismo tier de 20px que el label (ver dt). La jerarquía
+     entre label y valor la dan el peso, la caja alta y el color, no el
+     tamaño: a 13px ninguno de los dos se leía. */
+  font-size: clamp(15px, 1.39vw, 26.67px);
   line-height: 1.5;
 }
 .territory__card-highlight {
@@ -1179,6 +1227,14 @@ body.territory-ascent .territory__center { opacity: 1; }
   font-size: clamp(1.125rem, 2.22vw, 2.25rem);
   line-height: 1.5;
 }
+/* F6 — salto entre fragmentos de la nota. 52px a 1440 medidos en
+   `nodo 2 (2).png` (pitch de renglón 53px, hueco entre párrafos 104 = 53+51,
+   idéntico en los dos saltos) y confirmados en `nodo 2 (3).png`. Fórmula
+   §2: slope 52/1440 = 3.62vw (hacia arriba), techo 52 × 4/3 = 69.33px,
+   piso 26px interpolado entre los anclas de 48px→25 y 85px→33.
+   Suelo NO lleva estos saltos: su frame dibuja la nota como bloque
+   continuo, así que su cuerpo sigue siendo un <p> suelto. */
+.territory__note-body p + p { margin-top: clamp(26px, 3.62vw, 69.33px); }
 .territory__callout {
   grid-column: 1 / -1;
   max-width: 620px;
@@ -1236,16 +1292,27 @@ body.territory-ascent .territory__center { opacity: 1; }
 }
 /* tablet 768–1023 */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .territory__zigzag { max-width: 56%; }
+  /* F3 es una corrección medida contra el frame de 1440 y no hay frame de
+     tablet: acá se deshacen padding-inline/margin-inline de la regla base
+     para dejar este tier exactamente como estaba antes. */
+  .territory__zigzag { max-width: 56%; padding-inline: var(--sp-4); margin-inline: 0; }
   .territory__emphasis { max-width: 62%; }
 }
 /* desktop 1440–1919 */
 @media (min-width: 1440px) and (max-width: 1919px) {
   .territory__page { padding: var(--sp-5) var(--sp-5); }
+  /* el shorthand de arriba vuelve a poner padding horizontal y le gana al
+     padding-inline:0 de .territory__zigzag por orden de aparición (misma
+     especificidad). Se repite acá para que la caja de 398px del frame sea
+     398px de TEXTO, no 398 menos 128 de padding. */
+  .territory__zigzag,
+  .territory__emphasis:not(.territory__emphasis--l):not(.territory__emphasis--r) { padding-inline: 0; }
 }
 /* pantallas grandes ≥1920 */
 @media (min-width: 1920px) {
   .territory__page { padding: var(--sp-6) var(--sp-6); }
+  .territory__zigzag,
+  .territory__emphasis:not(.territory__emphasis--l):not(.territory__emphasis--r) { padding-inline: 0; } /* mismo motivo que en 1440–1919 */
 }
 
 /* ============================================================
@@ -1468,8 +1535,16 @@ body.method-js .method [data-reveal].no-anim {
      descontada— restaría el margen dos veces. A 1440 daba 1020px en vez
      de 1229. Es el mismo bug que el comentario de .routes advierte, con
      los papeles cambiados: allá la sección es full-bleed y el margen lo
-     pone cada bloque; acá lo pone la sección y los bloques no deben. */
-  max-width: 1229px;
+     pone cada bloque; acá lo pone la sección y los bloques no deben.
+
+     La columna sí escala: en px pelado se quedaba clavada en 1229 mientras
+     la tipografía crecía ×4/3 hasta 1920 (D-12), y ahí "No lo leíste en
+     ningún libro." y "Eso tiene nombre técnico:" rompían en dos renglones
+     — el único tier donde no se comportaban como en los demás. Fórmula §2:
+     slope 1229/1440 = 85.35vw (hacia arriba), techo 1229 × 4/3 = 1638.67,
+     que entra en los 1640 de caja de contenido a 1920 (viewport menos dos
+     --page-margin de 140). `min()` con techo en px, nunca vw puro (§2). */
+  max-width: min(85.35vw, 1638.67px);
   margin: 0 auto;
 }
 .method__serif {
@@ -1513,8 +1588,16 @@ body.method-js .method [data-reveal].no-anim {
   font-size: clamp(36px, 6.67vw, 128px);
   line-height: normal; /* §5 */
 }
-.method__line--2 { margin-top: var(--sp-3); }
-.method__line--3 { margin-top: var(--sp-4); }
+/* F7 — el respiro entre las 3 líneas sale del frame, no del tokenizado.
+   Medido en `nodo 3 metodo.png` tapa-a-tapa de tinta: 1820 → 2292 → 2676,
+   o sea 472 y 384. El sitio daba 142 y 158, y por eso las tres caían en una
+   sola pantalla. Los saltos DECRECEN (472 → 384 → 301): es un accelerando
+   deliberado del frame, no un valor uniforme.
+   Fórmula §2 sobre los margin-top resultantes (354 y 266 a 1440):
+   slope 24.59vw / 18.48vw hacia arriba, techo × 4/3. El piso se deja en el
+   token que había, para no mover móvil ni tablet. */
+.method__line--2 { margin-top: clamp(var(--sp-3), 24.59vw, 472px); }
+.method__line--3 { margin-top: clamp(var(--sp-4), 18.48vw, 354.67px); }
 
 /* ============================================================
    3.3 / 3.6 — enunciados grandes (picos)
@@ -1534,7 +1617,9 @@ body.method-js .method [data-reveal].no-anim {
   font-size: clamp(33px, 5.91vw, 113.33px);
   line-height: normal; /* §5 */
   color: var(--paper);
-  margin-top: var(--sp-6);
+  /* F7: 183px a 1440 para que "Eso tiene nombre técnico:" → el pico quede a
+     los 301 del frame (daba 214). Slope 12.71vw, techo 244. */
+  margin-top: clamp(var(--sp-6), 12.71vw, 244px);
   margin-bottom: var(--sp-6);
 }
 /* `EMERGE DE ÉL` no es el mismo pico que `INVESTIGACIÓN-CREACIÓN.`, aunque
@@ -1557,7 +1642,10 @@ body.method-js .method [data-reveal].no-anim {
   max-width: 40rem;
   padding-left: var(--sp-3);
   border-left: 1px solid var(--t-hairline);
-  margin-top: var(--sp-5);
+  /* F7: 230px a 1440. Gana por colapso de márgenes sobre el margin-bottom
+     de .method__term (96px), y deja el salto pico → definición en los 332
+     del frame (daba 198). Slope 15.98vw, techo 306.67. */
+  margin-top: clamp(var(--sp-5), 15.98vw, 306.67px);
 }
 .method__definition p {
   font-family: var(--t-f-serif);
@@ -1573,7 +1661,9 @@ body.method-js .method [data-reveal].no-anim {
   line-height: var(--m-lh-528); /* 52.8px absoluto (§5), era ratio 1.45 = 69.6px a 1440 */
   text-align: left;
 }
-.method__definition p + p { margin-top: var(--sp-2); }
+/* F7: mismo salto de 52px entre fragmentos que la Nota de Campo de
+   Territorio (F6) — el frame lo repite en los dos nodos. Eran 16px. */
+.method__definition p + p { margin-top: clamp(var(--sp-2), 3.62vw, 69.33px); }
 
 /* ============================================================
    3.5 / 3.10 — diagramas
@@ -1823,7 +1913,11 @@ body.method-js .method [data-reveal].no-anim {
 .method__quote {
   margin-top: var(--sp-6);
   margin-bottom: var(--sp-6);
-  max-width: 896px; /* Figma (D-01), era 42rem/672px — Δ−224 */
+  /* 896px a 1440 medidos en Figma (D-01), eran 42rem/672px — Δ−224. En px
+     pelado se quedaba clavado mientras la tipografía crecía ×4/3, y la cita
+     pasaba de 5 renglones a 6 solo a 1920: el mismo escalón que .method__
+     opening. Fórmula §2: slope 896/1440 = 62.23vw, techo 896 × 4/3. */
+  max-width: min(62.23vw, 1194.67px);
   padding-left: var(--sp-3);
   border-left: 1px solid var(--t-hairline);
 }
@@ -1856,7 +1950,13 @@ body.method-js .method [data-reveal].no-anim {
 .method__outro {
   margin-top: var(--sp-6);
   padding-bottom: var(--sp-3);
-  max-width: 38rem;
+  /* F8: 38rem/608px era uno de los valores "a ojo" que DESIGN.md D-01
+     señala. Con los cortes por cláusula del frame, el renglón más largo
+     mide 1169px medidos en `nodo 3 metodo.png`, así que 608 los volvía a
+     partir. Queda 1229px — la columna de contenido de Método ya medida en
+     Figma y en uso en .method__opening §1518 — no un número nuevo, y con
+     la misma curva para que escale igual en todos los tiers. */
+  max-width: min(85.35vw, 1638.67px);
   margin-left: auto;
   margin-right: auto;
   text-align: center;
@@ -1935,7 +2035,14 @@ body.method-js .method [data-reveal].no-anim {
    pisa; --page-margin congela en 140px a 1918 y de ahí en adelante lo que
    crece son los márgenes, que es la regla de §2. */
 @media (min-width: 1920px) {
-  .method { max-width: 1600px; margin: 0 auto; }
+  /* 1918.67px = el diseño de 1440 congelado ×4/3 (D-12): la columna de
+     1229 llega a su techo de 1638.67 más dos --page-margin de 140. Eran
+     1600px, y ahí la caja de contenido caía a 1320 — más ANGOSTA a 1920
+     que a 1600 (1366), justo mientras la tipografía seguía creciendo ×4/3.
+     Ese escalón invertido era el que rompía en dos renglones "No lo leíste
+     en ningún libro." y "Eso tiene nombre técnico:" solo en este tier.
+     Por encima de 1920 no crece nada más: crecen los márgenes (§2). */
+  .method { max-width: 1918.67px; margin: 0 auto; }
 }
 
 /* ============================================================
